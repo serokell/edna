@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2018 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Default hindent config used in Serokell.
+indent-size: 2
+line-length: 80
+force-trailing-newline: true
