@@ -23,6 +23,13 @@ otherwise improve our project, pull requests are most welcome.
 Our pull request template contains a [checklist](.github/pull_request_template.md#white_check_mark-checklist-for-your-pull-request) of acceptance criteria for your pull request.
 Please read it before you start contributing and make sure your contributions adhere to this checklist.
 
+## Cabal and Stack
+
+For Haskell code we use `stack.yaml` to maintain the package
+and its dependencies, but we also provide `cabal.project` and `cabal.project.freeze` files
+in order to provide an ability to build the project using `cabal`.
+If you update `stack.yaml`, run [`scripts/generate-cabal-files.sh`](backend/scripts/generate-cabal-files.sh) to also update those files.
+
 ## Legal
 
 We want to make sure that our projects come with correct licensing information
