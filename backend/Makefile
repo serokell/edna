@@ -1,34 +1,25 @@
-# SPDX-FileCopyrightText: 2019 Serokell <https://serokell.io>
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
 #
 # SPDX-License-Identifier: CC0-1.0
 
-# Example Makefile that you can put into root directory of a Haskell package.
-# We assume that it is called "mypackage".
-# It uses `make/Makefile`.
+.PHONY: build test clean
 
-.PHONY: mypackage test haddock haddock-no-deps stylish lint clean all
+STACK_BUILD_OPTIONS = --haddock --fast --test --bench --no-run-tests --no-run-benchmarks --file-watch
+# Options for tests
+STACK_TEST_OPTIONS = --haddock --fast --test
+# Addtional (specified by user) options passed to test executable
+TEST_ARGUMENTS ?= ""
+# Packages to apply the command (build, test, etc.) for.
+PACKAGE = edna
 
-# Build target from the common utility Makefile
-MAKEU = $(MAKE) -C make/
+# Build everything (including tests and benchmarks) with development options.
+build:
+	stack build $(STACK_BUILD_OPTIONS) $(PACKAGE)
 
-MAKE_PACKAGE = $(MAKEU) PACKAGE=mypackage
-
-mypackage:
-	$(MAKE_PACKAGE) dev
+# Run tests in all packages which have them.
 test:
-	$(MAKE_PACKAGE) test
-test-dumb-term:
-	$(MAKE_PACKAGE) test-dumb-term
-test-hide-successes:
-	$(MAKE_PACKAGE) test-hide-successes
-haddock:
-	$(MAKE_PACKAGE) haddock
-haddock-no-deps:
-	$(MAKE_PACKAGE) haddock-no-deps
-clean:
-	$(MAKE_PACKAGE) clean
+	stack build $(STACK_TEST_OPTIONS) $(PACKAGE) \
+		--test-arguments "--color always $(TEST_ARGUMENTS)" $(STACK_DEV_TEST_OPTIONS)
 
-all:
-	$(MAKEU) PACKAGE=""
-test-all:
-	$(MAKEU) test PACKAGE=""
+clean:
+	stack clean $(PACKAGE)
