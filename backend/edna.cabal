@@ -1,0 +1,82 @@
+cabal-version:  2.4
+name:           edna
+-- When you think it's ready to be released, set the version to something like 0.1.0.
+version:        0
+synopsis:       A tool for data analysis aimed to help researchers with their experiments.
+description:
+  This is the backend (server) for a tool for data analysis aimed to help
+  researchers with their experiments.
+category:       Bio
+homepage:       https://github.com/serokell/edna#readme
+bug-reports:    https://github.com/serokell/edna/issues
+author:         Serokell <hi@serokell.io>
+maintainer:     Serokell <hi@serokell.io>
+copyright:      2021 Serokell <https://serokell.io>
+-- TODO: add license
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/serokell/edna
+
+common common-options
+  build-depends:
+      base <5
+    , universum
+  ghc-options: -Weverything -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-unsafe -Wno-safe -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-implicit-prelude -Wno-prepositive-qualified-module -Wno-inferred-safe-imports -Wno-missing-safe-haskell-mode
+  default-extensions: AllowAmbiguousTypes BangPatterns BlockArguments ConstraintKinds DataKinds DefaultSignatures DeriveAnyClass DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DerivingStrategies DerivingVia EmptyCase FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NegativeLiterals NumDecimals NoImplicitPrelude OverloadedLabels OverloadedStrings PatternSynonyms PolyKinds QuasiQuotes RankNTypes RecordWildCards RecursiveDo ScopedTypeVariables StandaloneDeriving StrictData TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators UndecidableInstances UndecidableSuperClasses ViewPatterns
+  default-language: Haskell2010
+
+library
+  import: common-options
+  exposed-modules:
+      Stub
+  other-modules:
+      Paths_edna
+  hs-source-dirs:
+      src
+
+executable edna-server
+  import: common-options
+  main-is: Main.hs
+  other-modules:
+      Paths_edna
+  hs-source-dirs:
+      app
+  build-depends:
+      edna
+
+test-suite edna-test
+  import: common-options
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Test.Edna
+      Paths_edna
+  hs-source-dirs:
+      test
+  ghc-options:
+    -- Non-exhaustive patterns are ok and useful in tests.
+    -Wno-incomplete-patterns
+    -- tasty runs tests in parallel, so using multiple threads should be useful.
+    -threaded
+    -- should be harmless, but helps some people analyse something :shrug:
+    -eventlog
+    -- Enable -N to use multiple threads.
+    -- Increase allocation area by using the recommended -A64m option.
+    -- Also increase the allocation area for large objects with -AL256m,
+    -- since this area is shared between all threads and thus with high -N
+    -- values get used up too soon.
+
+    -- With these options tests usually run faster.
+
+    -- Weird quoting is required for cabal to correctly pass this as _one_ option,
+    -- otherwise it splits by spaces.
+    "-with-rtsopts=-N -A64m -AL256m"
+  build-tool-depends:
+      tasty-discover:tasty-discover
+  build-depends:
+      HUnit
+    , edna
+    , tasty
+    , tasty-hunit-compat
