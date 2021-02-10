@@ -1,0 +1,5 @@
+{
+  "plugins": [
+    "inline-react-svg"
+  ]
+}

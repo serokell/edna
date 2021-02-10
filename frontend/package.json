@@ -1,0 +1,65 @@
+{
+  "name": "edna-app",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Serokell <hi@serokell.io>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "classnames": "^2.2.6",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@svgr/webpack": "^5.5.0",
+    "@types/classnames": "^2.2.8",
+    "@types/react": "^16.9.56",
+    "@types/react-dom": "^16.9.9",
+    "@typescript-eslint/eslint-plugin": "^4.5.0",
+    "@typescript-eslint/parser": "^4.5.0",
+    "autoprefixer": "^9.0.0",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-import": "^1.13.3",
+    "babel-plugin-inline-react-svg": "^1.1.2",
+    "css-loader": "^5.0.1",
+    "eslint": "^7.11.0",
+    "eslint-config-prettier": "^5.0.0",
+    "eslint-plugin-jest": "^24.1.3",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-react": "^7.14.2",
+    "eslint-plugin-testing-library": "^3.10.1",
+    "html-webpack-plugin": "^4.5.1",
+    "mini-css-extract-plugin": "^1.3.4",
+    "node-sass": "^4.12.0",
+    "postcss-loader": "^5.0.0",
+    "prettier": "^1.18.2",
+    "react-scripts": "4.0.0",
+    "react-svg-loader": "^3.0.3",
+    "sass": "^1.22.4",
+    "sass-loader": "^10.1.1",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.0.14",
+    "typescript": "^4.1.3",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.21.2",
+    "webpack-cli": "^4.3.1",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-merge": "^5.7.3"
+  },
+  "scripts": {
+    "clean": "rm -rf dist/ && rm -rf .cache/",
+    "serve": "webpack serve --config webpack.dev.js",
+    "build": "webpack --config webpack.dev.js",
+    "tscompile": "tsc",
+    "test": "jest",
+    "tslint": "eslint src/ --ext ts,tsx",
+    "tslint:fix": "yarn tslint --fix"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  }
+}
