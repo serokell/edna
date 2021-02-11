@@ -1,5 +1,5 @@
 <!--
-   - SPDX-FileCopyrightText: 2018-2019 Serokell <https://serokell.io>
+   - SPDX-FileCopyrightText: 2018-2021 Serokell <https://serokell.io>
    -
    - SPDX-License-Identifier: CC0-1.0
    -->
@@ -8,16 +8,12 @@
 
 ## Reporting Issues
 
-[//]: # (Add proper project)
-[//]: # (Can be a github link)
-Please [open an issue](https://issues.serokell.io/newIssue?project=KEK)
+Please [open an issue](https://github.com/serokell/edna/issues/new/choose)
 if you find a bug or have a feature request.
-Note: you need to login (e. g. using your GitHub account) first.
 Before submitting a bug report or feature request, check to make sure it hasn't already been submitted
 
 The more detailed your report is, the faster it can be resolved.
 If you report a bug, please provide steps to reproduce this bug and revision of code in which this bug reproduces.
-
 
 ## Code
 
@@ -27,16 +23,12 @@ otherwise improve our project, pull requests are most welcome.
 Our pull request template contains a [checklist](.github/pull_request_template.md#white_check_mark-checklist-for-your-pull-request) of acceptance criteria for your pull request.
 Please read it before you start contributing and make sure your contributions adhere to this checklist.
 
+## Cabal and Stack
 
-[//]: # (Describe some useful for developers things present in this repository)
-[//]: # (For example, you can have a Makefile)
-## Makefile
-
-We have a [Makefile](/Makefile) which provides shortcuts for the most
-common developers' activities, like building with flags suitable for
-development, testing, applying `stylish-haskell` and `hlint`, building
-Haddock documentation.
-
+For Haskell code we use `stack.yaml` to maintain the package
+and its dependencies, but we also provide `cabal.project` and `cabal.project.freeze` files
+in order to provide an ability to build the project using `cabal`.
+If you update `stack.yaml`, run [`scripts/generate-cabal-files.sh`](backend/scripts/generate-cabal-files.sh) to also update those files.
 
 ## Legal
 

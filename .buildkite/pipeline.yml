@@ -1,0 +1,4 @@
+steps:
+  - label: check trailing whitespace
+    commands:
+    - .buildkite/check-trailing-whitespace.sh

@@ -1,11 +1,6 @@
-# SPDX-FileCopyrightText: 2018 Serokell <https://serokell.io>
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
 #
 # SPDX-License-Identifier: CC0-1.0
-
-### This is a TEMPLATE of stylish-haskell config.
-### It MAY be used as is, but see the NOTE about `language_pragmas`
-
-# Default stylish-haskell config used in Serokell.
 
 steps:
   - simple_align:
@@ -21,12 +16,9 @@ steps:
       list_padding: 2
       separate_lists: false
       space_surround: false
-# NOTE: if you don't want language pragmas to be affected, remove these lines.
-# Otherwise, uncomment and set style to `compact`, `vertical` or `compact_line`
-# as you prefer.
-#  - language_pragmas:
-#      style: compact
-#      remove_redundant: true
+  - language_pragmas:
+      style: vertical
+      remove_redundant: true
   - trailing_whitespace: {}
 columns: 100
 newline: native
