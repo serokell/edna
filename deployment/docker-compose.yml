@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  postgres:
+    image: "postgres"
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ednauser
+      POSTGRES_PASSWORD: ednapass
+      POSTGRES_DB: ednadb
+    volumes:
+      - ./postgres:/var/lib/postgresql/data/
+    networks:
+      - edna-network
+networks:
+  edna-network: { }
