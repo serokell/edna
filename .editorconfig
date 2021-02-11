@@ -5,7 +5,7 @@
 # top-most EditorConfig file
 root = true
 
-[*.hs]
+[*.{hs, ts, tsx, scss, json, js, svg}]
 indent_style = space
 indent_size = 2
 end_of_line = lf
