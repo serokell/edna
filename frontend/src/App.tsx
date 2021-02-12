@@ -1,15 +1,33 @@
-import React, {FunctionComponent, ReactElement} from "react";
-import SerokellLogo from "~/assets/serokell.svg"
+import React, { FunctionComponent, ReactElement, useEffect } from "react";
+import SerokellLogo from "~/assets/serokell.svg";
+
+interface F {
+  x: number;
+  y: number;
+}
+
+export type Z = "a" | "b";
 
 export const App: FunctionComponent = (): ReactElement => {
-  // TODO remove. Code needed to check eslint react config
+  // Uncomment this code make sure eslint react config works
   // const f = () => {
-  //     useEffect(() => {
-  //
-  //     }, [])
-  // }
-  // f()
-  return <>
-    <SerokellLogo/>
-    Hello, Gromak! How are you?'</>
-}
+  //   useEffect(() => {
+  //     return () => {
+  //       // do nothing intentionally
+  //     };
+  //   }, []);
+  // };
+  // f();
+
+  const l = 4;
+  const fun = (x: number) => {
+    return x + 5;
+  };
+
+  return (
+    <>
+      <SerokellLogo />
+      Hello, Gromak! How are you?'
+    </>
+  );
+};

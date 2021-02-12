@@ -55,11 +55,5 @@
     "test": "jest",
     "tslint": "eslint src/ --ext ts,tsx",
     "tslint:fix": "yarn tslint --fix"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   }
 }
