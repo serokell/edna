@@ -20,5 +20,5 @@ in
 
 {
   inherit (backend)
-    agora-backend;
+    edna-backend;
 }
