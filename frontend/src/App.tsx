@@ -1,10 +1,10 @@
-import React, { FunctionComponent, ReactElement, useEffect } from "react";
-import SerokellLogo from "~/assets/serokell.svg";
+import React, { FunctionComponent, ReactElement } from "react";
+import SerokellLogo from "~/assets/svg/serokell.svg";
 
-interface F {
-  x: number;
-  y: number;
-}
+// interface F {
+//   x: number;
+//   y: number;
+// }
 
 export type Z = "a" | "b";
 
@@ -19,10 +19,10 @@ export const App: FunctionComponent = (): ReactElement => {
   // };
   // f();
 
-  const l = 4;
-  const fun = (x: number) => {
-    return x + 5;
-  };
+  // const l = 4;
+  // const fun = (x: number) => {
+  //   return x + 5;
+  // };
 
   return (
     <>

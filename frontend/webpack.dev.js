@@ -1,13 +1,15 @@
-const {merge} = require('webpack-merge');
-const common = require('./webpack.common.js');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { merge } = require("webpack-merge");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const common = require("./webpack.common.js");
 
 module.exports = merge(common, {
-  mode: 'development',
+  mode: "development",
   // devtool from here https://github.com/TypeStrong/ts-loader
-  devtool: 'inline-source-map',
+  devtool: "inline-source-map",
   devServer: {
-    contentBase: './dist',
-    host: '0.0.0.0',
+    contentBase: "./dist",
+    host: "0.0.0.0",
     port: 9000,
 
     hot: true,
@@ -16,12 +18,12 @@ module.exports = merge(common, {
 
     // Redirect api requests to the backend
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      "/api": {
+        target: "http://localhost:8080"
       }
-    },
+    }
 
     // Uncomment in case of some troubles to inspect whether dev server generates bundles
     // writeToDisk: true,
-  },
+  }
 });

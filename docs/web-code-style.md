@@ -18,3 +18,20 @@ We call files in our project according to these rules:
     `util.ts`, `orderedSet.ts`, `primitiveTypes.ts`, `picture.svg`, etc.
 
 * React components and corresponding styling files are named with the same name, only file extensions are different.
+
+## Folders
+
+We keep all related components/pages in the corresponding folders, for example:
+
+```
+- MainPage/:
+    MainPage.tsx
+    MainPage.scss
+    - PopupDialog/
+          PopupDialog.tsx
+          PopupDialog.scss
+```
+
+## Quotes
+
+We use double quotes by default.

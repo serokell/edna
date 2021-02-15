@@ -1,22 +1,25 @@
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require("path");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-  target: 'web',
+  target: "web",
   entry: {
-    app: './src/index.tsx'
+    app: "./src/index.tsx"
   },
   output: {
     // Add hash to make filename different depending on file content
     // to enforce browsers to reload changes in production.
-    filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'dist'),
+    filename: "[name].[contenthash].js",
+    path: path.resolve(__dirname, "dist")
   },
 
   resolve: {
     alias: {
-      '~': path.resolve(__dirname, 'src/'),
+      "~": path.resolve(__dirname, "src/")
     },
     // Add `.ts` and `.tsx` as a resolvable extension.
     extensions: [".ts", ".tsx", ".js"]
@@ -35,22 +38,22 @@ module.exports = {
         use: [
           {
             loader: MiniCssExtractPlugin.loader,
-            options: {},
+            options: {}
           },
-          'css-loader',
-          'postcss-loader',
-          'sass-loader',
-        ],
+          "css-loader",
+          "postcss-loader",
+          "sass-loader"
+        ]
       },
 
       {
         test: /\.(png|jpg|jpeg|gif)$/i,
         use: [
           {
-            loader: 'url-loader',
+            loader: "url-loader",
             options: {
-              limit: 10000,
-            },
+              limit: 10000
+            }
           }
         ]
       },
@@ -65,34 +68,35 @@ module.exports = {
           {
             loader: "babel-loader",
             options: {
-              presets: ['@babel/preset-react']
+              presets: ["@babel/preset-react"]
             }
           },
           {
-            loader: 'react-svg-loader',
+            loader: "react-svg-loader",
             options: {
               jsx: true // true outputs JSX tags
             }
-          }],
-      },
+          }
+        ]
+      }
     ]
   },
 
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'style.[contenthash].css',
+      filename: "style.[contenthash].css"
     }),
 
     new HtmlWebpackPlugin({
-      template: 'src/index.template.html',
-      filename: 'index.html',
+      template: "src/index.template.html",
+      filename: "index.html",
       publicPath: "/",
       minify: {
         collapseWhitespace: true,
         removeComments: true,
         removeRedundantAttributes: true,
-        useShortDoctype: true,
-      },
+        useShortDoctype: true
+      }
     })
   ]
 };
