@@ -5,6 +5,7 @@
   "author": "Serokell <hi@serokell.io>",
   "license": "UNLICENSED",
   "dependencies": {
+    "@bem-react/classname": "^1.5.9",
     "axios": "^0.19.0",
     "classnames": "^2.2.6",
     "react": "^17.0.1",
