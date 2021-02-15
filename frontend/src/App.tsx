@@ -8,7 +8,7 @@ import SerokellLogo from "~/assets/svg/serokell.svg";
 
 export type Z = "a" | "b";
 
-export const App: FunctionComponent = (): ReactElement => {
+export const App: FunctionComponent = (): ReactElement => (
   // Uncomment this code make sure eslint react config works
   // const f = () => {
   //   useEffect(() => {
@@ -24,10 +24,8 @@ export const App: FunctionComponent = (): ReactElement => {
   //   return x + 5;
   // };
 
-  return (
-    <>
-      <SerokellLogo />
-      Hello, Gromak! How are you?'
-    </>
-  );
-};
+  <>
+    <SerokellLogo />
+    Hello, Gromak! How are you?
+  </>
+);

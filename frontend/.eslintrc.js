@@ -1,12 +1,17 @@
 module.exports = {
   extends: [
-    "react-app",
-    "react-app/jest",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:import/typescript",
-    "plugin:prettier/recommended",
-    "prettier/@typescript-eslint",
-    "prettier/react"
+    "airbnb-typescript",
+    "airbnb/hooks",
+    "plugin:@typescript-eslint/recommended"
+  ],
+
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      parserOptions: {
+        project: ['./tsconfig.json']
+      }
+    }
   ],
 
   plugins: ["@typescript-eslint"],
@@ -26,8 +31,8 @@ module.exports = {
       }
     ],
 
-    // Use double quotes
-    quotes: [2, "double", { avoidEscape: true }],
+    quotes: "off",
+    "@typescript-eslint/quotes": [2, "double", { avoidEscape: true }],
 
     // Use TS no-unused-vars rule
     "no-unused-vars": "off",
