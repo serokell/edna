@@ -1,4 +1,16 @@
 steps:
   - label: check trailing whitespace
     commands:
-    - .buildkite/check-trailing-whitespace.sh
+      - .buildkite/check-trailing-whitespace.sh
+  - label: backend server
+    commands:
+      - nix-build -A packages.x86_64-linux.backend-server
+  - label: backend lib
+    commands:
+      - nix-build -A packages.x86_64-linux.backend-lib
+  - label: backend test
+    commands:
+      - nix-build -A checks.x86_64-linux.backend-test
+  - label: backend hlint
+    commands:
+      - nix-shell --run 'hlint backend -j'
