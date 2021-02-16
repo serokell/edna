@@ -1,50 +1,50 @@
 {
-  "gitignore": {
-    "branch": "master",
-    "description": "Nix function for filtering local git sources",
-    "homepage": "",
-    "owner": "hercules-ci",
-    "repo": "gitignore",
-    "rev": "f9e996052b5af4032fe6150bba4a6fe4f7b9d698",
-    "sha256": "0jrh5ghisaqdd0vldbywags20m2cxpkbbk5jjjmwaw0gr8nhsafv",
-    "type": "tarball",
-    "url": "https://github.com/hercules-ci/gitignore/archive/f9e996052b5af4032fe6150bba4a6fe4f7b9d698.tar.gz",
-    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-  },
-  "haskell-nix": {
-    "branch": "master",
-    "description": "Alternative Haskell Infrastructure for Nixpkgs",
-    "homepage": "https://input-output-hk.github.io/haskell.nix",
-    "owner": "serokell",
-    "repo": "haskell.nix",
-    "rev": "b244e90b03818172c6ae45c7756f4513e73e17f6",
-    "sha256": "138lhvgzfvb183v74j4bxai17z9b1vvjfmkdf7cw0v0ps4fw6i6l",
-    "type": "tarball",
-    "url": "https://github.com/serokell/haskell.nix/archive/b244e90b03818172c6ae45c7756f4513e73e17f6.tar.gz",
-    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-  },
-  "nix-npm-buildpackage": {
-    "branch": "master",
-    "description": "build nix packages that use npm/yarn packages",
-    "homepage": "",
-    "owner": "serokell",
-    "repo": "nix-npm-buildpackage",
-    "rev": "9e7c1fcd5d439a4d453f09898298a55b379ef5c6",
-    "sha256": "1n0hnx86lhgmryj21n6vgwdsw8lw4vzkyb2myaj54fkswn6vx0hv",
-    "type": "tarball",
-    "url": "https://github.com/serokell/nix-npm-buildpackage/archive/9e7c1fcd5d439a4d453f09898298a55b379ef5c6.tar.gz",
-    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-  },
-  "nixpkgs": {
-    "branch": "master",
-    "description": "Pinned Nixpkgs tree (master follows nixos-unstable-small, only tags have stable history)",
-    "homepage": "",
-    "owner": "serokell",
-    "repo": "nixpkgs",
-    "rev": "42677838840d96dcb29f4ccea43a1a730d18a031",
-    "sha256": "0v4cwbyhja50ksqvcdy1my0kj5033q7wxmplxk82z7k0wf4q2pwn",
-    "type": "tarball",
-    "url": "https://github.com/serokell/nixpkgs/archive/42677838840d96dcb29f4ccea43a1a730d18a031.tar.gz",
-    "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-  }
+    "gitignore": {
+        "branch": "master",
+        "description": "Nix function for filtering local git sources",
+        "homepage": "",
+        "owner": "hercules-ci",
+        "repo": "gitignore",
+        "rev": "f9e996052b5af4032fe6150bba4a6fe4f7b9d698",
+        "sha256": "0jrh5ghisaqdd0vldbywags20m2cxpkbbk5jjjmwaw0gr8nhsafv",
+        "type": "tarball",
+        "url": "https://github.com/hercules-ci/gitignore/archive/f9e996052b5af4032fe6150bba4a6fe4f7b9d698.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "haskell-nix": {
+        "branch": "master",
+        "description": "Alternative Haskell Infrastructure for Nixpkgs",
+        "homepage": "https://input-output-hk.github.io/haskell.nix",
+        "owner": "serokell",
+        "repo": "haskell.nix",
+        "rev": "bd45da822d2dccdbb3f65d0b52dd2a91fd65ca4e",
+        "sha256": "0cdlqfvjd8nijbq9353h4g5j89qfhskpbb23vjp40pzqddljazi9",
+        "type": "tarball",
+        "url": "https://github.com/serokell/haskell.nix/archive/bd45da822d2dccdbb3f65d0b52dd2a91fd65ca4e.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nix-npm-buildpackage": {
+        "branch": "master",
+        "description": "build nix packages that use npm/yarn packages",
+        "homepage": "",
+        "owner": "serokell",
+        "repo": "nix-npm-buildpackage",
+        "rev": "9e7c1fcd5d439a4d453f09898298a55b379ef5c6",
+        "sha256": "1n0hnx86lhgmryj21n6vgwdsw8lw4vzkyb2myaj54fkswn6vx0hv",
+        "type": "tarball",
+        "url": "https://github.com/serokell/nix-npm-buildpackage/archive/9e7c1fcd5d439a4d453f09898298a55b379ef5c6.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "master",
+        "description": "Pinned Nixpkgs tree (master follows nixos-unstable-small, only tags have stable history)",
+        "homepage": "",
+        "owner": "serokell",
+        "repo": "nixpkgs",
+        "rev": "42677838840d96dcb29f4ccea43a1a730d18a031",
+        "sha256": "0v4cwbyhja50ksqvcdy1my0kj5033q7wxmplxk82z7k0wf4q2pwn",
+        "type": "tarball",
+        "url": "https://github.com/serokell/nixpkgs/archive/42677838840d96dcb29f4ccea43a1a730d18a031.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
 }
