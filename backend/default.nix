@@ -3,7 +3,7 @@
 let
   project = pkgs.haskell-nix.stackProject {
     src = with pkgs.haskell-nix.haskellLib; cleanSourceWith {
-      name = "agora";
+      name = "edna";
       src = cleanGit {
         src = ../.;
         subDir = "backend";
@@ -12,8 +12,8 @@ let
     modules = [
       ({ pkgs, ... }: {
         packages = {
-          agora = {
-            components.tests.agora-test = {
+          edna = {
+            components.tests.edna-test = {
               # These are runtime deps, but there is nowhere else to put them
               build-tools = with pkgs; [
                 ephemeralpg
