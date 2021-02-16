@@ -4,4 +4,4 @@ steps:
       - .buildkite/check-trailing-whitespace.sh
   - label: backend build
     commands:
-      - nix-build -A edna-backend
+      - nix-build -A packages.x86_64-linux.backend

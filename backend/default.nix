@@ -1,55 +1,49 @@
-{ pkgs, _expose ? false }:
-
+{ haskell-nix, runCommand, lib }:
 let
-  project = pkgs.haskell-nix.stackProject {
-    src = with pkgs.haskell-nix.haskellLib; cleanSourceWith {
-      name = "edna";
-      src = cleanGit {
-        src = ../.;
-        subDir = "backend";
-      };
+  project = haskell-nix.stackProject {
+    src = haskell-nix.haskellLib.cleanGit {
+      src = haskell-nix.cleanSourceHaskell { src = ./.; };
     };
     modules = [
-      ({ pkgs, ... }: {
-        packages = {
-          edna = {
-            components.tests.edna-test = {
-              # These are runtime deps, but there is nowhere else to put them
-              build-tools = with pkgs; [
-                ephemeralpg
-              ];
-              preCheck = ''
-                export TEST_PG_CONN_STRING=$(pg_tmp -w 600)
-              '';
-              # we need the temporary directory from pg_tmp
-              # so extract it out of $TEST_PG_CONN_STRING
-              postCheck = ''
-                pg_tmp stop -d $(echo ''${TEST_PG_CONN_STRING#*=} | sed 's:%2F:/:g') || :
-              '';
-            };
-          };
-
-          # FIXME: Probably fails only on older snapshots
-          base-noprelude.components.library.doHaddock = false;
-          bytestring-builder.components.library.doHaddock = false;
-          co-log-sys.components.library.doHaddock = false;
-
-          # FIXME haddock fails on loot-log, remove the following line when fixed
-          loot-log.components.library.doHaddock = false;
+      {
+        doHaddock = false;
+        packages.staker-bridge-web = {
+          doHaddock = true;
+          package.ghcOptions = "-Werror";
         };
-      })
-    ];
-    # Something weird for older snapshots. Copied from haskell.nix examples.
-    pkg-def-extras = [
-      (hackage: {
-        packages = {
-          "hsc2hs" = (((hackage.hsc2hs)."0.68.4").revisions).default;
+      }
+      {
+        packages = builtins.listToAttrs (map (name: {
+          inherit name;
+          value.postUnpack = "cp -Lr --remove-destination ${./hpack.yaml} */hpack.yaml";
+        }) [
+          "staker-bridge-core"
+          "staker-block-sync"
+          "staker-bridge-app"
+          "staker-bridge-db"
+          "staker-bridge-tez"
+          "staker-bridge-web"
+        ]);
+      }
+      {
+        packages.staker-bridge-eth = {
+          postUnpack = "
+            cp -Lr --remove-destination ${./hpack.yaml} */hpack.yaml;
+            rm -f */resources/abi;
+            cp -Lr --remove-destination ${../resources}/abi */resources/;
+            ";
         };
-      })
+      }
     ];
   };
-in
-
-if _expose
-then project
-else pkgs.haskell-nix.haskellLib.selectLocalPackages project
+  library = project.staker-bridge-web.components.library;
+  exes = project.staker-bridge-web.components.exes;
+  server = exes.staker-bridge-server;
+  swagger-gen = exes.swagger-gen;
+  eth-approval = exes.eth-approval;
+  swagger-file = runCommand "swagger.yaml" {
+    LANG = "C.UTF-8";
+    buildInputs = [ swagger-gen ];
+  } "mkdir -p $out; swagger-gen > $out/swagger.yaml";
+  tez-test = project.staker-bridge-tez.checks.test;
+in { inherit server swagger-file tez-test library eth-approval; }
