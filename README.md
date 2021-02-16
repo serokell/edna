@@ -20,7 +20,8 @@ There is nothing to build yet.
 
 ## Usage
 
-There is nothing to use yet.
+To run a postgres container run `docker-compose up postgres` in `deployment` directory,
+then you can connect to it via `psql` or using any convenient database viewer.
 
 ## Issue Tracker
 
