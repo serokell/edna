@@ -1,7 +1,7 @@
 steps:
-  - label: check trailing whitespace
-    commands:
-      - .buildkite/check-trailing-whitespace.sh
+#  - label: check trailing whitespace
+#    commands:
+#      - .buildkite/check-trailing-whitespace.sh
   - label: backend build
     commands:
       - nix-build -A packages.x86_64-linux.backend

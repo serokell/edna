@@ -7,7 +7,7 @@ let
     modules = [
       {
         doHaddock = false;
-        packages.staker-bridge-web = {
+        packages.edna = {
           doHaddock = true;
           package.ghcOptions = "-Werror";
         };
@@ -22,7 +22,7 @@ let
           "staker-bridge-app"
           "staker-bridge-db"
           "staker-bridge-tez"
-          "staker-bridge-web"
+          "edna"
         ]);
       }
       {
@@ -36,8 +36,8 @@ let
       }
     ];
   };
-  library = project.staker-bridge-web.components.library;
-  exes = project.staker-bridge-web.components.exes;
+  library = project.edna.components.library;
+  exes = project.edna.components.exes;
   server = exes.edna-server;
   swagger-gen = exes.swagger-gen;
   eth-approval = exes.eth-approval;
