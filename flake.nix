@@ -3,8 +3,8 @@
   inputs = {
     nixpkgs.url = "github:serokell/nixpkgs";
     haskell-nix = {
-      url =
-        "github:input-output-hk/haskell.nix/bd45da822d2dccdbb3f65d0b52dd2a91fd65ca4e";
+          url =
+            "github:input-output-hk/haskell.nix";
     };
     hackage = {
       url = "github:input-output-hk/hackage.nix";
@@ -27,14 +27,10 @@
     let
       packagesFor = system: rec {
         pkgs = nixpkgs.legacyPackages.${system}.extend
-          (nixpkgs.lib.foldl nixpkgs.lib.composeExtensions (_: _: { }) [
-            nix-npm-buildpackage.overlay
-            (haskell-nix.overlays {
-              sourcesOverride = haskell-nix.sources // {
-                inherit hackage stackage;
-              };
-            }).combined-eval-on-build
-          ]);
+                  (nixpkgs.lib.foldl nixpkgs.lib.composeExtensions (_: _: { }) [
+                    nix-npm-buildpackage.overlay
+                    haskell-nix.overlay
+                  ]);
         backend = pkgs.callPackage ./backend { };
         frontend =
           pkgs.callPackage ./frontend { swagger-file = backend.swagger-file; };
