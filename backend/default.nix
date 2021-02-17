@@ -12,28 +12,6 @@ let
           package.ghcOptions = "-Werror";
         };
       }
-      {
-        packages = builtins.listToAttrs (map (name: {
-          inherit name;
-          value.postUnpack = "cp -Lr --remove-destination ${./hpack.yaml} */hpack.yaml";
-        }) [
-          "staker-bridge-core"
-          "staker-block-sync"
-          "staker-bridge-app"
-          "staker-bridge-db"
-          "staker-bridge-tez"
-          "edna"
-        ]);
-      }
-      {
-        packages.staker-bridge-eth = {
-          postUnpack = "
-            cp -Lr --remove-destination ${./hpack.yaml} */hpack.yaml;
-            rm -f */resources/abi;
-            cp -Lr --remove-destination ${../resources}/abi */resources/;
-            ";
-        };
-      }
     ];
   };
   library = project.edna.components.library;
