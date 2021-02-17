@@ -6,7 +6,7 @@
     name = "bridge-web-backend";
     tag = "latest";
     contents = [ backend bash cacert iana_etc db coreutils ];
-    config.Entrypoint = "staker-bridge-server";
+    config.Entrypoint = "edna-server";
   };
   frontend = runCommand "frontend.tar.gz" { } ''
     tar -chva -f $out -C ${frontend} .

@@ -38,7 +38,7 @@ let
   };
   library = project.staker-bridge-web.components.library;
   exes = project.staker-bridge-web.components.exes;
-  server = exes.staker-bridge-server;
+  server = exes.edna-server;
   swagger-gen = exes.swagger-gen;
   eth-approval = exes.eth-approval;
   swagger-file = runCommand "swagger.yaml" {

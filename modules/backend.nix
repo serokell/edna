@@ -79,7 +79,7 @@ in {
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         User = cfg.user;
-        ExecStart = "${cfg.package}/bin/staker-bridge-server -c ${
+        ExecStart = "${cfg.package}/bin/edna-server -c ${
             builtins.toFile "config.yml" (builtins.toJSON cfg.config)
           }";
         Restart = "always";
