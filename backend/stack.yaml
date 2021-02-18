@@ -2,3 +2,8 @@ resolver: lts-17.2
 
 packages:
 - .
+
+extra-deps:
+  - aeson-options-0.1.0
+
+allow-newer: true

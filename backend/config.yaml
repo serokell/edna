@@ -1,0 +1,3 @@
+api:
+  listenAddr: "*:9000"
+  serveDocs: true

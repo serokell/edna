@@ -30,16 +30,22 @@ common common-options
 library
   import: common-options
   exposed-modules:
-      Stub
+      Edna.Config
   other-modules:
       Paths_edna
       Edna.Web.API
+      Edna.Web.Handlers
       Edna.Web.Types
+      Edna.Util
   hs-source-dirs:
       src
   build-depends:
+    aeson,
+    aeson-options,
     bytestring,
     containers,
+    fmt,
+    text,
     servant,
     servant-multipart,
     servant-server,
@@ -53,7 +59,9 @@ executable edna-server
   hs-source-dirs:
       app
   build-depends:
-      edna
+      edna,
+      optparse-applicative,
+      yaml
 
 test-suite edna-test
   import: common-options
