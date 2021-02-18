@@ -31,9 +31,11 @@ library
   import: common-options
   exposed-modules:
       Edna.Config
+      Edna.Web.Server
   other-modules:
       Paths_edna
       Edna.Web.API
+      Edna.Web.Error
       Edna.Web.Handlers
       Edna.Web.Types
       Edna.Util
@@ -49,6 +51,7 @@ library
     servant,
     servant-multipart,
     servant-server,
+    warp,
     xlsx
 
 executable edna-server

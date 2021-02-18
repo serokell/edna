@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE OverloadedLabels #-}
 
 {-|
 Definition of Edna configuration.

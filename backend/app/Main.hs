@@ -9,6 +9,7 @@ import Options.Applicative (execParser, fullDesc, helper, info, progDesc)
 import qualified Options.Applicative as Opt
 
 import Edna.Config (EdnaConfig)
+import Edna.Web.Server (runEdna)
 
 -- | CLI parser for config path.
 configPathParser :: Opt.Parser FilePath
@@ -27,4 +28,4 @@ main = do
 
   Y.decodeFileEither @EdnaConfig configPath >>= \case
     Left e -> putText (show e)
-    Right c -> putText (show c)
+    Right c -> runEdna c

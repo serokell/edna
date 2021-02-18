@@ -1,5 +1,7 @@
 module Edna.Web.Handlers
   ( ednaHandlers
+  , EdnaServerError (..)
+  , ExperimentParsingError (..)
   )
 where
 
@@ -14,16 +16,11 @@ import Servant.Multipart (FileData(..), Mem, MultipartData(..))
 import Servant.Server (Handler)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
+import Edna.Web.Error (EdnaServerError (..), ExperimentParsingError (..))
 import Edna.Web.API (EdnaEndpoints(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
 type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
-
-data EdnaServerError
-  = XlsxParingError ExperimentParsingError
-  deriving stock (Show, Generic)
-
-instance Exception EdnaServerError
 
 -- | Server handler implementation for Edna API.
 ednaHandlers :: EdnaHandlers Handler
@@ -38,12 +35,6 @@ uploadExperiment multipart = do
   let file = U.head (files multipart)
   putStrLn $ "Excel file name " ++ show (fdFileName file)
   either (throwM . XlsxParingError) pure (parseExperimentXls $ fdPayload file)
-
-data ExperimentParsingError
-  = UnexpectedCellType
-  | InvalidCell
-  | WorksheetNotFound Text
-  deriving stock (Show, Generic)
 
 type ParserType a = Either ExperimentParsingError a
 
