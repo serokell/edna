@@ -33,8 +33,17 @@ library
       Stub
   other-modules:
       Paths_edna
+      Edna.Web.API
+      Edna.Web.Types
   hs-source-dirs:
       src
+  build-depends:
+    bytestring,
+    containers,
+    servant,
+    servant-multipart,
+    servant-server,
+    xlsx
 
 executable edna-server
   import: common-options
