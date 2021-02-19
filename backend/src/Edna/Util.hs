@@ -1,11 +1,14 @@
 module Edna.Util
    ( NetworkAddress (..)
+   , ednaAesonOptions
    ) where
 
 import Universum
 
 import Data.Aeson
   (FromJSON(..), ToJSON(..), Value(..), withText)
+import qualified Data.Aeson as A
+import Data.Aeson.Options (defaultOptions)
 import Text.Read (Read (..), read)
 import Fmt (Buildable (..), (+|), (|+), pretty)
 import qualified Text.ParserCombinators.ReadP as ReadP
@@ -37,3 +40,6 @@ instance FromJSON NetworkAddress where
 
 instance ToJSON NetworkAddress where
   toJSON = String . pretty
+
+ednaAesonOptions :: A.Options
+ednaAesonOptions = defaultOptions

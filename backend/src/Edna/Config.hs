@@ -11,9 +11,8 @@ module Edna.Config
 import Universum
 
 import Data.Aeson.TH (deriveJSON)
-import Data.Aeson.Options (defaultOptions)
 
-import Edna.Util (NetworkAddress)
+import Edna.Util (NetworkAddress, ednaAesonOptions)
 
 data ApiConfig = ApiConfig
   { acListenAddr :: NetworkAddress
@@ -28,5 +27,5 @@ data EdnaConfig = EdnaConfig {
 -- Derivations
 ---------------------------------------------------------------------------
 
-deriveJSON defaultOptions ''ApiConfig
-deriveJSON defaultOptions ''EdnaConfig
+deriveJSON ednaAesonOptions ''ApiConfig
+deriveJSON ednaAesonOptions ''EdnaConfig

@@ -17,8 +17,9 @@ import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 import Edna.Config
 import Edna.Util
 import Edna.Web.API
-import Edna.Web.Handlers
 import Edna.Web.Error (toServerError)
+import Edna.Web.Handlers
+import Edna.Web.Swagger (ednaAPIWithDocs, ednaApiSwagger, withSwaggerUI)
 
 -- | Sets the given listen address in a Warp server settings.
 addrSettings :: NetworkAddress -> Warp.Settings
@@ -50,6 +51,9 @@ translateExceptions action =
 runEdna :: EdnaConfig -> IO ()
 runEdna EdnaConfig{..} = do
   let listenAddr = acListenAddr ecApi
+  let withDocs = acServeDocs ecApi
 
   serveWeb listenAddr $
-    serve ednaAPI ednaServer
+    if withDocs then
+      serve ednaAPIWithDocs (withSwaggerUI ednaAPI ednaApiSwagger ednaServer)
+    else serve ednaAPI ednaServer

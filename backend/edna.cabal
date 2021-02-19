@@ -32,6 +32,7 @@ library
   exposed-modules:
       Edna.Config
       Edna.Web.Server
+      Edna.Web.Swagger
   other-modules:
       Paths_edna
       Edna.Web.API
@@ -47,10 +48,16 @@ library
     bytestring,
     containers,
     fmt,
+    microlens,
+    microlens-platform,
     text,
     servant,
     servant-multipart,
     servant-server,
+    servant-swagger,
+    servant-swagger-ui-core,
+    servant-swagger-ui,
+    swagger2,
     warp,
     xlsx
 
