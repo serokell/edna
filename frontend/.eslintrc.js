@@ -35,6 +35,7 @@ module.exports = {
 
     quotes: "off",
     "@typescript-eslint/quotes": [2, "double", { avoidEscape: true }],
+    "no-plusplus": 0,
 
     // Use TS no-unused-vars rule
     "no-unused-vars": "off",
