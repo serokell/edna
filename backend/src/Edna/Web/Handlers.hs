@@ -6,7 +6,6 @@ module Edna.Web.Handlers
 where
 
 import Universum
-import qualified Universum.Unsafe as U
 
 import Codec.Xlsx (Cell(..), CellValue(..), Worksheet(..), Xlsx, atSheet, toXlsx)
 import qualified Data.ByteString.Lazy as L
@@ -24,15 +23,13 @@ type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 
 -- | Server handler implementation for Edna API.
 ednaHandlers :: EdnaHandlers Handler
-ednaHandlers =
-  genericServerT
-    EdnaEndpoints
-      { eeUploadExperiment = uploadExperiment
-      }
+ednaHandlers = genericServerT EdnaEndpoints
+  { eeUploadExperiment = uploadExperiment
+  }
 
 uploadExperiment :: MultipartData Mem -> Handler [ExperimentalMeasurement]
 uploadExperiment multipart = do
-  let file = U.head (files multipart)
+  file <- maybe (throwM NoExperimentFileError) pure (safeHead (files multipart))
   putStrLn $ "Excel file name " ++ show (fdFileName file)
   either (throwM . XlsxParingError) pure (parseExperimentXls $ fdPayload file)
 
@@ -44,29 +41,17 @@ parseExperimentXls content = do
   let readSheet' :: Text -> (CellValue -> ParserType a) -> ParserType (Map (Int, Int) a)
       readSheet' = readSheet (toXlsx content)
 
-  compounds <-
-    readSheet'
-      "Compound"
-      ( \case
-          CellText x -> Right x
-          _ -> Left UnexpectedCellType
-      )
+  let parseText = \case
+        CellText x -> Right x
+        _ -> Left UnexpectedCellType
 
-  concentrations <-
-    readSheet'
-      "Concentration"
-      ( \case
-          CellDouble x -> Right x
-          _ -> Left UnexpectedCellType
-      )
+  let parseDouble = \case
+        CellDouble x -> Right x
+        _ -> Left UnexpectedCellType
 
-  signals <-
-    readSheet'
-      "Signal"
-      ( \case
-          CellDouble x -> Right x
-          _ -> Left UnexpectedCellType
-      )
+  compounds <- readSheet' "Compound" parseText
+  concentrations <- readSheet' "Concentration" parseDouble
+  signals <- readSheet' "Signal" parseDouble
 
   pure $ mergeCells compounds concentrations signals
   where
@@ -86,5 +71,6 @@ parseExperimentXls content = do
       -> [ExperimentalMeasurement]
     mergeCells compounds concentrations signals =
       mapMaybe
-        (\(rc, cmp) -> ExperimentalMeasurement cmp <$> M.lookup rc concentrations <*> M.lookup rc signals)
+        (\(rc, cmp) ->
+          ExperimentalMeasurement cmp <$> M.lookup rc concentrations <*> M.lookup rc signals)
         (M.toList compounds)

@@ -1,6 +1,7 @@
 import React, {
   FunctionComponent, ReactElement, useRef, useState,
 } from "react";
+import { v4 as uuidv4 } from "uuid";
 import Api from "../../api/api";
 import "./UploadPage.scss";
 import {
@@ -56,8 +57,8 @@ const UploadPage: FunctionComponent = (): ReactElement => {
         </thead>
 
         <tbody>
-          {uploadingStatus.result.map((v, i) => (
-            <tr key={i}>
+          {uploadingStatus.result.map((v) => (
+            <tr key={uuidv4()}>
               <td>{v.compoundId}</td>
               <td>{v.concentration}</td>
               <td>{v.signal}</td>

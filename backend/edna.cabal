@@ -33,18 +33,18 @@ library
       Edna.Config
       Edna.Web.Server
       Edna.Web.Swagger
+      Edna.Web.Handlers
   other-modules:
       Paths_edna
       Edna.Web.API
       Edna.Web.Error
-      Edna.Web.Handlers
       Edna.Web.Types
       Edna.Util
   hs-source-dirs:
       src
   build-depends:
     aeson,
-    aeson-options,
+    aeson-casing,
     bytestring,
     containers,
     fmt,

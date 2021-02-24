@@ -1,13 +1,11 @@
-{-# LANGUAGE OverloadedLabels #-}
-
 {-|
 Utilities for running Edna web server.
 -}
 module Edna.Web.Server
-       ( runEdna
-       , serveWeb
-       , addrSettings
-       ) where
+  ( runEdna
+  , serveWeb
+  , addrSettings
+  ) where
 
 import Universum
 

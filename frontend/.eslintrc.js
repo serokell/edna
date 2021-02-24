@@ -21,7 +21,6 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": 0,
 
     "react/jsx-closing-bracket-location": 0,
-    "react/no-array-index-key": 0,
 
     // Import modules from different places
     "import/no-unresolved": 0,

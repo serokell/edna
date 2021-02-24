@@ -24,7 +24,7 @@ To run a postgres container run `docker-compose up postgres` in `deployment` dir
 then you can connect to it via `psql` or using any convenient database viewer.
 
 To run a server run `stack exec -- edna-server -c config.yaml`:
-* The server endpoints available at `localhost:9000/api/v1/*`.
+* The server endpoints available at `localhost:9000/api/*`.
 * Swagger docs are available at `http://localhost:9000/docs/`.
 
 ## Issue Tracker

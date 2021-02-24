@@ -1,3 +1,3 @@
 api:
-  listenAddr: "*:9000"
-  serveDocs: true
+  listen-addr: "*:9000"
+  serve-docs: true

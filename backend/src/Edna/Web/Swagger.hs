@@ -38,7 +38,7 @@ import Servant.Swagger.Internal (addParam)
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.Core (SwaggerUiHtml)
 
-import Edna.Util (ednaAesonOptions)
+import Edna.Util (ednaAesonWebOptions)
 import Edna.Web.API (EdnaAPI, ednaAPI)
 import Edna.Web.Types (ExperimentalMeasurement)
 
@@ -70,7 +70,7 @@ withSwaggerUI _ swagger server =
 
 -- | Schema generation options which match JSON generation options.
 schemaOptions :: S.SchemaOptions
-schemaOptions = S.fromAesonOptions ednaAesonOptions
+schemaOptions = S.fromAesonOptions ednaAesonWebOptions
 
 -- | Default implementation of 'ToSchema' via Generics.
 gDeclareNamedSchema
@@ -131,7 +131,7 @@ instance HasSwagger api =>
         & description ?~ "Experiment to upload"
         & schema .~ ParamOther (mempty
             & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ .~ Just S.SwaggerFile))
+            & paramSchema .~ (mempty & type_ ?~ S.SwaggerFile))
 
 instance S.ToSchema ExperimentalMeasurement where
   declareNamedSchema = gDeclareNamedSchema

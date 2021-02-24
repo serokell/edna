@@ -4,7 +4,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import EdnaApi from "./EdnaApi";
 
 const axiosConfig: AxiosRequestConfig = {
-  baseURL: "/api/v1",
+  baseURL: "/api",
 };
 
 const axiosInstance: AxiosInstance = axios.create(axiosConfig);

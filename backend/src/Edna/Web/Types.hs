@@ -7,7 +7,7 @@ import Universum
 
 import Data.Aeson.TH (deriveJSON)
 
-import Edna.Util (ednaAesonOptions)
+import Edna.Util (ednaAesonWebOptions)
 
 data ExperimentalMeasurement = ExperimentalMeasurement
   { emCompoundId    :: Text,
@@ -15,4 +15,4 @@ data ExperimentalMeasurement = ExperimentalMeasurement
     emSignal        :: Double
   } deriving stock (Generic)
 
-deriveJSON ednaAesonOptions ''ExperimentalMeasurement
+deriveJSON ednaAesonWebOptions ''ExperimentalMeasurement

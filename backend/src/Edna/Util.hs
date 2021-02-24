@@ -1,17 +1,17 @@
 module Edna.Util
-   ( NetworkAddress (..)
-   , ednaAesonOptions
-   ) where
+  ( NetworkAddress (..)
+  , ednaAesonWebOptions
+  , ednaAesonConfigOptions
+  ) where
 
 import Universum
 
-import Data.Aeson
-  (FromJSON(..), ToJSON(..), Value(..), withText)
+import qualified Data.Aeson.Casing as AC
+import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), withText)
 import qualified Data.Aeson as A
-import Data.Aeson.Options (defaultOptions)
-import Text.Read (Read (..), read)
-import Fmt (Buildable (..), (+|), (|+), pretty)
+import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified Text.ParserCombinators.ReadP as ReadP
+import Text.Read (Read(..), read)
 import qualified Text.Show
 
 -- | Datatype which contains info about socket network address
@@ -41,5 +41,8 @@ instance FromJSON NetworkAddress where
 instance ToJSON NetworkAddress where
   toJSON = String . pretty
 
-ednaAesonOptions :: A.Options
-ednaAesonOptions = defaultOptions
+ednaAesonConfigOptions :: A.Options
+ednaAesonConfigOptions = AC.aesonPrefix AC.trainCase
+
+ednaAesonWebOptions :: A.Options
+ednaAesonWebOptions = AC.aesonPrefix AC.camelCase

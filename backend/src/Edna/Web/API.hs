@@ -4,20 +4,20 @@
 Servant type-level specification for Edna API.
 -}
 module Edna.Web.API
-     ( EdnaAPI
-     , EdnaEndpoints (..)
-     , ednaAPI
-     ) where
+  ( EdnaAPI
+  , EdnaEndpoints (..)
+  , ednaAPI
+  ) where
 
 import Universum
 
-import Servant.API ((:>), JSON, Summary, Post)
-import Servant.API.Generic ((:-), AsApi, ToServant)
-import Servant.Multipart (MultipartData (..), MultipartForm, Mem)
 import Edna.Web.Types (ExperimentalMeasurement)
+import Servant.API ((:>), JSON, Post, Summary)
+import Servant.API.Generic ((:-), AsApi, ToServant)
+import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
 -- | API endpoints specification.
-data EdnaEndpoints route = EdnaEndpoints
+newtype EdnaEndpoints route = EdnaEndpoints
   { -- | Upload one experiment
     eeUploadExperiment :: route
       :- "experiment"
@@ -28,7 +28,7 @@ data EdnaEndpoints route = EdnaEndpoints
 
 -- | API type specification.
 type EdnaAPI =
-  "api" :> "v1" :> ToServant EdnaEndpoints AsApi
+  "api" :> ToServant EdnaEndpoints AsApi
 
 ednaAPI :: Proxy EdnaAPI
 ednaAPI = Proxy
