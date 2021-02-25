@@ -30,11 +30,36 @@ common common-options
 library
   import: common-options
   exposed-modules:
-      Stub
+      Edna.Config
+      Edna.Web.Server
+      Edna.Web.Swagger
+      Edna.Web.Handlers
   other-modules:
       Paths_edna
+      Edna.Web.API
+      Edna.Web.Error
+      Edna.Web.Types
+      Edna.Util
   hs-source-dirs:
       src
+  build-depends:
+    aeson,
+    aeson-casing,
+    bytestring,
+    containers,
+    fmt,
+    microlens,
+    microlens-platform,
+    text,
+    servant,
+    servant-multipart,
+    servant-server,
+    servant-swagger,
+    servant-swagger-ui-core,
+    servant-swagger-ui,
+    swagger2,
+    warp,
+    xlsx
 
 executable edna-server
   import: common-options
@@ -44,7 +69,9 @@ executable edna-server
   hs-source-dirs:
       app
   build-depends:
-      edna
+      edna,
+      optparse-applicative,
+      yaml
 
 test-suite edna-test
   import: common-options

@@ -4,11 +4,9 @@ module Test.Edna
 
 import Universum
 
-import Test.HUnit (Assertion, (@?=))
+import Test.HUnit (Assertion)
 
-import Stub (stub)
+import Edna.Web.Handlers ()
 
 unit_stub_is_2 :: Assertion
-unit_stub_is_2 = n - 1 @?= stub
-  where
-    n = 3
+unit_stub_is_2 = pure ()

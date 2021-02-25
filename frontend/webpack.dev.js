@@ -10,7 +10,7 @@ module.exports = merge(common, {
   devServer: {
     contentBase: "./dist",
     host: "0.0.0.0",
-    port: 9000,
+    port: 9090,
 
     hot: true,
     // To fallback on index.html when page not found (needed for client side routing).
@@ -19,7 +19,7 @@ module.exports = merge(common, {
     // Redirect api requests to the backend
     proxy: {
       "/api": {
-        target: "http://localhost:8080"
+        target: "http://localhost:9000"
       }
     }
 

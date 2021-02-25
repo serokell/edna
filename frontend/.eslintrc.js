@@ -20,6 +20,8 @@ module.exports = {
     // Sometime we need to specify any type, so it's rather useful
     "@typescript-eslint/no-explicit-any": 0,
 
+    "react/jsx-closing-bracket-location": 0,
+
     // Import modules from different places
     "import/no-unresolved": 0,
 
