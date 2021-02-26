@@ -1,0 +1,49 @@
+.ednaHeader {
+  $side-padding: 138px;
+
+  background-color: #EFEFEF;
+  height: 84px;
+  padding-left: $side-padding;
+  padding-right: $side-padding;
+  display: flex;
+  align-items: center;
+
+  &__brand {
+    font-size: 35px;
+    margin-right: auto;
+  }
+
+  &__menu {
+    margin-left: auto;
+    display: flex;
+    height: 100%;
+  }
+
+  $menuitem-border: 5px;
+
+  &__menuitem {
+    $wrapper-padding: 10px;
+    $wrapper-margin: 39px;
+
+    margin-left: $wrapper-margin;
+    margin-right: $wrapper-margin;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+
+    font-size: 18px;
+    padding-left: $wrapper-padding;
+    padding-right: $wrapper-padding;
+    border-bottom: $menuitem-border solid transparent;
+
+    &_active {
+      border-bottom: $menuitem-border solid #C4C4C4;
+    }
+
+    &:hover {
+      border-bottom: $menuitem-border solid #C4C4C4;
+      cursor: pointer;
+    }
+  }
+}

@@ -1,12 +1,8 @@
 @import "~normalize-scss/sass/normalize/import-now";
+@import "styles/main";
 
 * {
   box-sizing: border-box;
-}
-
-html,
-body {
-  color: #0e151a;
 }
 
 img {
