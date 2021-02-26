@@ -14,6 +14,12 @@ const UploadPage: FunctionComponent = (): ReactElement => {
   return (
     <>
       <Header />
+      <input style={{ marginTop: "20px", marginLeft: "100px", marginRight: "auto" }} />
+      <select style={{ marginTop: "20px", marginLeft: "100px", marginRight: "auto" }}>
+        <option value="val1">Methodology First</option>
+        <option value="val2">Approximately</option>
+        <option value="val3">Hujuetly</option>
+      </select>
       <div className="uploadPageContainer">
         <form
           className="uploadForm"

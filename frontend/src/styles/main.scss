@@ -7,3 +7,36 @@ body {
   min-width: 22rem;
   font-family: "Roboto, Arial, sans-serif", sans-serif;
 }
+
+$border-radius: 9px;
+$input-border-color: #e1e1e1;
+$input-border-outlined: #979797;
+$elem-padding: 10px;
+
+input, textarea {
+  border: 1px solid $input-border-color;
+  box-sizing: border-box;
+  border-radius: $border-radius;
+  padding: $elem-padding;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 1.5px $input-border-outlined;
+}
+
+button {
+  background-color: #A5A5A5;
+  border-radius: $border-radius;
+  border: none;
+  padding: $elem-padding;
+  color: white;
+  font-weight: 500;
+  &:focus {
+    outline: none;
+  }
+  &:active {
+    background-color: #979797;
+    color: #eae8e8;
+  }
+}
