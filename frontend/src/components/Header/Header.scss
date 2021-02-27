@@ -1,49 +1,50 @@
-.ednaHeader {
-  $side-padding: 138px;
+@import "src/styles/main";
+@import "src/styles/variables";
 
-  background-color: #EFEFEF;
-  height: 84px;
-  padding-left: $side-padding;
-  padding-right: $side-padding;
+.ednaHeader {
+
+  $menuitem-border: 0.3125rem;
   display: flex;
   align-items: center;
+  height: 84 * $px;
+  padding-right: $global-side-padding;
+  padding-left: $global-side-padding;
+  background-color: #efefef;
 
   &__brand {
-    font-size: 35px;
     margin-right: auto;
+    font-size: 35 * $px;
   }
 
   &__menu {
-    margin-left: auto;
     display: flex;
     height: 100%;
+    margin-left: auto;
   }
 
-  $menuitem-border: 5px;
-
   &__menuitem {
-    $wrapper-padding: 10px;
-    $wrapper-margin: 39px;
-
-    margin-left: $wrapper-margin;
-    margin-right: $wrapper-margin;
-    height: 100%;
+    $wrapper-padding: 10 * $px;
+    $wrapper-margin: 30 * $px;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    height: 100%;
 
-    font-size: 18px;
-    padding-left: $wrapper-padding;
     padding-right: $wrapper-padding;
+    padding-left: $wrapper-padding;
+    margin-right: $wrapper-margin;
+    margin-left: $wrapper-margin;
+
+    font-size: 18 * $px;
     border-bottom: $menuitem-border solid transparent;
 
     &_active {
-      border-bottom: $menuitem-border solid #C4C4C4;
+      border-bottom: $menuitem-border solid #c4c4c4;
     }
 
     &:hover {
-      border-bottom: $menuitem-border solid #C4C4C4;
       cursor: pointer;
+      border-bottom: $menuitem-border solid #c4c4c4;
     }
   }
 }

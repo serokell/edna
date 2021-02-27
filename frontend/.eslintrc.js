@@ -64,6 +64,8 @@ module.exports = {
 
     // Enable while(true) loops
     "no-constant-condition": ["error", { checkLoops: false }],
+
+    "react/jsx-props-no-spreading": 0
   },
   globals: {
     window: true,

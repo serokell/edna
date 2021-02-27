@@ -1,39 +1,33 @@
-import React, { FunctionComponent, ReactElement, useRef, useState } from "react";
+import React, { FunctionComponent, ReactElement, useState } from "react";
 import Api from "../../api/api";
-import "./UploadPage.scss";
 import { completed, failed, idle, isSucceeded, loading, RequestState } from "../../utils/request";
 import { MeasurementDto } from "../../api/types";
 import "../../components/Spinner.scss";
 import MeasurementsCharts from "./MeasurementsCharts";
 import Header from "../../components/Header/Header";
+import FormField from "../../components/FormField/FormField";
+import "./UploadPage.scss";
+import UploadArea from "../../components/UploadArea/UploadArea";
 
 const UploadPage: FunctionComponent = (): ReactElement => {
-  const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [chosenFile, setChosenFile] = useState<File | undefined>(undefined);
+
   const [uploadingStatus, setUploadingStatus] = useState<RequestState<MeasurementDto[]>>(idle());
 
   return (
     <>
       <Header />
-      <input style={{ marginTop: "20px", marginLeft: "100px", marginRight: "auto" }} />
-      <select style={{ marginTop: "20px", marginLeft: "100px", marginRight: "auto" }}>
-        <option value="val1">Methodology First</option>
-        <option value="val2">Approximately</option>
-        <option value="val3">Hujuetly</option>
-      </select>
-      <div className="uploadPageContainer">
+      <div className="container">
+        <div className="uploadTitle">Uploading file</div>
+
         <form
-          className="uploadForm"
+          className="uploadingForm"
           onSubmit={async e => {
             e.preventDefault();
             try {
-              if (
-                uploadInputRef.current &&
-                uploadInputRef.current.files &&
-                uploadInputRef.current.files.length > 0
-              ) {
+              if (chosenFile) {
                 setUploadingStatus(loading());
-                const file = uploadInputRef.current.files[0];
-                const measurements = await Api.uploadExperiment(file);
+                const measurements = await Api.uploadExperiment(chosenFile);
                 setUploadingStatus(completed(measurements));
               }
             } catch (ex) {
@@ -41,13 +35,26 @@ const UploadPage: FunctionComponent = (): ReactElement => {
             }
           }}
         >
-          <input
-            className="uploadForm__fileInput"
-            type="file"
-            ref={uploadInputRef}
-            accept=".xlsx,.xls"
+          <FormField
+            label="File"
+            className="uploadingForm__uploadArea"
+            control={<UploadArea chosenFile={chosenFile} onFileChosen={f => setChosenFile(f)} />}
           />
-          <button type="submit">Загрузить</button>
+
+          <FormField label="Methodology" control={<input />} />
+
+          <FormField label="Target" control={<input />} />
+
+          <FormField className="uploadingForm__nameField" label="Name" control={<input />} />
+
+          <FormField
+            label="Description"
+            control={<textarea className="uploadingForm__description" />}
+          />
+
+          <button className="uploadingForm__submitBtn" type="submit">
+            Save
+          </button>
         </form>
 
         <div className="uploadPageResult">

@@ -1,3 +1,5 @@
+@import "variables";
+
 * {
   box-sizing: border-box;
 }
@@ -8,35 +10,51 @@ body {
   font-family: "Roboto, Arial, sans-serif", sans-serif;
 }
 
-$border-radius: 9px;
+$border-radius: 9 * $px;
 $input-border-color: #e1e1e1;
 $input-border-outlined: #979797;
-$elem-padding: 10px;
+$elem-padding: 10 * $px;
+$global-side-padding: 138 * $px;
 
-input, textarea {
-  border: 1px solid $input-border-color;
-  box-sizing: border-box;
-  border-radius: $border-radius;
+input,
+textarea {
+  min-height: 2 * $elem-padding + 18 * $px;
   padding: $elem-padding;
+  border: $px solid $input-border-color;
+  border-radius: $border-radius;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 1.5px $input-border-outlined;
+  box-shadow: 0 0 0 1.5 * $px $input-border-outlined;
 }
 
 button {
-  background-color: #A5A5A5;
-  border-radius: $border-radius;
-  border: none;
+  height: 3rem;
   padding: $elem-padding;
-  color: white;
   font-weight: 500;
+  color: white;
+  background-color: #a5a5a5;
+
+  border: 0;
+  border-radius: $border-radius;
+
   &:focus {
     outline: none;
   }
+
   &:active {
-    background-color: #979797;
     color: #eae8e8;
+    background-color: #979797;
   }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 3.875rem;
+  padding-right: $global-side-padding;
+  padding-left: $global-side-padding;
 }
