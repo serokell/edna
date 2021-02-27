@@ -8,7 +8,7 @@ module Edna.Config.Definition
   
   , EdnaConfig (..)
   , ecApi
-  , esDb
+  , ecDb
   
   , ApiConfig (..)
   , acListenAddr
@@ -25,7 +25,7 @@ import Data.Aeson.TH (deriveJSON)
 import Text.Read (read)
 import Lens.Micro.Platform (makeLenses)
 
-import Edna.Util (NetworkAddress, ednaAesonConfigOptions)
+import Edna.Util (NetworkAddress, ednaAesonConfigOptions, ConnString (..))
 
 data ApiConfig = ApiConfig
   { _acListenAddr :: NetworkAddress
@@ -33,13 +33,13 @@ data ApiConfig = ApiConfig
   } deriving stock (Generic, Show)
 
 data DbConfig = DbConfig
-  { _dbConnString :: String
+  { _dbConnString :: ConnString
   , _dbMaxConnection :: Int
   } deriving stock (Generic, Show)
 
 data EdnaConfig = EdnaConfig
   { _ecApi :: ApiConfig
-  , _esDb :: DbConfig
+  , _ecDb :: DbConfig
 } deriving stock (Generic, Show)
 
 defaultEdnaConfig :: EdnaConfig
@@ -48,8 +48,8 @@ defaultEdnaConfig = EdnaConfig
     { _acListenAddr = read "*:9000"
     , _acServeDocs = True
     }
-  , _esDb = DbConfig
-    { _dbConnString = "host=/run/postgresql dbname=edna"
+  , _ecDb = DbConfig
+    { _dbConnString = ConnString "host=/run/postgresql dbname=edna"
     , _dbMaxConnection = 200
     }
   }

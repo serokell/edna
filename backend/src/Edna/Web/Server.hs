@@ -14,6 +14,8 @@ import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 
 import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
+import Edna.DB.Integration (runPg, transact)
+import Edna.DB.Schema (ensureSchemaIsSetUp)
 import Edna.Setup (Edna)
 import Edna.Util (NetworkAddress(..))
 import Edna.Web.API (EdnaAPI, ednaAPI)
@@ -50,9 +52,9 @@ translateExceptions action =
 -- | Runs the web server which serves Edna API.
 edna :: Edna ()
 edna = do
+  transact (runPg ensureSchemaIsSetUp)
   listenAddr <- fromConfig $ ecApi . acListenAddr
   withDocs <- fromConfig $ ecApi . acServeDocs
-
   serveWeb listenAddr $
     if withDocs then
       serve ednaAPIWithDocs (withSwaggerUI ednaAPI ednaApiSwagger ednaServer)

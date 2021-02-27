@@ -1,18 +1,32 @@
 module Edna.Util
   ( NetworkAddress (..)
+  , ConnString (..)
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   ) where
 
 import Universum
 
-import qualified Data.Aeson.Casing as AC
 import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), withText)
 import qualified Data.Aeson as A
+import qualified Data.Aeson.Casing as AC
 import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Read (Read(..), read)
 import qualified Text.Show
+
+newtype ConnString = ConnString
+  { unConnString :: ByteString
+  } deriving stock (Show, Eq, Ord)
+
+instance FromJSON ConnString where
+  parseJSON = withText "ConnString" $ pure . ConnString . encodeUtf8
+
+instance ToJSON ConnString where
+  toJSON = String . decodeUtf8 . unConnString
+
+instance Buildable ConnString where
+  build (ConnString s) = build $ decodeUtf8 @Text s
 
 -- | Datatype which contains info about socket network address
 data NetworkAddress = NetworkAddress

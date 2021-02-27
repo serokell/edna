@@ -34,6 +34,8 @@ library
       Edna.Config.Definition
       Edna.Config.Utils
       Edna.DB.Connection
+      Edna.DB.Integration
+      Edna.DB.Schema
       Edna.Setup
       Edna.Web.Server
       Edna.Web.Swagger
@@ -52,13 +54,18 @@ library
   build-depends:
     aeson,
     aeson-casing,
+    beam-core,
+    beam-postgres,
     bytestring,
     containers,
+    file-embed,
     fmt,
     microlens,
     microlens-platform,
     optparse-applicative,
+    postgresql-simple,
     text,
+    resource-pool,
     rio,
     rio-orphans,
     servant,
@@ -69,9 +76,9 @@ library
     servant-swagger-ui,
     split,
     swagger2,
+    time,
     warp,
-    xlsx,
-    yaml
+    xlsx
 
 executable edna-server
   import: common-options
@@ -83,6 +90,7 @@ executable edna-server
   build-depends:
       edna,
       optparse-applicative,
+      with-utf8,
       yaml
 
 test-suite edna-test
