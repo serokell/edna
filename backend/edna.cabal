@@ -31,7 +31,10 @@ common common-options
 library
   import: common-options
   exposed-modules:
-      Edna.Config
+      Edna.Config.Definition
+      Edna.Config.Utils
+      Edna.DB.Connection
+      Edna.Setup
       Edna.Web.Server
       Edna.Web.Swagger
       Edna.Web.Handlers
@@ -54,7 +57,10 @@ library
     fmt,
     microlens,
     microlens-platform,
+    optparse-applicative,
     text,
+    rio,
+    rio-orphans,
     servant,
     servant-multipart,
     servant-server,
@@ -64,7 +70,8 @@ library
     split,
     swagger2,
     warp,
-    xlsx
+    xlsx,
+    yaml
 
 executable edna-server
   import: common-options
