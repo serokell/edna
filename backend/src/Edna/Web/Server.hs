@@ -2,7 +2,7 @@
 Utilities for running Edna web server.
 -}
 module Edna.Web.Server
-  ( runEdna
+  ( edna
   , serveWeb
   , addrSettings
   ) where
@@ -12,11 +12,13 @@ import Universum
 import qualified Network.Wai.Handler.Warp as Warp
 import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 
-import Edna.Config
-import Edna.Util
-import Edna.Web.API
+import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
+import Edna.Config.Utils (fromConfig)
+import Edna.Setup (Edna)
+import Edna.Util (NetworkAddress(..))
+import Edna.Web.API (EdnaAPI, ednaAPI)
 import Edna.Web.Error (toServerError)
-import Edna.Web.Handlers
+import Edna.Web.Handlers (EdnaServerError, ednaHandlers)
 import Edna.Web.Swagger (ednaAPIWithDocs, ednaApiSwagger, withSwaggerUI)
 
 -- | Sets the given listen address in a Warp server settings.
@@ -46,10 +48,10 @@ translateExceptions action =
     throwServant = throwError . toServerError @EdnaServerError
 
 -- | Runs the web server which serves Edna API.
-runEdna :: EdnaConfig -> IO ()
-runEdna EdnaConfig{..} = do
-  let listenAddr = acListenAddr ecApi
-  let withDocs = acServeDocs ecApi
+edna :: Edna ()
+edna = do
+  listenAddr <- fromConfig $ ecApi . acListenAddr
+  withDocs <- fromConfig $ ecApi . acServeDocs
 
   serveWeb listenAddr $
     if withDocs then
