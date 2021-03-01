@@ -5,15 +5,15 @@ Definition of Edna configuration.
 -}
 module Edna.Config.Definition
   ( defaultEdnaConfig
-  
+
   , EdnaConfig (..)
   , ecApi
   , ecDb
-  
+
   , ApiConfig (..)
   , acListenAddr
   , acServeDocs
-  
+
   , DbConfig (..)
   , dbConnString
   , dbMaxConnection
@@ -22,10 +22,10 @@ module Edna.Config.Definition
 import Universum
 
 import Data.Aeson.TH (deriveJSON)
-import Text.Read (read)
 import Lens.Micro.Platform (makeLenses)
+import Text.Read (read)
 
-import Edna.Util (NetworkAddress, ednaAesonConfigOptions, ConnString (..))
+import Edna.Util (ConnString(..), NetworkAddress, ednaAesonConfigOptions)
 
 data ApiConfig = ApiConfig
   { _acListenAddr :: NetworkAddress

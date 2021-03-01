@@ -18,8 +18,7 @@ ifeq (${EDNA_USE_CABAL},1)
 	call_clean = cabal new-clean
 else
 	call_build = stack build $(STACK_BUILD_OPTIONS) $(PACKAGE)
-	call_test = stack build $(STACK_TEST_OPTIONS) $(PACKAGE) \
-		--test-arguments "--color always $(TEST_ARGUMENTS)" $(STACK_DEV_TEST_OPTIONS)
+	call_test = ./scripts/test.sh
 	call_clean = stack clean $(PACKAGE)
 endif
 
