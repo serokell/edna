@@ -65,7 +65,8 @@ module.exports = {
     // Enable while(true) loops
     "no-constant-condition": ["error", { checkLoops: false }],
 
-    "react/jsx-props-no-spreading": 0
+    "react/jsx-props-no-spreading": 0,
+    "jsx-a11y/tabindex-no-positive": 0
   },
   globals: {
     window: true,

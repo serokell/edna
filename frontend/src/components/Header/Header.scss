@@ -10,6 +10,7 @@
   padding-right: $global-side-padding;
   padding-left: $global-side-padding;
   background-color: #efefef;
+  box-shadow: 0 4 * $px 4 * $px 0 rgba(181, 181, 181, 0.25);
 
   &__brand {
     margin-right: auto;
