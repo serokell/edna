@@ -9,7 +9,9 @@ let
       packages = {
         edna = {
           doHaddock = true;
+          ghcOptions = ["-Werror"];
           components.tests.edna-test = {
+            ghcOptions = ["-Werror"];
             # These are runtime deps, but there is nowhere else to put them
             build-tools = [
               ephemeralpg
