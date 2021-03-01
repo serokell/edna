@@ -67,7 +67,6 @@ library
     text,
     resource-pool,
     rio,
-    rio-orphans,
     servant,
     servant-multipart,
     servant-server,
