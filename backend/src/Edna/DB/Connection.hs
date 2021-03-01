@@ -1,6 +1,8 @@
 module Edna.DB.Connection
   ( ConnPool (..)
   , withPostgresConn
+  , createConnPool
+  , destroyConnPool
   ) where
 
 import Universum
