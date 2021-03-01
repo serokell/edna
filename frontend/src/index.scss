@@ -1,1 +1,19 @@
+@import "variables";
 @import "~normalize-scss/sass/normalize/import-now";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  color: #0e151a;
+}
+
+img {
+  display: block;
+}
+
+body {
+  overflow-y: scroll;
+}
