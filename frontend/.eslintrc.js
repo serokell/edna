@@ -2,16 +2,19 @@ module.exports = {
   extends: [
     "airbnb-typescript",
     "airbnb/hooks",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "prettier/@typescript-eslint",
+    "prettier/react",
   ],
 
   overrides: [
     {
-      files: ['*.ts', '*.tsx'],
+      files: ["*.ts", "*.tsx"],
       parserOptions: {
-        project: ['./tsconfig.json']
-      }
-    }
+        project: ["./tsconfig.json"],
+      },
+    },
   ],
 
   plugins: ["@typescript-eslint"],
@@ -29,8 +32,8 @@ module.exports = {
     "react/jsx-filename-extension": [
       2,
       {
-        extensions: [".jsx", ".tsx"]
-      }
+        extensions: [".jsx", ".tsx"],
+      },
     ],
 
     quotes: "off",
@@ -54,12 +57,12 @@ module.exports = {
     "jsx-a11y/no-static-element-interactions": 0,
 
     // Enable while(true) loops
-    "no-constant-condition": ["error", { checkLoops: false }]
+    "no-constant-condition": ["error", { checkLoops: false }],
   },
   globals: {
     window: true,
     alert: true,
     document: true,
-    Node: true
-  }
+    Node: true,
+  },
 };
