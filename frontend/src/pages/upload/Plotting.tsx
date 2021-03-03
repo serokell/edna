@@ -3,7 +3,8 @@
 import Plot from "react-plotly.js";
 import * as Plotly from "plotly.js";
 import React from "react";
-import { CompoundsMap, MeasurementDto } from "../../api/types";
+import { v4 as uuidv4 } from "uuid";
+import { CompoundsMap } from "../../api/types";
 
 const colors = ["red", "blue", "green"];
 const plotConfig: Partial<Plotly.Config> = {
@@ -11,41 +12,27 @@ const plotConfig: Partial<Plotly.Config> = {
   // displayModeBar: false,
 };
 
+// To determine compound color by its name.
+// We want to have a compound the same color
+// regardless of chart where it's plotted.
 function hashCode(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const chr = str.charCodeAt(i);
     // eslint-disable-next-line no-bitwise
-    hash = ((hash << 5) - hash) + chr;
+    hash = (hash << 5) - hash + chr;
     // eslint-disable-next-line no-bitwise
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
 }
 
-export function drawCompoundPlot(cmpd: string, points: MeasurementDto[]): React.ReactNode {
-  points.sort((x, y) => x.concentration - y.concentration);
-  return (
-    <Plot
-      key={cmpd}
-      className="compoundPlot"
-      data={[
-        {
-          x: points.map((a) => a.concentration),
-          y: points.map((a) => a.signal),
-          type: "scatter",
-          mode: "lines+markers",
-          marker: { color: colors[Math.abs(hashCode(cmpd)) % colors.length] },
-        },
-      ]}
-      layout={{ title: cmpd }}
-      config={plotConfig}
-    />
-  );
+interface PlotlyChartProps {
+  compounds: CompoundsMap;
 }
 
-export function drawSeveralCompoundsPlot(compounds: CompoundsMap): React.ReactNode {
-  const chartKey = Object.keys(compounds).join("-");
+export default function PlotlyChart({ compounds }: PlotlyChartProps): React.ReactElement {
+  const chartKey = uuidv4();
   return (
     <Plot
       key={chartKey}
@@ -54,8 +41,8 @@ export function drawSeveralCompoundsPlot(compounds: CompoundsMap): React.ReactNo
         meas.sort((x, y) => x.concentration - y.concentration);
         return {
           name: cmpd,
-          x: meas.map((a) => a.concentration),
-          y: meas.map((a) => a.signal),
+          x: meas.map(a => a.concentration),
+          y: meas.map(a => a.signal),
           type: "scatter",
           mode: "lines+markers",
           marker: { color: colors[Math.abs(hashCode(cmpd)) % colors.length] },

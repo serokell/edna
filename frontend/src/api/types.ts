@@ -9,9 +9,11 @@ export interface MeasurementDto {
 export type CompoundsMap = { [compoundId: string]: MeasurementDto[] };
 
 export function groupCompounds(mes: MeasurementDto[]): CompoundsMap {
-  return mes.reduce((rv: CompoundsMap, x) => {
+  return mes.reduce((groups: CompoundsMap, x) => {
+    const group = groups[x.compoundId] || [];
+    group.push(x);
     // eslint-disable-next-line no-param-reassign
-    (rv[x.compoundId] = rv[x.compoundId] || []).push(x);
-    return rv;
+    groups[x.compoundId] = group;
+    return groups;
   }, {});
 }
