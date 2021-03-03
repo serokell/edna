@@ -35,6 +35,15 @@ module.exports = {
 
     quotes: "off",
     "@typescript-eslint/quotes": [2, "double", { avoidEscape: true }],
+    'no-plusplus': [2, { allowForLoopAfterthoughts: true }],
+
+    "@typescript-eslint/comma-dangle":
+      ['error', {
+        arrays: 'only-multiline',
+        objects: 'only-multiline',
+        imports: 'only-multiline',
+        exports: 'only-multiline',
+        functions: 'never', },],
 
     // Use TS no-unused-vars rule
     "no-unused-vars": "off",

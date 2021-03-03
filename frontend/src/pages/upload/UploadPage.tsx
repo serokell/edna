@@ -1,16 +1,14 @@
 import React, { FunctionComponent, ReactElement, useRef, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Api from "../../api/api";
 import "./UploadPage.scss";
 import { completed, failed, idle, isSucceeded, loading, RequestState } from "../../utils/request";
-import { ExperimentalMeasurementDto } from "../../api/types";
+import { MeasurementDto } from "../../api/types";
 import "../../components/Spinner.scss";
+import MeasurementsCharts from "./MeasurementsCharts";
 
 const UploadPage: FunctionComponent = (): ReactElement => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
-  const [uploadingStatus, setUploadingStatus] = useState<
-    RequestState<ExperimentalMeasurementDto[]>
-  >(idle());
+  const [uploadingStatus, setUploadingStatus] = useState<RequestState<MeasurementDto[]>>(idle());
 
   return (
     <div className="uploadPageContainer">
@@ -45,25 +43,7 @@ const UploadPage: FunctionComponent = (): ReactElement => {
 
       <div className="uploadPageResult">
         {isSucceeded(uploadingStatus) && (
-          <table className="uploadResultTable">
-            <thead>
-              <tr>
-                <th>Compound</th>
-                <th>Concentration</th>
-                <th>Signal</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {uploadingStatus.result.map(v => (
-                <tr key={uuidv4()}>
-                  <td>{v.compoundId}</td>
-                  <td>{v.concentration}</td>
-                  <td>{v.signal}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <MeasurementsCharts measurements={uploadingStatus.result} />
         )}
 
         {uploadingStatus.status === "loading" && <div className="spinner">Uploading...</div>}
