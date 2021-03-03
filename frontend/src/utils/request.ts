@@ -1,15 +1,15 @@
 // RequestState machinery
 // This file might be removed if we start using redux-query or recoil
 
-export type RequestState<T>
-  = { status: "idle" }
+export type RequestState<T> =
+  | { status: "idle" }
   | { status: "loading" }
-  | { status: "succeeded", result: T }
-  | { status: "failed", error?: string };
+  | { status: "succeeded"; result: T }
+  | { status: "failed"; error?: string };
 
 type SucceededRequest<T> = {
-  status: "succeeded",
-  result: T
+  status: "succeeded";
+  result: T;
 };
 
 export function idle<T>(): RequestState<T> {

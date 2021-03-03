@@ -4,7 +4,7 @@ import { AxiosInstance, AxiosResponse } from "axios";
 import { ExperimentalMeasurementDto } from "./types";
 
 interface EdnaApiInterface {
-  uploadExperiment: (excelFile: Blob) => Promise<ExperimentalMeasurementDto[]>
+  uploadExperiment: (excelFile: Blob) => Promise<ExperimentalMeasurementDto[]>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {

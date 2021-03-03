@@ -14,3 +14,15 @@ steps:
   - label: backend hlint
     commands:
       - nix-shell --run 'hlint backend -j'
+  - label: frontend build
+    commands:
+      - nix-build -A packages.x86_64-linux.frontend
+  - label: frontend tscompile
+    commands:
+      - nix-build -A checks.x86_64-linux.frontend-tscompile
+  - label: frontend tslint
+    commands:
+      - nix-build -A checks.x86_64-linux.frontend-tslint
+  - label: frontend stylelint
+    commands:
+      - nix-build -A checks.x86_64-linux.frontend-stylelint
