@@ -14,6 +14,7 @@ interface EdnaApiInterface {
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
   return {
+    // TODO add projectId, methodologyId and description fields here
     uploadExperiment: async (excelFile: Blob): Promise<MeasurementDto[]> => {
       const formData = new FormData();
       formData.append("file", excelFile);

@@ -10,4 +10,10 @@
     font-size: 14 * $px;
     color: #979797;
   }
+
+  &__error {
+    float: right;
+    font-size: 12 * $px;
+    color: var(--error-msg);
+  }
 }

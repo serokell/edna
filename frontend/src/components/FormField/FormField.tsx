@@ -1,24 +1,29 @@
-import React, { FunctionComponent, ReactElement } from "react";
+import React from "react";
 import "./FormField.scss";
 import cn from "classnames";
+import { ErrorMessage, Field } from "formik";
+import { FieldInputProps } from "formik/dist/types";
 
-interface FormFieldProps {
+interface FormFieldProps<V> {
+  name: string;
   label: string;
+  // eslint-disable-next-line react/require-default-props
   className?: string;
-  control: React.ReactNode;
+  children: (field: FieldInputProps<V>) => React.ReactNode;
 }
 
-const FormField: FunctionComponent<FormFieldProps> = ({
-  label,
-  control,
-  className,
-}): ReactElement => {
+function FormField<V>({ name, label, children, className }: FormFieldProps<V>) {
   return (
     <div className={cn("formField", className)}>
-      <div className="formField__label">{label}</div>
-      {control}
+      <div className="formField__label">
+        {label}
+        <span className="formField__error">
+          <ErrorMessage name={name} />
+        </span>
+      </div>
+      <Field name={name}>{({ field }: { field: FieldInputProps<V> }) => children(field)}</Field>
     </div>
   );
-};
+}
 
 export default FormField;
