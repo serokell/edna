@@ -8,14 +8,11 @@ module.exports = {
     "prettier/react",
   ],
 
-  overrides: [
-    {
-      files: ["*.ts", "*.tsx"],
-      parserOptions: {
-        project: ["./tsconfig.json"],
-      },
-    },
-  ],
+  parserOptions: {
+    project: ["./tsconfig.json"],
+  },
+
+  ignorePatterns: ["/*.*"],
 
   plugins: ["@typescript-eslint"],
   parser: "@typescript-eslint/parser",
