@@ -3,7 +3,8 @@
 .uploadArea {
   padding: 22 * $px;
   border-radius: $border-radius;
-  box-shadow: -(4 * $px) -(4 * $px) 8 * $px rgba(222, 222, 222, 0.25), 4 * $px 4 * $px 8 * $px rgba(222, 222, 222, 0.25);
+  box-shadow: (-4 * $px) (-4 * $px) (8 * $px) rgba(222, 222, 222, 0.25),
+    (4 * $px) (4 * $px) (8 * $px) rgba(222, 222, 222, 0.25);
 
   &__innerRect {
     display: flex;
