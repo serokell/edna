@@ -14,11 +14,12 @@ import CreatableSelect from "../../components/CreatableSelect";
 import { createMethodologyUpdater, createProjectUpdater } from "../../store/updaters";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
+import { Methodology, Project } from "../../store/types";
 
 interface UploadForm {
   file: Maybe<File>;
-  methodologyId: Maybe<number>;
-  projectId: Maybe<number>;
+  methodology: Maybe<Methodology>;
+  project: Maybe<Project>;
   description: string;
 }
 
@@ -36,21 +37,20 @@ const UploadPage: FunctionComponent = (): ReactElement => {
         <Formik<UploadForm>
           initialValues={{
             file: undefined,
-            projectId: undefined,
-            methodologyId: undefined,
+            project: undefined,
+            methodology: undefined,
             description: "",
           }}
           validate={values => {
-            console.log(values);
             const errors: any = {};
             if (!isDefined(values.file)) {
               errors.file = "File required";
             }
-            if (!isDefined(values.projectId)) {
-              errors.projectId = "Project required";
+            if (!isDefined(values.project)) {
+              errors.project = "Project required";
             }
-            if (!isDefined(values.methodologyId)) {
-              errors.methodologyId = "Methodology required";
+            if (!isDefined(values.methodology)) {
+              errors.methodology = "Methodology required";
             }
             return errors;
           }}
@@ -74,7 +74,7 @@ const UploadPage: FunctionComponent = (): ReactElement => {
               {field => <UploadArea {...field} />}
             </FormField>
 
-            <FormField name="projectId" label="Project">
+            <FormField<Maybe<Project>> name="project" label="Project">
               {field => (
                 <CreatableSelect
                   optionsLoadable={projectsLoadable}
@@ -97,7 +97,7 @@ const UploadPage: FunctionComponent = (): ReactElement => {
               )}
             </FormField>
 
-            <FormField name="methodologyId" label="Methodology">
+            <FormField<Maybe<Methodology>> name="methodology" label="Methodology">
               {field => (
                 <CreatableSelect
                   {...field}
@@ -120,15 +120,13 @@ const UploadPage: FunctionComponent = (): ReactElement => {
               )}
             </FormField>
 
-            <FormField<string> name="description" label="Description">
-              {field => (
-                <textarea
-                  className="ednaTextarea uploadingForm__description"
-                  tabIndex={4}
-                  {...field}
-                />
-              )}
-            </FormField>
+            <FormField
+              as="textarea"
+              name="description"
+              label="Description"
+              className="ednaTextarea uploadingForm__description"
+              tabIndex={4}
+            />
 
             <button className="ednaButton uploadingForm__submitBtn" type="submit" tabIndex={5}>
               Save

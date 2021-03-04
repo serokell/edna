@@ -1,27 +1,41 @@
 import React from "react";
 import "./FormField.scss";
 import cn from "classnames";
-import { ErrorMessage, Field } from "formik";
-import { FieldInputProps } from "formik/dist/types";
+import { ErrorMessage, Field, useField } from "formik";
 
 interface FormFieldProps<V> {
   name: string;
   label: string;
-  // eslint-disable-next-line react/require-default-props
   className?: string;
-  children: (field: FieldInputProps<V>) => React.ReactNode;
+  children?: (field: FormikCompatible<V>) => React.ReactNode | React.ComponentType;
+
+  [prop: string]: any;
 }
 
-function FormField<V>({ name, label, children, className }: FormFieldProps<V>) {
+export interface FormikCompatible<T> {
+  value: T;
+  onChange: (newValue: T) => void;
+}
+
+function FormField<V>({ name, label, children, className, ...props }: FormFieldProps<V>) {
+  // eslint-disable-next-line no-empty-pattern
+  const [{}, { value }, { setValue }] = useField<V>(name);
   return (
-    <div className={cn("formField", className)}>
+    <div className={cn("formField", children && className)}>
       <div className="formField__label">
         {label}
         <span className="formField__error">
           <ErrorMessage name={name} />
         </span>
       </div>
-      <Field name={name}>{({ field }: { field: FieldInputProps<V> }) => children(field)}</Field>
+      <Field name={name} {...props} className={!children && className}>
+        {children &&
+          (() =>
+            children({
+              value,
+              onChange: (x: V) => setValue(x),
+            }))}
+      </Field>
     </div>
   );
 }

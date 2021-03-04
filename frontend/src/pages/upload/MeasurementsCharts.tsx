@@ -34,7 +34,7 @@ export default function MeasurementsCharts({
       </table>
 
       {Object.entries(grouped).map(([comp, meas]) => (
-        <PlotlyChart compounds={{ [comp]: meas }} />
+        <PlotlyChart key={uuidv4()} compounds={{ [comp]: meas }} />
       ))}
       <PlotlyChart compounds={grouped} />
     </>

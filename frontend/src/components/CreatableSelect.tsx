@@ -1,19 +1,18 @@
 import React, { useState } from "react";
 import Select from "react-select/creatable";
 import { Loadable } from "recoil";
-import { useField } from "formik";
 import { isDefined, Maybe } from "../utils/utils";
+import { FormikCompatible } from "./FormField/FormField";
 
 type SelectOption = { value: string; label: string };
 
-interface CreatableSelectProps<T> {
+interface CreatableSelectProps<T> extends FormikCompatible<Maybe<T>> {
   optionsLoadable: Loadable<T[]>;
   placeholder: string;
   placeholderNo: string;
   toOption: (arg: T) => SelectOption;
   optionCreator: (value: string) => Promise<Maybe<T>>;
 
-  name: string;
   [prop: string]: any;
 }
 
@@ -23,18 +22,22 @@ export default function CreatableSelect<T>({
   placeholderNo,
   toOption,
   optionCreator,
-  name,
+  value,
+  onChange,
+  ...props
 }: CreatableSelectProps<T>) {
   const [optionCreating, setOptionCreating] = useState(false);
-  const [curOpt, setCurOpt] = useState<SelectOption | null>(null);
-  const { setValue } = useField(name)[2];
 
   return (
-    <Select
-      value={curOpt}
-      onChange={newVal => {
-        setCurOpt(newVal);
-        setValue(newVal);
+    <Select<SelectOption>
+      {...props}
+      value={value ? toOption(value) : undefined}
+      onChange={x => {
+        const opt =
+          optionsLoadable.state === "hasValue" && optionsLoadable.contents
+            ? optionsLoadable.contents.find(o => toOption(o).value === x?.value)
+            : undefined;
+        onChange(opt);
       }}
       isDisabled={optionCreating}
       isLoading={optionsLoadable.state === "loading" || optionCreating}
@@ -70,7 +73,7 @@ export default function CreatableSelect<T>({
           setOptionCreating(true);
           const newOpt = await optionCreator(optionName);
           if (isDefined(newOpt)) {
-            setCurOpt(toOption(newOpt));
+            onChange(newOpt);
           }
         } finally {
           setOptionCreating(false);
