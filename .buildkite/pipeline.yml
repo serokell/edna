@@ -14,12 +14,20 @@ steps:
   - label: backend test
     commands:
       - nix-build -A checks.x86_64-linux.backend-test
+  - label: backend image
+    commands:
+      - nix-build -A packages.x86_64-linux.docker-backend
+      - buildkite-agent artifact upload "$(readlink -f result)"
   - label: backend hlint
     commands:
       - nix-shell --run 'hlint backend -j'
   - label: frontend build
     commands:
       - nix-build -A packages.x86_64-linux.frontend
+  - label: frontend image
+    commands:
+      - nix-build -A packages.x86_64-linux.docker-frontend
+      - buildkite-agent artifact upload "$(readlink -f result)"
   - label: frontend tscompile
     commands:
       - nix-build -A checks.x86_64-linux.frontend-tscompile
@@ -29,3 +37,8 @@ steps:
   - label: frontend stylelint
     commands:
       - nix-build -A checks.x86_64-linux.frontend-stylelint
+  - wait
+  - label: Deploy staging
+    commands:
+      - nix-shell --run 'deploy .#castor'
+    branches: "master"

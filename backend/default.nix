@@ -1,5 +1,6 @@
 { haskell-nix, ephemeralpg }:
 let
+
   project = haskell-nix.stackProject {
     src = haskell-nix.haskellLib.cleanGit {
       src = haskell-nix.cleanSourceHaskell { src = ./.; };
@@ -10,6 +11,10 @@ let
         edna = {
           doHaddock = true;
           ghcOptions = ["-Werror"];
+
+          # Do not depend on GHC
+          components.exes.edna-server.dontStrip = false;
+
           components.tests.edna-test = {
             ghcOptions = ["-Werror"];
             # These are runtime deps, but there is nowhere else to put them
