@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CompoundsMap } from "../../api/types";
 import "./Plotting.scss";
 
-const colors = ["red", "blue", "green"];
+const colors = ["red", "blue", "green", "yellow", "pink", "aqua", "chartreuse"];
 const plotConfig: Partial<Plotly.Config> = {
   displaylogo: false,
   // displayModeBar: false,
@@ -45,11 +45,18 @@ export default function PlotlyChart({ compounds }: PlotlyChartProps): React.Reac
           x: meas.map(a => a.concentration),
           y: meas.map(a => a.signal),
           type: "scatter",
+          "xaxis.type": "log",
           mode: "lines+markers",
           marker: { color: colors[Math.abs(hashCode(cmpd)) % colors.length] },
         };
       })}
-      layout={{ title: "Comparison chart" }}
+      layout={{
+        title: "Comparison chart",
+        xaxis: {
+          type: "log",
+          autorange: true,
+        },
+      }}
       config={plotConfig}
     />
   );

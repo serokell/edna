@@ -34,6 +34,9 @@ library
       Edna.Web.Server
       Edna.Web.Swagger
       Edna.Web.Handlers
+      Edna.ExperimentReader.Error
+      Edna.ExperimentReader.Parser
+      Edna.ExperimentReader.Types
   other-modules:
       Paths_edna
       Edna.Web.API
@@ -57,6 +60,7 @@ library
     servant-swagger,
     servant-swagger-ui-core,
     servant-swagger-ui,
+    split,
     swagger2,
     warp,
     xlsx

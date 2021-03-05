@@ -10,9 +10,11 @@ import Data.Aeson.TH (deriveJSON)
 import Edna.Util (ednaAesonWebOptions)
 
 data ExperimentalMeasurement = ExperimentalMeasurement
-  { emCompoundId    :: Text,
-    emConcentration :: Double,
-    emSignal        :: Double
+  { emCompoundId :: Text
+  , emTargetId :: Text
+  , emConcentration :: Double
+  , emSignal :: Double
+  , emOutlier :: Bool
   } deriving stock (Generic)
 
 deriveJSON ednaAesonWebOptions ''ExperimentalMeasurement

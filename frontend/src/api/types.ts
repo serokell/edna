@@ -2,18 +2,22 @@
 
 export interface MeasurementDto {
   compoundId: string;
+  targetId: string;
   concentration: number;
   signal: number;
+  outlier: boolean;
 }
 
 export type CompoundsMap = { [compoundId: string]: MeasurementDto[] };
 
 export function groupCompounds(mes: MeasurementDto[]): CompoundsMap {
-  return mes.reduce((groups: CompoundsMap, x) => {
-    const group = groups[x.compoundId] || [];
+  const filteredCompounds = mes.filter(m => !m.outlier);
+  return filteredCompounds.reduce((groups: CompoundsMap, x) => {
+    const id = `${x.compoundId} ${x.targetId}`;
+    const group = groups[id] || [];
     group.push(x);
     // eslint-disable-next-line no-param-reassign
-    groups[x.compoundId] = group;
+    groups[id] = group;
     return groups;
   }, {});
 }
