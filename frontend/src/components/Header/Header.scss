@@ -42,6 +42,8 @@
     padding-left: $wrapper-padding;
 
     font-size: 18 * $px;
+    color: black;
+    text-decoration: none;
     border-bottom: $menuitem-border solid transparent;
 
     & + & {
