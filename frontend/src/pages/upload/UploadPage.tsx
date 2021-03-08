@@ -23,7 +23,7 @@ interface UploadForm {
   description: string;
 }
 
-const UploadPage: FunctionComponent = (): ReactElement => {
+export const UploadPage: FunctionComponent = (): ReactElement => {
   const [uploadingStatus, setUploadingStatus] = useState<RequestState<MeasurementDto[]>>(idle());
   const createProject = createProjectUpdater();
   const createMethodology = createMethodologyUpdater();
@@ -147,5 +147,3 @@ const UploadPage: FunctionComponent = (): ReactElement => {
     </PageLayout>
   );
 };
-
-export default UploadPage;
