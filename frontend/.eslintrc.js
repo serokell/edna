@@ -67,7 +67,8 @@ module.exports = {
 
     "react/jsx-props-no-spreading": 0,
     "jsx-a11y/tabindex-no-positive": 0,
-    "react/require-default-props": 0
+    "react/require-default-props": 0,
+    "import/prefer-default-export": 0
   },
   globals: {
     window: true,

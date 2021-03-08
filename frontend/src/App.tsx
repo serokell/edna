@@ -1,6 +1,26 @@
 import React, { FunctionComponent, ReactElement } from "react";
-import UploadPage from "./pages/upload/UploadPage";
+import { Route, Switch } from "react-router-dom";
+import { Redirect } from "react-router";
 
-const App: FunctionComponent = (): ReactElement => <UploadPage />;
+import { UploadPage } from "./pages/upload/UploadPage";
+import { LibraryPage } from "./pages/library/LibraryPage";
+import { NotFound } from "./components/NotFound/NotFound";
 
-export default App;
+export const App: FunctionComponent = (): ReactElement => {
+  return (
+    <Switch>
+      <Route path="/upload">
+        <UploadPage />
+      </Route>
+      <Route path="/library">
+        <LibraryPage />
+      </Route>
+
+      <Redirect exact from="/" to="/upload" />
+
+      <Route path="*">
+        <NotFound />
+      </Route>
+    </Switch>
+  );
+};
