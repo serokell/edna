@@ -1,0 +1,24 @@
+@import "src/styles/variables";
+
+.libraryPage {
+}
+
+.entityTabs {
+  display: flex;
+  margin-bottom: 64 * $px;
+
+  &__tab {
+    margin-right: 86 * $px;
+    font-size: 25 * $px;
+    font-weight: 400;
+    color: #d4d4d4;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &_active {
+      color: #4a4a4a;
+    }
+  }
+}
