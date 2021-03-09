@@ -2,6 +2,9 @@ steps:
   - label: check trailing whitespace
     commands:
       - .buildkite/check-trailing-whitespace.sh
+  - label: validate cabal files
+    commands:
+      - nix-shell --run 'cd backend && scripts/validate-cabal-files.sh'
   - label: backend server
     commands:
       - nix-build -A packages.x86_64-linux.backend-server
