@@ -4,12 +4,18 @@ module Edna.ExperimentReader.Types
   , ParameterType (..)
   , Signal (..)
   , CellType (..)
+  , PointYX (..)
   ) where
 
 import Universum
 
+import qualified GHC.Show as S
+
 import Codec.Xlsx (CellValue(..))
-import Fmt (Buildable(..))
+import Fmt (Buildable(..), (+|), (|+), pretty)
+
+data PointYX = PointYX (Int, Int)
+  deriving stock (Show, Eq)
 
 data ParameterType = Target | Compound
 
@@ -32,6 +38,20 @@ data CellType :: Type -> Type where
  CText  :: CellType Text
  CDouble :: CellType Double
  CSignal :: CellType Signal
+
+instance Buildable PointYX where
+  build (PointYX (y, x)) = "{row=" +| y |+ ", column=" +| x |+ "}"
+
+instance Buildable (CellType a) where
+  build CText = "text"
+  build CDouble = "double"
+  build CSignal = "signal"
+
+instance Show (CellType a) where
+  show = pretty
+  
+instance Eq (CellType a) where
+  (==) a b = (pretty a :: Text) == pretty b
 
 instance Buildable CellValue where
   build (CellText t) = build t

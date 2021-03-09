@@ -1,5 +1,3 @@
-{-# LANGUAGE StarIsType #-}
-
 module Edna.Web.Handlers
   ( ednaHandlers
   , EdnaServerError (..)

@@ -17,15 +17,20 @@ import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Types
-  (CellType(..), Parameter(..), ParameterType(..), Signal(..), TabletUnit(..))
+  (CellType(..), Parameter(..), ParameterType(..), Signal(..), TabletUnit(..), PointYX (..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
 type ParserType a = Either ExperimentParsingError a
 
 -- | Based on specific CellType return its value or get and exception that cell is empty or its
 -- expected type does not satisfy actual type
-specificCellAt :: Worksheet -> (Int, Int) -> CellType a -> Either ExperimentParsingError a
-specificCellAt workSheet position cellType =
+specificCellAt
+  :: Typeable a
+  => Worksheet
+  -> PointYX
+  -> CellType a
+  -> Either ExperimentParsingError a
+specificCellAt workSheet p@(PointYX position) cellType =
   let cell = workSheet ^? ixCell position . cellValue . _Just in
   case (cellType, cell) of
     (_, Nothing) -> Left EmptyCell
@@ -40,11 +45,11 @@ specificCellAt workSheet position cellType =
       (readParen True reads . toString . replace "," "." -> ((d, "") : _))
       )) -> Right $ Signal d True
 
-    _ -> Left $ InvalidCell position
+    (_, cv) -> Left $ UnexpectedCellType p cellType cv
 
 -- | Check that cell representation equals to some value
-cellSatisfy :: Worksheet -> Text -> (Int, Int) -> Bool
-cellSatisfy workSheet value position = case workSheet ^? ixCell position . cellValue of
+cellSatisfy :: Worksheet -> Text -> PointYX -> Bool
+cellSatisfy workSheet value (PointYX position) = case workSheet ^? ixCell position . cellValue of
   Just (Just x) -> pretty x == value
   _ -> value == ""
 
@@ -53,10 +58,10 @@ paramsSplit :: Worksheet -> ParameterType -> Int -> NonEmpty Int -> ParserType [
 paramsSplit workSheet pType normalAxisPoint indexes = constructParams (last indexes) $
     flip NE.filter indexes $ \c -> not $ cellSatisfy workSheet "" $ direction (normalAxisPoint, c)
   where
-    direction :: (Int, Int) -> (Int, Int)
+    direction :: (Int, Int) -> PointYX
     direction points = case pType of
-      Target -> points
-      Compound -> swap points
+      Target -> PointYX points
+      Compound -> PointYX $ swap points
 
     -- | Construct params from their indexes
     constructParams :: Int -> [Int] -> ParserType [Parameter]
@@ -75,14 +80,14 @@ parseExperimentXls content = do
   workSheet <- maybeToRight WorksheetNotFound $ xlsx ^? xlSheets . ix 0 . _2
 
   -- Check that tablet exists and start from the top left corner of the table
-  unless (cellSatisfy workSheet "<>" (1, 1)) $ Left TabletStartNotFound
+  unless (cellSatisfy workSheet "<>" $ PointYX (1, 1)) $ Left TabletStartNotFound
 
   -- Compute height and width of the sheet (width also equals to tabletWidth)
   let (shtHeight, tabletWidth) =
         foldl' (\(y, x) (y', x') -> (max y y', max x x')) (1, 1) $ M.keys $ workSheet ^. wsCells
 
   -- Compute tablet height finding the second tablet starting point
-  tabletHeight <- case [c | c <- [2..shtHeight], cellSatisfy workSheet "<>" (c, 1)] of
+  tabletHeight <- case [c | c <- [2..shtHeight], cellSatisfy workSheet "<>" $ PointYX (c, 1)] of
     [c] -> Right $ c - 1
     _ -> Left $ NoConcentrationTablet
 
@@ -90,7 +95,7 @@ parseExperimentXls content = do
   -- empty cell (in the column of these cells are compound names)
   -- Also convert list of lists to the list of NonEmpty
   let tabletUnitsIndexes = foldr (\u us -> case u of {[] -> us; (x : xs) -> (x :| xs) : us}) [] $
-        wordsBy (\c -> cellSatisfy workSheet "" (1, c)) [2..tabletWidth]
+        wordsBy (\c -> cellSatisfy workSheet "" (PointYX (1, c))) [2..tabletWidth]
 
   -- For each unit find targets and compounds (their names and indexes range)
   tabletUnits <- forM tabletUnitsIndexes $ \unit -> do
@@ -108,6 +113,6 @@ parseExperimentXls content = do
     x <- [fst $ pIndexes target .. snd $ pIndexes target]
     y <- [fst $ pIndexes compound .. snd $ pIndexes compound]
     pure $ do
-      Signal{..} <- specificCellAt workSheet (y, x) CSignal
-      concentration <- specificCellAt workSheet (y + tabletHeight - 1, x) CDouble
+      Signal{..} <- specificCellAt workSheet (PointYX (y, x)) CSignal
+      concentration <- specificCellAt workSheet (PointYX (y + tabletHeight - 1, x)) CDouble
       pure $ ExperimentalMeasurement (pName compound) (pName target) concentration sValue sOutlier
