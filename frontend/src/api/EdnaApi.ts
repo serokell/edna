@@ -81,7 +81,7 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     fetchProjects: async () => {
       // TODO remove delay. For network emulation purposes
-      await delay(1000);
+      // await delay(1000);
       return [
         {
           projectId: 1,
