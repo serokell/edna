@@ -74,11 +74,11 @@ spec_parser = do
     it "No plate start" do
       workSheet <- getWorkSheet (tablesPath <> "/Invalid.xlsx") "NoPlateStart"
       let parsingResult = processWorkSheet workSheet
-      parsingResult `shouldBe` Left TabletStartNotFound
+      parsingResult `shouldBe` Left PlateStartNotFound
     it "No concentration plate" do
       workSheet <- getWorkSheet (tablesPath <> "/Invalid.xlsx") "NoConcentrationPlate"
       let parsingResult = processWorkSheet workSheet
-      parsingResult `shouldBe` Left NoConcentrationTablet
+      parsingResult `shouldBe` Left NoConcentrationPlate
     it "No work sheet" do
       getWorkSheet (tablesPath <> "/Invalid.xlsx") "NoSuchWorkSheet" `shouldThrow`
         (== WorksheetNotFound)

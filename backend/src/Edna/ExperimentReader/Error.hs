@@ -14,9 +14,9 @@ data ExperimentParsingError
   = forall a . Typeable a => UnexpectedCellType PointYX (CellType a) (Maybe CellValue)
   | EmptyCell
   | WorksheetNotFound
-  | TabletStartNotFound
+  | PlateStartNotFound
   | FileParsingError ParseError
-  | NoConcentrationTablet
+  | NoConcentrationPlate
   deriving anyclass Exception
 
 deriving stock instance Show ExperimentParsingError
@@ -25,8 +25,8 @@ instance Eq ExperimentParsingError where
   EmptyCell == EmptyCell = True
   WorksheetNotFound == WorksheetNotFound = True
   FileParsingError a == FileParsingError b = a == b
-  NoConcentrationTablet == NoConcentrationTablet = True
-  TabletStartNotFound == TabletStartNotFound = True
+  NoConcentrationPlate == NoConcentrationPlate = True
+  PlateStartNotFound == PlateStartNotFound = True
   _ == _ = False
 
 instance Buildable ExperimentParsingError where
@@ -35,5 +35,5 @@ instance Buildable ExperimentParsingError where
   build EmptyCell = "Cell is empty"
   build WorksheetNotFound = "Worksheet not found"
   build (FileParsingError e) = show e
-  build TabletStartNotFound = "\"<>\" tablet start poin not found"
-  build NoConcentrationTablet = "Tablet does not contain concentration results"
+  build PlateStartNotFound = "\"<>\" plate start poin not found"
+  build NoConcentrationPlate = "Plate does not contain concentration results"
