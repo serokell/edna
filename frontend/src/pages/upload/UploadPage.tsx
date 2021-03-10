@@ -124,11 +124,12 @@ const UploadPage: FunctionComponent = (): ReactElement => {
               as="textarea"
               name="description"
               label="Description"
-              className="ednaTextarea uploadingForm__description"
+              className="uploadingForm__description"
+              classNameInner="ednaTextarea"
               tabIndex={4}
             />
 
-            <button className="ednaButton uploadingForm__submitBtn" type="submit" tabIndex={5}>
+            <button className="primaryButton uploadingForm__submitBtn" type="submit" tabIndex={5}>
               Save
             </button>
           </Form>

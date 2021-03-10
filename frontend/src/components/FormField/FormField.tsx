@@ -7,6 +7,7 @@ interface FormFieldProps<V> {
   name: string;
   label: string;
   className?: string;
+  classNameInner?: string;
   children?: (field: FormikCompatible<V>) => React.ReactNode | React.ComponentType;
 
   [prop: string]: any;
@@ -17,18 +18,25 @@ export interface FormikCompatible<T> {
   onChange: (newValue: T) => void;
 }
 
-function FormField<V>({ name, label, children, className, ...props }: FormFieldProps<V>) {
+function FormField<V>({
+  name,
+  label,
+  children,
+  className,
+  classNameInner,
+  ...props
+}: FormFieldProps<V>) {
   // eslint-disable-next-line no-empty-pattern
   const [{}, { value }, { setValue }] = useField<V>(name);
   return (
-    <div className={cn("formField", children && className)}>
+    <div className={cn("formField", className)}>
       <div className="formField__label">
         {label}
         <span className="formField__error">
           <ErrorMessage name={name} />
         </span>
       </div>
-      <Field name={name} {...props} className={!children && className}>
+      <Field {...props} name={name} className={classNameInner}>
         {children &&
           (() =>
             children({

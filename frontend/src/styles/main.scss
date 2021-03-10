@@ -31,13 +31,12 @@ $global-side-padding: 138 * $px;
   box-shadow: 0 0 0 $px $input-border-outlined;
 }
 
-.ednaButton {
+.primaryButton {
   height: 3rem;
   padding: $elem-padding;
   font-weight: 500;
   color: white;
-  background-color: #a5a5a5;
-
+  background-color: #474747;
   border: 0;
   border-radius: $border-radius;
 
@@ -48,6 +47,47 @@ $global-side-padding: 138 * $px;
   &:active {
     color: #eae8e8;
     background-color: #979797;
+  }
+
+  &_disabled {
+    color: #f6f6f6;
+    background-color: #c4c4c4;
+  }
+}
+
+.outlinedButton {
+  height: 3rem;
+  padding: $elem-padding;
+  font-weight: 500;
+  color: #474747;
+  background-color: white;
+  border: 0;
+  border-radius: $border-radius;
+
+  &:focus {
+    outline: none;
+  }
+
+  //&:active {
+  //  color: #eae8e8;
+  //  background-color: #979797;
+  //}
+
+  &_disabled {
+    color: #c4c4c4;
+  }
+}
+
+.secondaryButton {
+  padding: (8 * $px) (16 * $px);
+  color: #303030;
+  background-color: #f2f2f2;
+  border-color: #c4c4c4;
+  border-radius: 8 * $px;
+
+  &:hover,
+  &:active {
+    background-color: #cbcbcb;
   }
 }
 

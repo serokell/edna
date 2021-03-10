@@ -40,10 +40,10 @@
   display: grid;
   grid-template-rows: repeat(5, minmax(1fr, 150 * $px));
   grid-template-columns: 1fr 1fr;
-  column-gap: 10rem;
+  column-gap: 28 * $px;
 
   width: 100%;
-  max-width: 900 * $px;
+  //max-width: 900 * $px;
   margin-right: auto;
   margin-left: auto;
 
@@ -60,6 +60,8 @@
   }
 
   &__description {
+    grid-column: 2/3;
+    min-height: 38 * $px;
     resize: vertical;
   }
 
