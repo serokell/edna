@@ -14,6 +14,7 @@ maintainer:     Serokell <hi@serokell.io>
 copyright:      2021 Serokell <https://serokell.io>
 -- TODO: add license
 build-type:     Simple
+extra-source-files: ./resources/testSheets/**/*
 
 source-repository head
   type: git
@@ -37,11 +38,11 @@ library
       Edna.ExperimentReader.Error
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
+      Edna.Web.Types
   other-modules:
       Paths_edna
       Edna.Web.API
       Edna.Web.Error
-      Edna.Web.Types
       Edna.Util
   hs-source-dirs:
       src
@@ -83,6 +84,7 @@ test-suite edna-test
   main-is: Main.hs
   other-modules:
       Test.Edna
+      Test.Parser
       Paths_edna
   hs-source-dirs:
       test
@@ -109,5 +111,11 @@ test-suite edna-test
   build-depends:
       HUnit
     , edna
+    , bytestring
+    , containers
+    , hspec
+    , microlens
     , tasty
     , tasty-hunit-compat
+    , tasty-hspec
+    , xlsx

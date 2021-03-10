@@ -1,5 +1,7 @@
 module Edna.ExperimentReader.Parser
   ( parseExperimentXls
+  , processWorkSheet
+  , ParserType
   ) where
 
 import Universum
@@ -17,7 +19,7 @@ import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Types
-  (CellType(..), Parameter(..), ParameterType(..), Signal(..), TabletUnit(..), PointYX (..))
+  (CellType(..), Parameter(..), ParameterType(..), PointYX(..), Signal(..), TabletUnit(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
 type ParserType a = Either ExperimentParsingError a
@@ -68,7 +70,7 @@ paramsSplit workSheet pType normalAxisPoint indexes = constructParams (last inde
     constructParams _ [] = pure []
     constructParams lastId [idx] = do
       name <- specificCellAt workSheet (direction (normalAxisPoint, idx)) CText
-      pure $ [Parameter name (idx, lastId)]
+      pure [Parameter name (idx, lastId)]
     constructParams lastId (id1 : id2 : ids) = do
       name <- specificCellAt workSheet (direction (normalAxisPoint, id1)) CText
       restParams <- constructParams lastId (id2 : ids)
@@ -78,7 +80,10 @@ parseExperimentXls :: L.ByteString -> ParserType [ExperimentalMeasurement]
 parseExperimentXls content = do
   xlsx <- first FileParsingError $ toXlsxEither content
   workSheet <- maybeToRight WorksheetNotFound $ xlsx ^? xlSheets . ix 0 . _2
+  processWorkSheet workSheet
 
+processWorkSheet :: Worksheet -> ParserType [ExperimentalMeasurement]
+processWorkSheet workSheet = do
   -- Check that tablet exists and start from the top left corner of the table
   unless (cellSatisfy workSheet "<>" $ PointYX (1, 1)) $ Left TabletStartNotFound
 
@@ -89,7 +94,7 @@ parseExperimentXls content = do
   -- Compute tablet height finding the second tablet starting point
   tabletHeight <- case [c | c <- [2..shtHeight], cellSatisfy workSheet "<>" $ PointYX (c, 1)] of
     [c] -> Right $ c - 1
-    _ -> Left $ NoConcentrationTablet
+    _ -> Left NoConcentrationTablet
 
   -- Get list of indexes list of tablet units where unit is a part of the tablet separated by
   -- empty cell (in the column of these cells are compound names)

@@ -12,9 +12,9 @@ import Universum
 import qualified GHC.Show as S
 
 import Codec.Xlsx (CellValue(..))
-import Fmt (Buildable(..), (+|), (|+), pretty)
+import Fmt (Buildable(..), pretty, (+|), (|+))
 
-data PointYX = PointYX (Int, Int)
+newtype PointYX = PointYX (Int, Int)
   deriving stock (Show, Eq)
 
 data ParameterType = Target | Compound
@@ -49,7 +49,7 @@ instance Buildable (CellType a) where
 
 instance Show (CellType a) where
   show = pretty
-  
+
 instance Eq (CellType a) where
   (==) a b = (pretty a :: Text) == pretty b
 
@@ -58,4 +58,4 @@ instance Buildable CellValue where
   build (CellDouble d) = build d
   build (CellBool b) = build b
   build (CellRich r) = build $ map (\rr -> show rr :: Text) r
-  build (CellError e) = build $ (show e :: Text)
+  build (CellError e) = build (show e :: Text)
