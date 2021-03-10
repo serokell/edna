@@ -15,6 +15,6 @@ data ExperimentalMeasurement = ExperimentalMeasurement
   , emConcentration :: Double
   , emSignal :: Double
   , emOutlier :: Bool
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show, Eq)
 
 deriveJSON ednaAesonWebOptions ''ExperimentalMeasurement
