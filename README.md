@@ -12,20 +12,18 @@ TODO: CI and license badges!
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
    -->
 
-Edna is an open-source tool for data analysis aimed to help researchers with their experiments.
+Edna is an open-source web application for data analysis aimed to help researchers with their experiments.
+It consists of backend and frontend.
 
-## Build Instructions
+## Usage and Build Instructions
 
-There is nothing to build yet.
+You need to build and run both [backend](./backend) and [frontend](./frontend).
+Please refer to the respective directories for more details.
 
-## Usage
+### Local database
 
 To run a postgres container run `docker-compose up postgres` in `deployment` directory,
 then you can connect to it via `psql` or using any convenient database viewer.
-
-To run a server run `stack exec -- edna-server -c config.yaml`:
-* The server endpoints available at `localhost:9000/api/*`.
-* Swagger docs are available at `http://localhost:9000/docs/`.
 
 ## Issue Tracker
 
