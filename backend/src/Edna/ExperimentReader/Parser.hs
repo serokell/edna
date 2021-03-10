@@ -13,13 +13,12 @@ import qualified Data.Map as M
 import Codec.Xlsx (CellValue(..), Worksheet(..), cellValue, ixCell, toXlsxEither, wsCells, xlSheets)
 import Data.List.Split (wordsBy)
 import Data.Text (replace)
-import Fmt (pretty)
 import Lens.Micro (ix, _Just)
 import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Types
-  (CellType(..), Parameter(..), ParameterType(..), PointYX(..), Signal(..), PlateUnit(..))
+  (CellType(..), Parameter(..), ParameterType(..), PlateUnit(..), PointYX(..), Signal(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
 type ParserType a = Either ExperimentParsingError a
@@ -31,12 +30,12 @@ specificCellAt
   => Worksheet
   -> PointYX
   -> CellType a
-  -> Either ExperimentParsingError a
+  -> ParserType a
 specificCellAt workSheet p@(PointYX position) cellType =
   let cell = workSheet ^? ixCell position . cellValue . _Just in
   case (cellType, cell) of
-    (_, Nothing) -> Left EmptyCell
-    (_, Just (CellText "")) -> Left EmptyCell
+    (_, Nothing) -> Left $ EmptyCell p
+    (_, Just (CellText "")) -> Left $ EmptyCell p
 
     (CText, Just (CellText x)) -> Right x
     (CDouble, Just (CellDouble x)) -> Right x
@@ -51,12 +50,19 @@ specificCellAt workSheet p@(PointYX position) cellType =
 
 -- | Check that cell representation equals to some value
 cellSatisfy :: Worksheet -> Text -> PointYX -> Bool
-cellSatisfy workSheet value (PointYX position) = case workSheet ^? ixCell position . cellValue of
-  Just (Just x) -> pretty x == value
-  _ -> value == ""
+cellSatisfy workSheet value (PointYX position) =
+  case workSheet ^? ixCell position . cellValue . _Just of
+    Just (CellText x) -> x == value
+    Nothing -> value == ""
+    _ -> False
 
--- | Common function for splitting
-paramsSplit :: Worksheet -> ParameterType -> Int -> NonEmpty Int -> ParserType [Parameter]
+-- | Common function for splitting parameters (compound or target) of the unit
+paramsSplit
+  :: Worksheet -- ^ common worksheet
+  -> ParameterType -- ^ Type of the parameter which we want to split (compound or target)
+  -> Int -- ^ For compounds it is a number of the column wherein it is, for target number of the row
+  -> NonEmpty Int -- ^ Indexes on the column (for compounds) or row (for targets) where do they lie
+  -> ParserType [Parameter]
 paramsSplit workSheet pType normalAxisPoint indexes = constructParams (last indexes) $
     flip NE.filter indexes $ \c -> not $ cellSatisfy workSheet "" $ direction (normalAxisPoint, c)
   where
@@ -76,6 +82,8 @@ paramsSplit workSheet pType normalAxisPoint indexes = constructParams (last inde
       restParams <- constructParams lastId (id2 : ids)
       pure $ Parameter name (id1, id2 - 1) : restParams
 
+-- | Parse xlsx file representing as ByteString and return list ExperimentalMeasurement where
+-- each ExperimentalMeasurement is a point of measurement from this file
 parseExperimentXls :: L.ByteString -> ParserType [ExperimentalMeasurement]
 parseExperimentXls content = do
   xlsx <- first FileParsingError $ toXlsxEither content
@@ -111,7 +119,7 @@ processWorkSheet workSheet = do
     pure PlateUnit{..}
 
   -- For each unit, for each target and compound find corresponding values
-  sequenceA $ filter (either (/= EmptyCell) (const True)) $ do
+  sequenceA $ filter (either (\case {EmptyCell _ -> False; _ -> True}) (const True)) $ do
     PlateUnit {..} <- plateUnits
     target <- tuTargets
     compound <- tuCompounds
