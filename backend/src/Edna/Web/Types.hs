@@ -1,8 +1,11 @@
+-- | Bridge types used to communicate between the server app and frontend.
+
 module Edna.Web.Types
   ( ExperimentalMeasurement (..)
   , SqlId (..)
   , WithId (..)
   , WithExtra (..)
+  , StubSortBy (..)
   , Project (..)
   , ProjectExtra (..)
   , TestMethodology (..)
@@ -12,7 +15,8 @@ import Universum
 
 import Data.Aeson (ToJSON)
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
-import Data.Swagger (ToParamSchema(..), ToSchema(..))
+import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
+import Lens.Micro ((?~))
 import Network.URI (URI)
 import Network.URI.JSON ()
 import Servant (FromHttpApiData(..))
@@ -57,7 +61,19 @@ data WithExtra t e = WithExtra
   { weId :: SqlId t
   , weItem :: t
   , weExtra :: e
-  }
+  } deriving stock (Generic)
+
+-- | A stub to specify the sorting order, most likely will be replaced with
+-- @servant-util@.
+data StubSortBy =
+    SortByName
+  | SortBySomething
+
+instance FromHttpApiData StubSortBy where
+  parseQueryParam = \case
+    "name" -> pure SortByName
+    "something" -> pure SortBySomething
+    x -> Left $ "unknown sorting order: " <> x
 
 ----------------
 -- Entities
@@ -69,6 +85,8 @@ data Project = Project
   , pDescription :: Text
   } deriving stock (Generic)
 
+-- | Extra data about projects that is not submitted by users, but is stored
+-- in DB.
 data ProjectExtra = ProjectExtra
   { peCreationDate :: Word64
   -- ^ Unsigned number, UNIX timestamp.
@@ -77,7 +95,7 @@ data ProjectExtra = ProjectExtra
   , peLastUpdate :: Word64
   , peCompoundNames :: [Text]
   -- ^ Names of all compounds involved in this project.
-  }
+  } deriving stock (Generic)
 
 -- | Test methodology as submitted by end users.
 data TestMethodology = TestMethodology
@@ -107,7 +125,13 @@ instance ToSchema ExperimentalMeasurement where
 instance ToSchema t => ToSchema (WithId t) where
   declareNamedSchema = gDeclareNamedSchema
 
+instance (ToSchema t, ToSchema e) => ToSchema (WithExtra t e) where
+  declareNamedSchema = gDeclareNamedSchema
+
 instance ToSchema Project where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema ProjectExtra where
   declareNamedSchema = gDeclareNamedSchema
 
 -- We define @ToSchema URI@ elsewhere to have less modules
@@ -117,3 +141,8 @@ instance ToSchema URI => ToSchema TestMethodology where
 
 instance ToParamSchema (SqlId t) where
   toParamSchema = gToParamSchema
+
+instance ToParamSchema StubSortBy where
+  toParamSchema _ = mempty
+     & type_ ?~ SwaggerString
+     & enum_ ?~ [ "name", "something" ]
