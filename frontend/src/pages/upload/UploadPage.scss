@@ -3,7 +3,7 @@
 
 .uploadingForm {
   display: grid;
-  grid-template-rows: repeat(5, minmax(1fr, 150 * $px));
+  grid-template-rows: repeat(6, minmax(1fr, 150 * $px));
   grid-template-columns: 1fr 1fr;
   column-gap: 28 * $px;
 
@@ -23,15 +23,54 @@
     grid-column: 1/2;
   }
 
-  &__description {
+  &__uploadArea_hidden {
+    display: none;
+  }
+
+  &__previewTable {
+    grid-row: 3/5;
+    grid-column: 1/2;
+  }
+
+  &__project {
+    grid-row: 2/3;
     grid-column: 2/3;
+  }
+
+  &__methodology {
+    grid-row: 3/4;
+    grid-column: 2/3;
+  }
+
+  &__description {
+    grid-row: 4/5;
+    grid-column: 2/3;
+  }
+
+  &__descriptionTextArea {
     min-height: 38 * $px;
     resize: vertical;
   }
 
-  &__submitBtn {
+  &__label {
+    grid-row: 5/6;
     grid-column: 1/2;
-    width: 50%;
+    margin-top: 40 * $px;
+    font-size: 12 * $px;
+    line-height: 14 * $px;
+  }
+
+  &__buttons {
+    display: flex;
+
+    grid-row: 6/7;
+    grid-column: 1/2;
+    margin-top: 16 * $px;
+    margin-right: auto;
+  }
+
+  &__anotherBtn {
+    margin-left: 60 * $px;
   }
 }
 

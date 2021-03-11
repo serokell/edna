@@ -1,5 +1,12 @@
 $px: 0.0625rem;
 
+$border-radius: 9 * $px;
+$input-border-color: #e1e1e1;
+$input-border-outlined: #2684ff;
+$elem-padding: 10 * $px;
+$container-side-padding: 20 * $px;
+$container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
+
 :root {
   --error-msg: #fb6340;
 }

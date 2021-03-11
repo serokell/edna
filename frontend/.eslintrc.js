@@ -48,6 +48,7 @@ module.exports = {
     // Use TS no-unused-vars rule
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error"],
+    "@typescript-eslint/no-use-before-define": 0,
 
     // Support declarations in case
     "no-case-declarations": 0,
@@ -68,6 +69,7 @@ module.exports = {
     "react/jsx-props-no-spreading": 0,
     "jsx-a11y/tabindex-no-positive": 0,
     "react/require-default-props": 0,
+    "no-nested-ternary": 0,
     "import/prefer-default-export": 0
   },
   globals: {

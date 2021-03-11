@@ -1,11 +1,11 @@
 import React from "react";
-import Header from "../Header/Header";
+import PageLayout from "../PageLayout/PageLayout";
+import "./NotFound.scss";
 
-export function NotFound() {
+export function NotFound(): React.ReactElement {
   return (
-    <>
-      <Header />
-      <span style={{ marginTop: "250px" }}>Здесь ничего нет</span>
-    </>
+    <PageLayout>
+      <span className="notFoundCentered">Здесь ничего нет</span>
+    </PageLayout>
   );
 }

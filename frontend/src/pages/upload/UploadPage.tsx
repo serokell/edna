@@ -1,34 +1,29 @@
-import React, { FunctionComponent, ReactElement, useState } from "react";
-import { useRecoilValueLoadable } from "recoil";
+import React, { FunctionComponent, ReactElement } from "react";
+import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
 import Api from "../../api/api";
-import { completed, failed, idle, isSucceeded, loading, RequestState } from "../../utils/request";
-import { MeasurementDto } from "../../api/types";
 import "../../components/Spinner.scss";
 import MeasurementsCharts from "./MeasurementsCharts";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
-import { methodologiesAtom, projectsAtom } from "../../store/atoms";
+import { methodologiesAtom, excelFileAtom, projectsAtom } from "../../store/atoms";
 import CreatableSelect from "../../components/CreatableSelect";
 import { createMethodologyUpdater, createProjectUpdater } from "../../store/updaters";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
-import { Methodology, Project } from "../../store/types";
+import { isParsed, Methodology, Project } from "../../store/types";
+import { UploadStatus } from "../../components/UploadStatus/UploadStatus";
+import { UploadPreviewTable } from "../../components/UploadPreviewTable/UploadPreviewTable";
+import { Button } from "../../components/Button/Button";
 import PageLayout from "../../components/PageLayout/PageLayout";
-
-interface UploadForm {
-  file: Maybe<File>;
-  methodology: Maybe<Methodology>;
-  project: Maybe<Project>;
-  description: string;
-}
+import { UploadForm, uploadFormToApi } from "./uploadForm";
 
 export const UploadPage: FunctionComponent = (): ReactElement => {
-  const [uploadingStatus, setUploadingStatus] = useState<RequestState<MeasurementDto[]>>(idle());
   const createProject = createProjectUpdater();
   const createMethodology = createMethodologyUpdater();
   const projectsLoadable = useRecoilValueLoadable(projectsAtom);
   const methodologiesLoadable = useRecoilValueLoadable(methodologiesAtom);
+  const [excelFile, setExcelFile] = useRecoilState(excelFileAtom);
 
   return (
     <PageLayout>
@@ -54,25 +49,45 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
         }}
         onSubmit={async form => {
           try {
-            if (form.file) {
-              setUploadingStatus(loading());
-              // TODO pass other fields
-              const measurements = await Api.uploadExperiment(form.file);
-              setUploadingStatus(completed(measurements));
+            const apiType = uploadFormToApi(form);
+            if (apiType) {
+              await Api.uploadExperiments(apiType);
+              setExcelFile({ state: "added" });
             }
           } catch (ex) {
-            setUploadingStatus(failed(ex.response.data));
+            setExcelFile({ state: "failed-to-add", reason: ex.message });
           }
         }}
       >
         <Form className="uploadingForm">
           <div className="uploadingForm__uploadTitle">Uploading file</div>
 
-          <FormField<File> name="file" label="File" className="uploadingForm__uploadArea">
+          <FormField<File>
+            name="file"
+            label="File"
+            className={
+              isDefined(excelFile)
+                ? "uploadingForm__uploadArea_hidden"
+                : "uploadingForm__uploadArea"
+            }
+          >
             {field => <UploadArea {...field} />}
           </FormField>
 
-          <FormField<Maybe<Project>> name="project" label="Project">
+          {isDefined(excelFile) && <UploadStatus />}
+
+          {excelFile?.state === "parsed" && (
+            <UploadPreviewTable
+              className="uploadingForm__previewTable"
+              targets={excelFile.targets}
+            />
+          )}
+
+          <FormField<Maybe<Project>>
+            name="project"
+            label="Project"
+            className="uploadingForm__project"
+          >
             {field => (
               <CreatableSelect
                 optionsLoadable={projectsLoadable}
@@ -95,7 +110,11 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
             )}
           </FormField>
 
-          <FormField<Maybe<Methodology>> name="methodology" label="Methodology">
+          <FormField<Maybe<Methodology>>
+            name="methodology"
+            label="Methodology"
+            className="uploadingForm__methodology"
+          >
             {field => (
               <CreatableSelect
                 {...field}
@@ -118,30 +137,43 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
             )}
           </FormField>
 
-          <FormField
-            as="textarea"
-            name="description"
-            label="Description"
-            className="uploadingForm__description"
-            classNameInner="ednaTextarea"
-            tabIndex={4}
-          />
+          {isParsed(excelFile) && (
+            <div className="uploadingForm__label">* marked will be created</div>
+          )}
 
-          <button className="primaryButton uploadingForm__submitBtn" type="submit" tabIndex={5}>
-            Save
-          </button>
+          <div className="uploadingForm__buttons">
+            <Button
+              disabled={!isParsed(excelFile)}
+              type="submit"
+              className="uploadingForm__submitBtn"
+              tabIndex={4}
+            >
+              Add experiments
+            </Button>
+
+            <Button
+              type="outlined"
+              className="uploadingForm__anotherBtn"
+              tabIndex={5}
+              onClick={() => {
+                setExcelFile(undefined);
+              }}
+            >
+              Upload another one
+            </Button>
+          </div>
         </Form>
       </Formik>
 
       <div className="uploadResult">
-        {isSucceeded(uploadingStatus) && (
-          <MeasurementsCharts measurements={uploadingStatus.result} />
+        {isParsed(excelFile) && <MeasurementsCharts experiments={excelFile.experiments} />}
+
+        {(excelFile?.state === "uploading" || excelFile?.state === "verifying") && (
+          <div className="spinner">Uploading...</div>
         )}
 
-        {uploadingStatus.status === "loading" && <div className="spinner">Uploading...</div>}
-
-        {uploadingStatus.status === "failed" && (
-          <span className="uploadResult__fail">{uploadingStatus.error}</span>
+        {(excelFile?.state === "failed-to-parse" || excelFile?.state === "failed-to-add") && (
+          <span className="uploadResult__fail">{excelFile.reason}</span>
         )}
       </div>
     </PageLayout>

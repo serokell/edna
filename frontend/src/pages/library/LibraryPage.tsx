@@ -1,11 +1,6 @@
 import React, { FunctionComponent } from "react";
-import Header from "../../components/Header/Header";
+import PageLayout from "../../components/PageLayout/PageLayout";
 
 export const LibraryPage: FunctionComponent = () => {
-  return (
-    <>
-      <Header />
-      Library Page
-    </>
-  );
+  return <PageLayout>Library Page</PageLayout>;
 };
