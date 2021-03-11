@@ -25,7 +25,7 @@ export default function CreatableSelect<T>({
   value,
   onChange,
   ...props
-}: CreatableSelectProps<T>) {
+}: CreatableSelectProps<T>): React.ReactElement {
   const [optionCreating, setOptionCreating] = useState(false);
 
   return (

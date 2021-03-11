@@ -48,7 +48,6 @@ module.exports = {
     // Use TS no-unused-vars rule
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error"],
-    "@typescript-eslint/explicit-module-boundary-types": 0,
 
     // Support declarations in case
     "no-case-declarations": 0,

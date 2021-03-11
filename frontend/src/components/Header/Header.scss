@@ -2,15 +2,22 @@
 @import "src/styles/variables";
 
 .ednaHeader {
-
   $menuitem-border: 0.3125rem;
-  display: flex;
-  align-items: center;
+  width: 100%;
   height: 84 * $px;
-  padding-right: $global-side-padding;
-  padding-left: $global-side-padding;
   background-color: #efefef;
   box-shadow: 0 4 * $px 4 * $px 0 rgba(181, 181, 181, 0.25);
+
+  &__container {
+    display: flex;
+    align-items: center;
+    max-width: $container-max-width;
+    height: 100%;
+    padding-right: $container-side-padding;
+    padding-left: $container-side-padding;
+    margin-right: auto;
+    margin-left: auto;
+  }
 
   &__brand {
     margin-right: auto;
@@ -25,19 +32,21 @@
 
   &__menuitem {
     $wrapper-padding: 10 * $px;
-    $wrapper-margin: 30 * $px;
+    $wrapper-left-margin: 63 * $px;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: center;
     height: 100%;
 
     padding-right: $wrapper-padding;
     padding-left: $wrapper-padding;
-    margin-right: $wrapper-margin;
-    margin-left: $wrapper-margin;
 
     font-size: 18 * $px;
     border-bottom: $menuitem-border solid transparent;
+
+    & + & {
+      margin-left: $wrapper-left-margin;
+    }
 
     &_active {
       border-bottom: $menuitem-border solid #c4c4c4;

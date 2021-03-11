@@ -14,7 +14,8 @@ $border-radius: 9 * $px;
 $input-border-color: #e1e1e1;
 $input-border-outlined: #2684ff;
 $elem-padding: 10 * $px;
-$global-side-padding: 138 * $px;
+$container-side-padding: 20 * $px;
+$container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
 
 .endaInput,
 .ednaTextarea {
@@ -94,8 +95,11 @@ $global-side-padding: 138 * $px;
 .container {
   display: flex;
   flex-direction: column;
+  max-width: $container-max-width;
 
-  padding-top: 3.875rem;
-  padding-right: $global-side-padding;
-  padding-left: $global-side-padding;
+  padding-top: 62 * $px;
+  padding-right: $container-side-padding;
+  padding-left: $container-side-padding;
+  margin-right: auto;
+  margin-left: auto;
 }

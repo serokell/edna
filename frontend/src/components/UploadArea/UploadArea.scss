@@ -1,5 +1,9 @@
 @import "src/styles/main";
 
+.invisible {
+  display: none;
+}
+
 .uploadArea {
   padding: 22 * $px;
   border-radius: $border-radius;

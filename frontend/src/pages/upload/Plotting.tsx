@@ -5,6 +5,7 @@ import * as Plotly from "plotly.js";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CompoundsMap } from "../../api/types";
+import "./Plotting.scss";
 
 const colors = ["red", "blue", "green"];
 const plotConfig: Partial<Plotly.Config> = {

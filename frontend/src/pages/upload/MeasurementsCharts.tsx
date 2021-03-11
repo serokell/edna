@@ -2,6 +2,7 @@ import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import { groupCompounds, MeasurementDto } from "../../api/types";
 import PlotlyChart from "./Plotting";
+import "./MeasurementsCharts.scss";
 
 interface MeasurementsChartsProps {
   measurements: MeasurementDto[];

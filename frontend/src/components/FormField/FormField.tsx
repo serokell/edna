@@ -25,7 +25,7 @@ function FormField<V>({
   className,
   classNameInner,
   ...props
-}: FormFieldProps<V>) {
+}: FormFieldProps<V>): React.ReactElement {
   // eslint-disable-next-line no-empty-pattern
   const [{}, { value }, { setValue }] = useField<V>(name);
   return (

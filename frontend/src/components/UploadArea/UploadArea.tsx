@@ -12,7 +12,7 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
     <>
       <input
         ref={uploadInputRef}
-        style={{ display: "none" }}
+        className="invisible"
         type="file"
         accept=".xlsx,.xls"
         onChange={e => {
