@@ -8,13 +8,13 @@ STACK_BUILD_OPTIONS = --haddock --fast --test --bench --no-run-tests --no-run-be
 CABAL_BUILD_OPTIONS = --enable-tests --enable-benchmarks -O0
 STACK_TEST_OPTIONS = --haddock --fast --test
 # Addtional (specified by user) options passed to test executable
-TEST_ARGUMENTS ?= ""
+TEST_ARGUMENTS ?=
 # Packages to apply the command (build, test, etc.) for.
 PACKAGE = edna
 
 ifeq (${EDNA_USE_CABAL},1)
 	call_build = cabal new-build $(CABAL_BUILD_OPTIONS)
-	call_test = cabal new-run enda:edna-test $(CABAL_BUILD_OPTIONS) -- --color always $(TEST_ARGUMENTS)
+	call_test = cabal new-run $(PACKAGE):edna-test $(CABAL_BUILD_OPTIONS) -- --color always $(TEST_ARGUMENTS)
 	call_clean = cabal new-clean
 else
 	call_build = stack build $(STACK_BUILD_OPTIONS) $(PACKAGE)
