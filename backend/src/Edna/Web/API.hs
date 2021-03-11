@@ -9,7 +9,7 @@ module Edna.Web.API
 
 import Universum
 
-import Servant.API (Capture, JSON, Post, Put, ReqBody, Summary, (:>))
+import Servant.API (Capture, Get, JSON, Post, Put, QueryParam, ReqBody, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
@@ -39,6 +39,19 @@ data EdnaEndpoints route = EdnaEndpoints
       :> ReqBody '[JSON] Project
       :> Put '[JSON] (WithId Project)
 
+  -- TODO: pagination and sorting are just stubs for now (everywhere).
+  -- Most likely we will use @servant-util@ to implement them,
+  -- but let's do it later.
+
+  , -- | Get known projects with optional pagination and sorting
+    eeGetProjects :: route
+      :- "projects"
+      :> Summary "Get known projects"
+      :> QueryParam "page" Word
+      :> QueryParam "size" Word
+      :> QueryParam "sortby" StubSortBy
+      :> Get '[JSON] [WithExtra Project ProjectExtra]
+
   , -- | Add a new methodology.
     eeAddMethodology :: route
       :- "methodology"
@@ -53,6 +66,16 @@ data EdnaEndpoints route = EdnaEndpoints
       :> Capture "methodologyId" (SqlId TestMethodology)
       :> ReqBody '[JSON] TestMethodology
       :> Put '[JSON] (WithId TestMethodology)
+
+  , -- | Get known methodologies with optional pagination and sorting
+    eeGetMethodologies :: route
+      :- "methodologies"
+      :> Summary "Get known methodologies"
+      :> QueryParam "page" Word
+      :> QueryParam "size" Word
+      :> QueryParam "sortby" StubSortBy
+      :> Get '[JSON] [WithId TestMethodology]
+
   } deriving stock (Generic)
 
 -- | API type specification.
