@@ -1,0 +1,19 @@
+@import "src/styles/variables";
+
+.uploadPreviewTable {
+  max-height: 300 * $px;
+
+  table,
+  th,
+  td {
+    border: $px solid #acacac;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 7 * $px;
+    padding-bottom: 7 * $px;
+    //margin: (7 * $px) auto;
+  }
+}
