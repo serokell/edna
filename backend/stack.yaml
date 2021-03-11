@@ -26,5 +26,7 @@ extra-deps:
 - dependent-map-0.4.0.0
 - dependent-sum-0.7.1.0
 - constraints-extras-0.3.0.2
+- network-uri-json-0.4.0.0
 
+# beam-core currently doesn't support aeson from the resolver we are using
 allow-newer: true
