@@ -1,17 +1,16 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
-import { groupCompounds, MeasurementDto } from "../../api/types";
 import PlotlyChart from "./Plotting";
 import "./MeasurementsCharts.scss";
+import { Experiment } from "../../store/types";
 
 interface MeasurementsChartsProps {
-  measurements: MeasurementDto[];
+  experiments: Experiment[];
 }
 
 export default function MeasurementsCharts({
-  measurements,
+  experiments,
 }: MeasurementsChartsProps): React.ReactElement {
-  const grouped = groupCompounds(measurements);
   return (
     <>
       <table className="uploadResultTable">
@@ -20,24 +19,28 @@ export default function MeasurementsCharts({
             <th>Compound</th>
             <th>Concentration</th>
             <th>Signal</th>
+            <th>Target</th>
           </tr>
         </thead>
 
         <tbody>
-          {measurements.map(v => (
-            <tr key={uuidv4()}>
-              <td>{v.compoundId}</td>
-              <td>{v.concentration}</td>
-              <td>{v.signal}</td>
-            </tr>
-          ))}
+          {experiments.map(ex =>
+            ex.measurements.map(v => (
+              <tr key={uuidv4()}>
+                <td>{v.compoundId}</td>
+                <td>{v.concentration}</td>
+                <td>{v.signal}</td>
+                <td>{v.signal}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
-      {Object.entries(grouped).map(([comp, meas]) => (
-        <PlotlyChart key={uuidv4()} compounds={{ [comp]: meas }} />
+      {experiments.map(x => (
+        <PlotlyChart key={uuidv4()} experiments={[x]} />
       ))}
-      <PlotlyChart compounds={grouped} />
+      <PlotlyChart experiments={experiments} />
     </>
   );
 }

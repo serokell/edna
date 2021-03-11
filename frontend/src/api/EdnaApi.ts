@@ -1,11 +1,23 @@
 // The module might be removed if we start using open api client generator
 import { AxiosInstance, AxiosResponse } from "axios";
-import { MeasurementDto } from "./types";
-import { Methodology, Project } from "../store/types";
+import { Experiment, Methodology, Project } from "../store/types";
 import { delay } from "../utils/utils";
+import { groupCompounds, MeasurementDto, ParsedTargetDto } from "./types";
+
+export interface UploadExperimentsArgs {
+  file: File;
+  projectId: number;
+  methodologyId: number;
+  description: string;
+}
 
 interface EdnaApiInterface {
-  uploadExperiment: (excelFile: Blob) => Promise<MeasurementDto[]>;
+  parseExcelFile: (
+    excelFile: Blob,
+    onUploadProgress: (percent: number) => void
+  ) => Promise<[ParsedTargetDto[], Experiment[]]>;
+
+  uploadExperiments(form: UploadExperimentsArgs): Promise<unknown>;
   fetchProjects: () => Promise<Project[]>;
   createProject: (projectName: string) => Promise<Project>;
   fetchMethodologies: () => Promise<Methodology[]>;
@@ -14,8 +26,10 @@ interface EdnaApiInterface {
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
   return {
-    // TODO add projectId, methodologyId and description fields here
-    uploadExperiment: async (excelFile: Blob): Promise<MeasurementDto[]> => {
+    parseExcelFile: async (
+      excelFile: Blob,
+      onUploadProgress: (percent: number) => void
+    ): Promise<[ParsedTargetDto[], Experiment[]]> => {
       const formData = new FormData();
       formData.append("file", excelFile);
       return axios
@@ -23,8 +37,38 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          onUploadProgress(progressEvent) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onUploadProgress(percentCompleted);
+          },
         })
-        .then((response: AxiosResponse<MeasurementDto[]>) => response.data);
+        .then((response: AxiosResponse<MeasurementDto[]>) => {
+          // TODO remove this mock transformation
+          const byCompound = groupCompounds(response.data);
+          return [
+            [
+              {
+                target: "hujarget",
+                isNew: true,
+                compounds: Object.entries(byCompound).map(x => x[0]),
+              },
+            ],
+
+            Object.entries(byCompound).map(([cmpId, measurements]) => ({
+              target: "hujarget",
+              compoundId: cmpId,
+              measurements,
+            })),
+          ];
+        });
+    },
+
+    uploadExperiments: async (form: UploadExperimentsArgs) => {
+      return axios.post("/addExperiments", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
 
     createProject: async (projectName: string) => {

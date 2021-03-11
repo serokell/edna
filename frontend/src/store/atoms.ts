@@ -1,9 +1,9 @@
 // Basic state should be here
-import { atom, RecoilState, selector } from "recoil";
-import { Methodology, Project } from "./types";
+import { atom, selector } from "recoil";
+import { FileUploadState, Methodology, Project } from "./types";
 import Api from "../api/api";
 
-export const projectsAtom: RecoilState<Project[]> = atom({
+export const projectsAtom = atom<Project[]>({
   key: "Projects",
   default: selector({
     key: "Projects/Default",
@@ -11,10 +11,15 @@ export const projectsAtom: RecoilState<Project[]> = atom({
   }),
 });
 
-export const methodologiesAtom: RecoilState<Methodology[]> = atom({
+export const methodologiesAtom = atom<Methodology[]>({
   key: "Methodologies",
   default: selector({
     key: "Methodologies/Default",
     get: () => Api.fetchMethodologies(),
   }),
+});
+
+export const excelFileAtom = atom<FileUploadState>({
+  key: "ExcelFileToUpload",
+  default: undefined,
 });

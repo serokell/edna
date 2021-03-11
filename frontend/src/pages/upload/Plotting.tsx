@@ -4,8 +4,8 @@ import Plot from "react-plotly.js";
 import * as Plotly from "plotly.js";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
-import { CompoundsMap } from "../../api/types";
 import "./Plotting.scss";
+import { Experiment } from "../../store/types";
 
 const colors = ["red", "blue", "green"];
 const plotConfig: Partial<Plotly.Config> = {
@@ -29,24 +29,24 @@ function hashCode(str: string) {
 }
 
 interface PlotlyChartProps {
-  compounds: CompoundsMap;
+  experiments: Experiment[];
 }
 
-export default function PlotlyChart({ compounds }: PlotlyChartProps): React.ReactElement {
+export default function PlotlyChart({ experiments }: PlotlyChartProps): React.ReactElement {
   const chartKey = uuidv4();
   return (
     <Plot
       key={chartKey}
       className="compoundPlot"
-      data={Object.entries(compounds).map(([cmpd, meas]) => {
-        meas.sort((x, y) => x.concentration - y.concentration);
+      data={experiments.map(ex => {
+        const sorted = ex.measurements.slice().sort((x, y) => x.concentration - y.concentration);
         return {
-          name: cmpd,
-          x: meas.map(a => a.concentration),
-          y: meas.map(a => a.signal),
+          name: ex.compoundId,
+          x: sorted.map(a => a.concentration),
+          y: sorted.map(a => a.signal),
           type: "scatter",
           mode: "lines+markers",
-          marker: { color: colors[Math.abs(hashCode(cmpd)) % colors.length] },
+          marker: { color: colors[Math.abs(hashCode(ex.compoundId)) % colors.length] },
         };
       })}
       layout={{ title: "Comparison chart" }}

@@ -1,0 +1,88 @@
+@import "src/styles/variables";
+
+.primaryButton {
+  height: 3rem;
+  padding: (16 * $px) (26 * $px);
+  font-weight: 500;
+  color: white;
+  background-color: #474747;
+  border: 0;
+  border-radius: $border-radius;
+
+  &:focus {
+    outline: none;
+  }
+
+  &_disabled {
+    color: #f6f6f6;
+    background-color: #c4c4c4;
+  }
+
+  &:active,
+  &:hover:not(&_disabled) {
+    color: #eae8e8;
+    background-color: #979797;
+  }
+}
+
+.outlinedButton {
+  height: 3rem;
+  padding: (16 * $px) (26 * $px);
+  font-weight: 500;
+  color: #474747;
+  background-color: white;
+  border: $px solid #474747;
+  border-radius: $border-radius;
+
+  &:focus {
+    outline: none;
+  }
+
+  &_disabled {
+    color: #c4c4c4;
+  }
+
+  &:active,
+  &:hover:not(&_disabled) {
+    background-color: #d6d6d6;
+  }
+}
+
+.secondaryButton {
+  padding: (8 * $px) (16 * $px);
+  color: #303030;
+  background-color: #f2f2f2;
+  border-color: #c4c4c4;
+  border-radius: 8 * $px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:hover,
+  &:active:not(&_disabled) {
+    background-color: #cbcbcb;
+  }
+}
+
+.linkButton {
+  padding: (4 * $px) (16 * $px);
+  color: white;
+  background-color: #8e8e8e;
+  border: 0;
+  border-radius: 4 * $px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &_disabled {
+    color: #7d7d7d;
+    background-color: #cbcbcb;
+  }
+
+  &:active,
+  &:hover:not(&_disabled) {
+    background-color: #545454;
+  }
+}
