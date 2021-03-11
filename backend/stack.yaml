@@ -1,3 +1,19 @@
+# Note that CI/CD pipelines use Nix to build backend.
+# They use haskell.nix which depends on hackage.nix and stackage.nix which
+# contain snapshots of Hackage and Stackage respectively.
+# If you update resolver or any dependency to a version not present in any of
+# these snapshots, you need to upadte the revision of the respective snapshot.
+# Revisions are pinned in the flake.lock file in the root of the repo.
+# In order to update it, you need to have a very recent (unstable) nix with
+# support for flakes.
+# If your nix is not sufficiently recent, you can do
+# > nix-shell -I nixpkgs=channel:nixpkgs-unstable -p nixFlake
+# and then within this shell run
+# > nix --experimental-features 'nix-command flakes' flake update --update-input hackage
+
+# Also if you update something in this file, most likely you should run
+# `scripts/generate-cabal-files.sh`.
+
 resolver: lts-17.2
 
 packages:
