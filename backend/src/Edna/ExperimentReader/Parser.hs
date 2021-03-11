@@ -13,7 +13,7 @@ import qualified Data.Map as M
 import Codec.Xlsx (CellValue(..), Worksheet(..), cellValue, ixCell, toXlsxEither, wsCells, xlSheets)
 import Data.List.Split (wordsBy)
 import Data.Text (replace)
-import Lens.Micro (ix, _Just)
+import Lens.Micro (_Just, ix)
 import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))

@@ -1,13 +1,27 @@
 module Edna.Web.Types
-  ( ExperimentalMeasurement (..),
-  )
-where
+  ( ExperimentalMeasurement (..)
+  , SqlId (..)
+  , WithId (..)
+  , WithExtra (..)
+  , Project (..)
+  , ProjectExtra (..)
+  , TestMethodology (..)
+  ) where
 
 import Universum
 
-import Data.Aeson.TH (deriveJSON)
+import Data.Aeson (ToJSON)
+import Data.Aeson.TH (deriveJSON, deriveToJSON)
+import Data.Swagger (ToParamSchema(..), ToSchema(..))
+import Network.URI (URI)
+import Network.URI.JSON ()
+import Servant (FromHttpApiData(..))
 
-import Edna.Util (ednaAesonWebOptions)
+import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, gToParamSchema)
+
+----------------
+-- Legacy
+----------------
 
 data ExperimentalMeasurement = ExperimentalMeasurement
   { emCompoundId :: Text
@@ -17,4 +31,89 @@ data ExperimentalMeasurement = ExperimentalMeasurement
   , emOutlier :: Bool
   } deriving stock (Generic, Show, Eq)
 
-deriveJSON ednaAesonWebOptions ''ExperimentalMeasurement
+----------------
+-- General types
+----------------
+
+-- | A simple wrapper over 'Word'. At the data layer, we identify all entities
+-- with numeric IDs and this data type corresponds to such an ID.
+-- It has a phantom parameter type which the type of the object
+-- identified by this ID.
+newtype SqlId t = SqlId
+  { unSqlId :: Word
+  } deriving stock (Generic)
+    deriving newtype (FromHttpApiData, ToJSON, ToSchema)
+
+-- | This data type is useful when you want to return something with its ID.
+data WithId t = WithId
+  { wiId :: SqlId t
+  , wItem :: t
+  } deriving stock (Generic)
+
+-- | This data type is used when you want to return something with its ID and
+-- some additional data that was not submitted by end users, but is maintained
+-- by the application.
+data WithExtra t e = WithExtra
+  { weId :: SqlId t
+  , weItem :: t
+  , weExtra :: e
+  }
+
+----------------
+-- Entities
+----------------
+
+-- | Project as submitted by end users.
+data Project = Project
+  { pName :: Text
+  , pDescription :: Text
+  } deriving stock (Generic)
+
+data ProjectExtra = ProjectExtra
+  { peCreationDate :: Word64
+  -- ^ Unsigned number, UNIX timestamp.
+  -- Can be changed to a more specific type later.
+  -- The same applies to other timestamps.
+  , peLastUpdate :: Word64
+  , peCompoundNames :: [Text]
+  -- ^ Names of all compounds involved in this project.
+  }
+
+-- | Test methodology as submitted by end users.
+data TestMethodology = TestMethodology
+  { tmName :: Text
+  , tmDescription :: Text
+  , tmConfluence :: URI
+  } deriving stock (Generic)
+
+----------------
+-- JSON
+----------------
+
+deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
+deriveToJSON ednaAesonWebOptions ''WithId
+deriveToJSON ednaAesonWebOptions ''WithExtra
+deriveJSON ednaAesonWebOptions ''Project
+deriveJSON ednaAesonWebOptions ''ProjectExtra
+deriveJSON ednaAesonWebOptions ''TestMethodology
+
+----------------
+-- Swagger
+----------------
+
+instance ToSchema ExperimentalMeasurement where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema t => ToSchema (WithId t) where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema Project where
+  declareNamedSchema = gDeclareNamedSchema
+
+-- We define @ToSchema URI@ elsewhere to have less modules
+-- with orphans.
+instance ToSchema URI => ToSchema TestMethodology where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToParamSchema (SqlId t) where
+  toParamSchema = gToParamSchema

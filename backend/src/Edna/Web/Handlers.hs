@@ -8,7 +8,7 @@ import Universum
 
 import Servant.API.Generic (ToServant)
 import Servant.Multipart (FileData(..), Mem, MultipartData(..))
-import Servant.Server (Handler)
+import Servant.Server (Handler, err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
@@ -22,6 +22,10 @@ type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 ednaHandlers :: EdnaHandlers Handler
 ednaHandlers = genericServerT EdnaEndpoints
   { eeUploadExperiment = uploadExperiment
+  , eeAddProject = \_ -> throwM err501
+  , eeEditProject = \_ _ -> throwM err501
+  , eeAddMethodology = \_ -> throwM err501
+  , eeEditMethodology = \_ _ -> throwM err501
   }
 
 uploadExperiment :: MultipartData Mem -> Handler [ExperimentalMeasurement]
