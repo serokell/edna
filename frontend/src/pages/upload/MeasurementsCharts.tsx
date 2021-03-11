@@ -18,8 +18,10 @@ export default function MeasurementsCharts({
         <thead>
           <tr>
             <th>Compound</th>
+            <th>Target</th>
             <th>Concentration</th>
             <th>Signal</th>
+            <th>Outlier</th>
           </tr>
         </thead>
 
@@ -27,8 +29,10 @@ export default function MeasurementsCharts({
           {measurements.map(v => (
             <tr key={uuidv4()}>
               <td>{v.compoundId}</td>
+              <td>{v.targetId}</td>
               <td>{v.concentration}</td>
               <td>{v.signal}</td>
+              <td>{v.outlier.toString()}</td>
             </tr>
           ))}
         </tbody>
