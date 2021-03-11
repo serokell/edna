@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-
 {-|
 Definition of Edna configuration.
 -}
@@ -11,8 +9,8 @@ module Edna.Config
 
 import Universum
 
-import Text.Read (read)
 import Data.Aeson.TH (deriveJSON)
+import Text.Read (read)
 
 import Edna.Util (NetworkAddress, ednaAesonConfigOptions)
 

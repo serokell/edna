@@ -3,7 +3,6 @@
 module Edna.Web.Swagger
   ( WithSwaggerUI
   , withSwaggerUI
-  , gDeclareNamedSchema
 
   -- Reexports
   , (?~)
@@ -22,15 +21,13 @@ import Universum
 
 import Data.Swagger (ParamAnySchema(..), ParamLocation(..), ToParamSchema, ToSchema(..), toSchema)
 import qualified Data.Swagger as S
-import Data.Swagger.Declare (Declare)
 import Data.Swagger.Internal.Schema (named)
 import qualified Data.Swagger.Internal.Schema as S
-import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
 import Data.Swagger.Lens as Exports
-import qualified GHC.Generics as G
 import Lens.Micro ((?~))
 import Lens.Micro.Platform (zoom, (.=), (?=))
-import Servant ((:<|>)(..), Server)
+import Network.URI (URI)
+import Servant (Server, (:<|>)(..))
 import Servant.API ((:>))
 import Servant.Multipart (MultipartData(..), MultipartForm)
 import Servant.Swagger (HasSwagger(..))
@@ -38,10 +35,7 @@ import Servant.Swagger.Internal (addParam)
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.Core (SwaggerUiHtml)
 
-import Edna.Util (ednaAesonWebOptions)
 import Edna.Web.API (EdnaAPI, ednaAPI)
-import Edna.Web.Types (ExperimentalMeasurement)
-
 
 ----------------------------------------------------------------------------
 -- Generic definitions
@@ -63,23 +57,6 @@ withSwaggerUI
   -> Server (WithSwaggerUI api)
 withSwaggerUI _ swagger server =
   server :<|> swaggerSchemaUIServer swagger
-
-----------------------------------------------------------------------------
--- Instances
-----------------------------------------------------------------------------
-
--- | Schema generation options which match JSON generation options.
-schemaOptions :: S.SchemaOptions
-schemaOptions = S.fromAesonOptions ednaAesonWebOptions
-
--- | Default implementation of 'ToSchema' via Generics.
-gDeclareNamedSchema
-    :: ( Generic a
-       , S.GToSchema (G.Rep a)
-       , GenericHasSimpleShape a "genericDeclareNamedSchemaUnrestricted" (GenericShape (G.Rep a))
-       )
-    => Proxy a -> Declare (S.Definitions S.Schema) S.NamedSchema
-gDeclareNamedSchema = S.genericDeclareNamedSchema schemaOptions
 
 ----------------------------------------------------------------------------
 -- Edna schema definition
@@ -108,6 +85,13 @@ ednaApiSwagger = executingState (toSwagger ednaAPI) $ do
 
     S.schemes ?= [S.Http, S.Https]
 
+----------------
+-- Instances
+----------------
+
+instance S.ToSchema URI where
+  declareNamedSchema _ = declareNamedSchema @Text Proxy
+
 instance S.ToSchema (SwaggerUiHtml dir api) where
   declareNamedSchema _ =
     S.plain $ mempty `executingState` do
@@ -132,6 +116,3 @@ instance HasSwagger api =>
         & schema .~ ParamOther (mempty
             & in_ .~ ParamFormData
             & paramSchema .~ (mempty & type_ ?~ S.SwaggerFile))
-
-instance S.ToSchema ExperimentalMeasurement where
-  declareNamedSchema = gDeclareNamedSchema
