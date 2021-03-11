@@ -1,0 +1,30 @@
+@import "src/styles/main";
+
+.invisible {
+  display: none;
+}
+
+.uploadArea {
+  padding: 22 * $px;
+  border-radius: $border-radius;
+  box-shadow: (-4 * $px) (-4 * $px) (8 * $px) rgba(222, 222, 222, 0.25),
+    (4 * $px) (4 * $px) (8 * $px) rgba(222, 222, 222, 0.25);
+
+  &__innerRect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 22 * $px;
+    background: #e7e7e7;
+    border: $px dashed #adadad;
+    border-radius: $border-radius;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &__uploadSvg {
+    margin-bottom: 14 * $px;
+  }
+}

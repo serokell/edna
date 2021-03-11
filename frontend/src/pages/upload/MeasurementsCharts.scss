@@ -1,0 +1,9 @@
+@import "src/styles/variables";
+
+.uploadResultTable {
+  table,
+  th,
+  td {
+    border: $px solid #acacac;
+  }
+}
