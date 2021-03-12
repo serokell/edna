@@ -25,9 +25,11 @@ ednaHandlers = genericServerT EdnaEndpoints
   , eeAddProject = \_ -> throwM err501
   , eeEditProject = \_ _ -> throwM err501
   , eeGetProjects = \_ _ _ -> throwM err501
+  , eeGetProject = \_ -> throwM err501
   , eeAddMethodology = \_ -> throwM err501
   , eeEditMethodology = \_ _ -> throwM err501
   , eeGetMethodologies = \_ _ _ -> throwM err501
+  , eeGetMethodology = \_ -> throwM err501
   }
 
 uploadExperiment :: MultipartData Mem -> Handler [ExperimentalMeasurement]
