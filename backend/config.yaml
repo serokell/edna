@@ -11,4 +11,4 @@ db:
     # Two options of DB initialization from the app: "enable" run init script on the app start,
     # "enable-with-drop" run drop script before init
     mode: "enable"
-    init-script: "./sql/initial_schema.sql"
+    init-script: "./sql/init.sql"
