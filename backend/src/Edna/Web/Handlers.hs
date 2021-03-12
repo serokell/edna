@@ -12,7 +12,7 @@ import Servant.Server (Handler, err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
-import Edna.Web.API (EdnaEndpoints(..))
+import Edna.Web.API (EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..))
 import Edna.Web.Error (EdnaServerError(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
@@ -22,15 +22,23 @@ type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 ednaHandlers :: EdnaHandlers Handler
 ednaHandlers = genericServerT EdnaEndpoints
   { eeUploadExperiment = uploadExperiment
-  , eeAddProject = \_ -> throwM err501
-  , eeEditProject = \_ _ -> throwM err501
-  , eeGetProjects = \_ _ _ -> throwM err501
-  , eeGetProject = \_ -> throwM err501
-  , eeAddMethodology = \_ -> throwM err501
-  , eeEditMethodology = \_ _ -> throwM err501
-  , eeGetMethodologies = \_ _ _ -> throwM err501
-  , eeGetMethodology = \_ -> throwM err501
+  , eeProjectEndpoints = projectEndpoints
+  , eeMethodologyEndpoints = methodologyEndpoints
   }
+  where
+    projectEndpoints = genericServerT ProjectEndpoints
+      { peAddProject = \_ -> throwM err501
+      , peEditProject = \_ _ -> throwM err501
+      , peGetProjects = \_ _ _ -> throwM err501
+      , peGetProject = \_ -> throwM err501
+      }
+
+    methodologyEndpoints = genericServerT MethodologyEndpoints
+      { meAddMethodology = \_ -> throwM err501
+      , meEditMethodology = \_ _ -> throwM err501
+      , meGetMethodologies = \_ _ _ -> throwM err501
+      , meGetMethodology = \_ -> throwM err501
+      }
 
 uploadExperiment :: MultipartData Mem -> Handler [ExperimentalMeasurement]
 uploadExperiment multipart = do
