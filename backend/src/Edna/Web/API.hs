@@ -16,7 +16,7 @@ module Edna.Web.API
 
 import Universum
 
-import Servant.API (Capture, Get, JSON, Post, Put, QueryParam, ReqBody, Summary, (:>))
+import Servant.API (Capture, Delete, Get, JSON, Post, Put, QueryParam, ReqBody, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
@@ -121,6 +121,13 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :> Capture "methodologyId" (SqlId TestMethodology)
       :> ReqBody '[JSON] TestMethodology
       :> Put '[JSON] (WithId TestMethodology)
+
+  , -- | Delete an existing methodology.
+    meDeleteMethodology :: route
+      :- "methodology"
+      :> Summary "Delete an existing methodology"
+      :> Capture "methodologyId" (SqlId TestMethodology)
+      :> Delete '[JSON] ()
 
   , -- | Get known methodologies with optional pagination and sorting
     meGetMethodologies :: route
