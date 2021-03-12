@@ -10,6 +10,7 @@ module Edna.Web.Types
   , ProjectExtra (..)
   , TestMethodology (..)
   , Compound (..)
+  , Target (..)
 
   -- * Re-exported for convenience
   , URI
@@ -118,6 +119,17 @@ data Compound = Compound
   -- ^ Link to ChemSoft.
   } deriving stock (Generic)
 
+-- | Targets are not submitted directly by users, so for now
+-- there is only one representation for frontend.
+data Target = Target
+  { tName :: Text
+  -- ^ Name of the target.
+  , tProjects :: [Text]
+  -- ^ Names of all projects where this target is involved.
+  , tCreationDate :: Word64
+  -- ^ UNIX timestamp when the target was created.
+  } deriving stock (Generic)
+
 ----------------
 -- JSON
 ----------------
@@ -129,6 +141,7 @@ deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
 deriveJSON ednaAesonWebOptions ''TestMethodology
 deriveJSON ednaAesonWebOptions ''Compound
+deriveJSON ednaAesonWebOptions ''Target
 
 ----------------
 -- Swagger
@@ -155,6 +168,9 @@ instance ToSchema URI => ToSchema TestMethodology where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema URI => ToSchema Compound where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema Target where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToParamSchema (SqlId t) where
