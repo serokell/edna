@@ -10,6 +10,7 @@ module Edna.Web.API
   , ProjectEndpoints (..)
   , MethodologyEndpoints (..)
   , CompoundEndpoints (..)
+  , TargetEndpoints (..)
   ) where
 
 import Universum
@@ -32,6 +33,7 @@ data EdnaEndpoints route = EdnaEndpoints
   , eeProjectEndpoints :: route :- ProjectAPI
   , eeMethodologyEndpoints :: route :- MethodologyAPI
   , eeCompoundEndpoints :: route :- CompoundAPI
+  , eeTargetEndpoints :: route :- TargetAPI
   } deriving stock (Generic)
 
 -- | API type specification.
@@ -146,3 +148,24 @@ data CompoundEndpoints route = CompoundEndpoints
   } deriving stock (Generic)
 
 type CompoundAPI = ToServant CompoundEndpoints AsApi
+
+-- | Endpoints related to targets.
+data TargetEndpoints route = TargetEndpoints
+  { -- | Get known targets with optional pagination and sorting
+    teGetTargets :: route
+      :- "targets"
+      :> Summary "Get known targets"
+      :> QueryParam "page" Word
+      :> QueryParam "size" Word
+      :> QueryParam "sortby" StubSortBy
+      :> Get '[JSON] [WithId Target]
+
+  , -- | Get target data by ID
+    teGetTarget :: route
+      :- "target"
+      :> Summary "Get target data by ID"
+      :> Capture "targetId" (SqlId Target)
+      :> Get '[JSON] (WithId Target)
+  } deriving stock (Generic)
+
+type TargetAPI = ToServant TargetEndpoints AsApi
