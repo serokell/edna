@@ -7,6 +7,7 @@ module Edna.Web.API
   , ednaAPI
 
   -- * Subtypes
+  , FileUploadEndpoints (..)
   , ProjectEndpoints (..)
   , MethodologyEndpoints (..)
   , CompoundEndpoints (..)
@@ -30,6 +31,7 @@ data EdnaEndpoints route = EdnaEndpoints
       :> MultipartForm Mem (MultipartData Mem)
       :> Post '[JSON] [ExperimentalMeasurement]
 
+  , eeFileUploadEndpoints :: route :- "file" :> FileUploadAPI
   , eeProjectEndpoints :: route :- ProjectAPI
   , eeMethodologyEndpoints :: route :- MethodologyAPI
   , eeCompoundEndpoints :: route :- CompoundAPI
@@ -42,6 +44,26 @@ type EdnaAPI =
 
 ednaAPI :: Proxy EdnaAPI
 ednaAPI = Proxy
+
+-- | Endpoints necessary to implement file uploading.
+data FileUploadEndpoints route = FileUploadEndpoints
+  { -- | Parse the file and return its summary for preview.
+    fueParseFile :: route
+      :- "parse"
+      :> Summary "Parse the file and return its summary for preview"
+      :> MultipartForm Mem (MultipartData Mem)
+      :> Get '[JSON] FileSummary
+
+  , -- | Upload the file with some methodology and project.
+    fueUploadFile :: route
+      :- "upload"
+      :> Summary "Upload the file with some methodology and project"
+      :> ReqBody '[JSON] FileUploadReq
+      :> MultipartForm Mem (MultipartData Mem)
+      :> Post '[JSON] FileSummary
+  } deriving stock (Generic)
+
+type FileUploadAPI = ToServant FileUploadEndpoints AsApi
 
 -- TODO: pagination and sorting are just stubs for now (everywhere).
 -- Most likely we will use @servant-util@ to implement them,
