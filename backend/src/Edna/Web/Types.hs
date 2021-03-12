@@ -9,6 +9,10 @@ module Edna.Web.Types
   , Project (..)
   , ProjectExtra (..)
   , TestMethodology (..)
+  , Compound (..)
+
+  -- * Re-exported for convenience
+  , URI
   ) where
 
 import Universum
@@ -104,6 +108,16 @@ data TestMethodology = TestMethodology
   , tmConfluence :: URI
   } deriving stock (Generic)
 
+-- | Compounds are not submitted directly by users, so for now
+-- there is only one representation for frontend.
+-- MDe links are trivial to generate, so we offload this task to frontend.
+data Compound = Compound
+  { cName :: Text
+  -- ^ Name of the compound, it may be changed to be a number later.
+  , cChemSoft :: Maybe URI
+  -- ^ Link to ChemSoft.
+  } deriving stock (Generic)
+
 ----------------
 -- JSON
 ----------------
@@ -114,6 +128,7 @@ deriveToJSON ednaAesonWebOptions ''WithExtra
 deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
 deriveJSON ednaAesonWebOptions ''TestMethodology
+deriveJSON ednaAesonWebOptions ''Compound
 
 ----------------
 -- Swagger
@@ -137,6 +152,9 @@ instance ToSchema ProjectExtra where
 -- We define @ToSchema URI@ elsewhere to have less modules
 -- with orphans.
 instance ToSchema URI => ToSchema TestMethodology where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema URI => ToSchema Compound where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToParamSchema (SqlId t) where

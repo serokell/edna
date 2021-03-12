@@ -12,7 +12,7 @@ import Servant.Server (Handler, err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
-import Edna.Web.API (EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..))
+import Edna.Web.API (EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..), CompoundEndpoints (..))
 import Edna.Web.Error (EdnaServerError(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
@@ -24,6 +24,7 @@ ednaHandlers = genericServerT EdnaEndpoints
   { eeUploadExperiment = uploadExperiment
   , eeProjectEndpoints = projectEndpoints
   , eeMethodologyEndpoints = methodologyEndpoints
+  , eeCompoundEndpoints = compoundEndpoints
   }
   where
     projectEndpoints = genericServerT ProjectEndpoints
@@ -38,6 +39,12 @@ ednaHandlers = genericServerT EdnaEndpoints
       , meEditMethodology = \_ _ -> throwM err501
       , meGetMethodologies = \_ _ _ -> throwM err501
       , meGetMethodology = \_ -> throwM err501
+      }
+
+    compoundEndpoints = genericServerT CompoundEndpoints
+      { ceEditChemSoft = \_ _ -> throwM err501
+      , ceGetCompounds = \_ _ _ -> throwM err501
+      , ceGetCompound = \_ -> throwM err501
       }
 
 uploadExperiment :: MultipartData Mem -> Handler [ExperimentalMeasurement]
