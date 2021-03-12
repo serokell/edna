@@ -13,8 +13,8 @@ import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.Web.API
-  (CompoundEndpoints(..), EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..),
-  TargetEndpoints(..))
+  (CompoundEndpoints(..), EdnaEndpoints(..), FileUploadEndpoints(..), MethodologyEndpoints(..),
+  ProjectEndpoints(..), TargetEndpoints(..))
 import Edna.Web.Error (EdnaServerError(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
@@ -24,12 +24,18 @@ type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 ednaHandlers :: EdnaHandlers Handler
 ednaHandlers = genericServerT EdnaEndpoints
   { eeUploadExperiment = uploadExperiment
+  , eeFileUploadEndpoints = fileUploadEndpoints
   , eeProjectEndpoints = projectEndpoints
   , eeMethodologyEndpoints = methodologyEndpoints
   , eeCompoundEndpoints = compoundEndpoints
   , eeTargetEndpoints = targetEndpoints
   }
   where
+    fileUploadEndpoints = genericServerT FileUploadEndpoints
+      { fueParseFile = \_ -> throwM err501
+      , fueUploadFile = \_ _ -> throwM err501
+      }
+
     projectEndpoints = genericServerT ProjectEndpoints
       { peAddProject = \_ -> throwM err501
       , peEditProject = \_ _ -> throwM err501

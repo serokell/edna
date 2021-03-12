@@ -6,6 +6,9 @@ module Edna.Web.Types
   , WithId (..)
   , WithExtra (..)
   , StubSortBy (..)
+  , FileUploadReq (..)
+  , FileSummary (..)
+  , FileSummaryItem (..)
   , Project (..)
   , ProjectExtra (..)
   , TestMethodology (..)
@@ -18,7 +21,7 @@ module Edna.Web.Types
 
 import Universum
 
-import Data.Aeson (ToJSON)
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
 import Lens.Micro ((?~))
@@ -51,7 +54,7 @@ data ExperimentalMeasurement = ExperimentalMeasurement
 newtype SqlId t = SqlId
   { unSqlId :: Word
   } deriving stock (Generic)
-    deriving newtype (FromHttpApiData, ToJSON, ToSchema)
+    deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema)
 
 -- | This data type is useful when you want to return something with its ID.
 data WithId t = WithId
@@ -83,6 +86,30 @@ instance FromHttpApiData StubSortBy where
 ----------------
 -- Entities
 ----------------
+
+-- | Input data submitted along with uploaded file.
+data FileUploadReq = FileUploadReq
+  { furProject :: SqlId Project
+  -- ^ ID of the project the file belongs to.
+  , furTestMethodology :: SqlId TestMethodology
+  -- ^ ID of the test methodology used throughout the file.
+  } deriving stock (Generic)
+
+-- | Summary of an experiment data file.
+newtype FileSummary = FileSummary
+  { unFileSummary :: [FileSummaryItem]
+  } deriving stock (Generic)
+
+-- | One element in 'FileSummary'. Corresponds to one target from the file.
+-- Contains all compounds that interact with the target in the file.
+-- Also contains information whether this target is new or already known.
+data FileSummaryItem = FileSummaryItem
+  { fsiTarget :: Either (SqlId Target) Text
+  -- ID of a target from the file. If it's a new target, its name is returned
+  -- instead.
+  , fsiCompounds :: [Either (SqlId Compound) Text]
+  -- IDs of all compounds interacting with this target. Or names for new ones.
+  } deriving stock (Generic)
 
 -- | Project as submitted by end users.
 data Project = Project
@@ -139,11 +166,15 @@ data Target = Target
 deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
 deriveToJSON ednaAesonWebOptions ''WithId
 deriveToJSON ednaAesonWebOptions ''WithExtra
+deriveJSON ednaAesonWebOptions ''FileUploadReq
+deriveToJSON ednaAesonWebOptions ''FileSummaryItem
 deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
 deriveJSON ednaAesonWebOptions ''TestMethodology
 deriveJSON ednaAesonWebOptions ''Compound
 deriveJSON ednaAesonWebOptions ''Target
+
+deriving newtype instance ToJSON FileSummary
 
 ----------------
 -- Swagger
@@ -157,6 +188,14 @@ instance ToSchema t => ToSchema (WithId t) where
 
 instance (ToSchema t, ToSchema e) => ToSchema (WithExtra t e) where
   declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema FileUploadReq where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema FileSummaryItem where
+  declareNamedSchema = gDeclareNamedSchema
+
+deriving newtype instance ToSchema FileSummary
 
 instance ToSchema Project where
   declareNamedSchema = gDeclareNamedSchema
