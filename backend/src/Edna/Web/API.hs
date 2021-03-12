@@ -52,6 +52,13 @@ data EdnaEndpoints route = EdnaEndpoints
       :> QueryParam "sortby" StubSortBy
       :> Get '[JSON] [WithExtra Project ProjectExtra]
 
+  , -- | Get project data by ID
+    eeGetProject :: route
+      :- "project"
+      :> Summary "Get project data by ID"
+      :> Capture "projectId" (SqlId Project)
+      :> Get '[JSON] (WithExtra Project ProjectExtra)
+
   , -- | Add a new methodology.
     eeAddMethodology :: route
       :- "methodology"
@@ -75,6 +82,13 @@ data EdnaEndpoints route = EdnaEndpoints
       :> QueryParam "size" Word
       :> QueryParam "sortby" StubSortBy
       :> Get '[JSON] [WithId TestMethodology]
+
+  , -- | Get methodology data by ID
+    eeGetMethodology :: route
+      :- "methodology"
+      :> Summary "Get methodology data by ID"
+      :> Capture "methodologyId" (SqlId TestMethodology)
+      :> Get '[JSON] (WithId TestMethodology)
 
   } deriving stock (Generic)
 
