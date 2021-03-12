@@ -16,7 +16,7 @@ module Edna.Web.Types
   , Target (..)
 
   -- * Re-exported for convenience
-  , URI
+  , URI (..)
   ) where
 
 import Universum
@@ -25,7 +25,7 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
 import Lens.Micro ((?~))
-import Network.URI (URI)
+import Network.URI (URI(..))
 import Network.URI.JSON ()
 import Servant (FromHttpApiData(..))
 
@@ -53,14 +53,14 @@ data ExperimentalMeasurement = ExperimentalMeasurement
 -- identified by this ID.
 newtype SqlId t = SqlId
   { unSqlId :: Word
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
     deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema)
 
 -- | This data type is useful when you want to return something with its ID.
 data WithId t = WithId
   { wiId :: SqlId t
   , wItem :: t
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | This data type is used when you want to return something with its ID and
 -- some additional data that was not submitted by end users, but is maintained
@@ -69,7 +69,7 @@ data WithExtra t e = WithExtra
   { weId :: SqlId t
   , weItem :: t
   , weExtra :: e
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | A stub to specify the sorting order, most likely will be replaced with
 -- @servant-util@.
@@ -93,12 +93,12 @@ data FileUploadReq = FileUploadReq
   -- ^ ID of the project the file belongs to.
   , furTestMethodology :: SqlId TestMethodology
   -- ^ ID of the test methodology used throughout the file.
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | Summary of an experiment data file.
 newtype FileSummary = FileSummary
   { unFileSummary :: [FileSummaryItem]
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | One element in 'FileSummary'. Corresponds to one target from the file.
 -- Contains all compounds that interact with the target in the file.
@@ -109,13 +109,13 @@ data FileSummaryItem = FileSummaryItem
   -- instead.
   , fsiCompounds :: [Either (SqlId Compound) Text]
   -- IDs of all compounds interacting with this target. Or names for new ones.
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | Project as submitted by end users.
 data Project = Project
   { pName :: Text
   , pDescription :: Text
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | Extra data about projects that is not submitted by users, but is stored
 -- in DB.
@@ -127,14 +127,14 @@ data ProjectExtra = ProjectExtra
   , peLastUpdate :: Word64
   , peCompoundNames :: [Text]
   -- ^ Names of all compounds involved in this project.
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | Test methodology as submitted by end users.
 data TestMethodology = TestMethodology
   { tmName :: Text
   , tmDescription :: Text
   , tmConfluence :: URI
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | Compounds are not submitted directly by users, so for now
 -- there is only one representation for frontend.
@@ -146,7 +146,7 @@ data Compound = Compound
   -- ^ Link to ChemSoft.
   , cAdditionDate :: Word64
   -- ^ UNIX timestamp when this compound was added to the system.
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 -- | Targets are not submitted directly by users, so for now
 -- there is only one representation for frontend.
@@ -157,7 +157,7 @@ data Target = Target
   -- ^ Names of all projects where this target is involved.
   , tCreationDate :: Word64
   -- ^ UNIX timestamp when the target was created.
-  } deriving stock (Generic)
+  } deriving stock (Generic, Show)
 
 ----------------
 -- JSON
