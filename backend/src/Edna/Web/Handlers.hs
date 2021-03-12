@@ -46,6 +46,7 @@ ednaHandlers = genericServerT EdnaEndpoints
     methodologyEndpoints = genericServerT MethodologyEndpoints
       { meAddMethodology = \_ -> throwM err501
       , meEditMethodology = \_ _ -> throwM err501
+      , meDeleteMethodology = \_ -> throwM err501
       , meGetMethodologies = \_ _ _ -> throwM err501
       , meGetMethodology = \_ -> throwM err501
       }
