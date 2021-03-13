@@ -1,18 +1,34 @@
 module Edna.DB.Schema
-  ( ensureSchemaIsSetUp
+  ( schemaSetup
   , resetSchema
+  , schemaInit
   ) where
 
 import Universum
 
-import Data.FileEmbed (embedStringFile)
+import qualified Data.ByteString as BS
+
 import Database.Beam.Backend (MonadBeam, runNoReturn)
 import Database.Beam.Postgres (Postgres)
 import Database.Beam.Postgres.Syntax (PgCommandSyntax(..), PgCommandType(..), emit)
 
-ensureSchemaIsSetUp :: MonadBeam Postgres m => m ()
-ensureSchemaIsSetUp = runNoReturn $
-  PgCommandSyntax PgCommandTypeDataUpdate $ emit $(embedStringFile "sql/initial_schema.sql")
+import Edna.Config.Definition (DbInitiation(..), dbInitiation, ecDb)
+import Edna.Config.Utils (fromConfig)
+import Edna.DB.Integration (runPg, transact)
+import Edna.Setup (Edna)
+import Edna.Util (DatabaseInitOption(..))
+
+schemaInit :: Edna ()
+schemaInit = do
+  dbInit <- fromConfig $ ecDb . dbInitiation
+  let runInit filePath f = liftIO (BS.readFile filePath) >>= \script -> transact $ runPg $ f script
+  case dbInit of
+    Nothing -> pure ()
+    Just (DbInitiation Enable fp) -> runInit fp schemaSetup
+    Just (DbInitiation EnableWithDrop fp) -> runInit fp $ \s -> resetSchema >> schemaSetup s
+
+schemaSetup :: MonadBeam Postgres m => ByteString -> m ()
+schemaSetup = runNoReturn . PgCommandSyntax PgCommandTypeDataUpdate . emit
 
 resetSchema :: MonadBeam Postgres m => m ()
 resetSchema = runNoReturn $
