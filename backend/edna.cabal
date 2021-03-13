@@ -58,7 +58,6 @@ library
     beam-postgres,
     bytestring,
     containers,
-    file-embed,
     fmt,
     microlens,
     microlens-platform,

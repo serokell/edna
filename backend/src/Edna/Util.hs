@@ -1,6 +1,7 @@
 module Edna.Util
   ( NetworkAddress (..)
   , ConnString (..)
+  , DatabaseInitOption (..)
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   ) where
@@ -54,6 +55,19 @@ instance FromJSON NetworkAddress where
 
 instance ToJSON NetworkAddress where
   toJSON = String . pretty
+
+data DatabaseInitOption = Enable | EnableWithDrop
+  deriving stock (Generic, Show)
+
+instance FromJSON DatabaseInitOption where
+  parseJSON = withText "DatabaseInitOption" $ \o -> pure case o of
+    "enable" -> Enable
+    "enable-with-drop" -> EnableWithDrop
+    _ -> error $ "Invalid config value: " <> show o
+
+instance ToJSON DatabaseInitOption where
+  toJSON Enable = "enable"
+  toJSON EnableWithDrop = "enable-with-drop"
 
 ednaAesonConfigOptions :: A.Options
 ednaAesonConfigOptions = AC.aesonPrefix AC.trainCase

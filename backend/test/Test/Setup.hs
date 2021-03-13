@@ -4,16 +4,17 @@ module Test.Setup
 
 import Universum
 
+import Lens.Micro ((?~))
 import RIO (runRIO)
 import System.Environment (lookupEnv)
 import Test.Hspec (Spec, SpecWith, afterAll, beforeAll)
 
-import Edna.Config.Definition (defaultEdnaConfig)
+import Edna.Config.Definition (DbInitiation(..), dbInitiation, defaultEdnaConfig, ecDb)
 import Edna.DB.Connection (ConnPool(..), createConnPool, destroyConnPool)
 import Edna.DB.Integration (runPg)
-import Edna.DB.Schema (ensureSchemaIsSetUp, resetSchema)
+import Edna.DB.Schema (resetSchema, schemaInit)
 import Edna.Setup (EdnaContext(..), edConnectionPool)
-import Edna.Util (ConnString(..))
+import Edna.Util (ConnString(..), DatabaseInitOption(..))
 
 -- | Env variable from which `pg_tmp` temp server connection string
 -- is read.
@@ -41,7 +42,7 @@ setupDbConnection = do
 
 setupDbSchema :: EdnaContext -> IO EdnaContext
 setupDbSchema context = do
-  runRIO context $ runPg ensureSchemaIsSetUp
+  runRIO context schemaInit
   pure context
 
 resetDbSchema :: EdnaContext -> IO ()
@@ -52,6 +53,9 @@ resetConnection = destroyConnPool . (^. edConnectionPool)
 
 withContext :: SpecWith EdnaContext -> Spec
 withContext =
-  beforeAll (setupDbConnection >>= (pure . EdnaContext defaultEdnaConfig) >>= setupDbSchema) .
+  let testConfig =
+        defaultEdnaConfig & (ecDb . dbInitiation) ?~
+        DbInitiation Enable "./sql/initial_schema.sql" in
+  beforeAll (setupDbConnection >>= (pure . EdnaContext testConfig) >>= setupDbSchema) .
   afterAll (resetDbSchema <> resetConnection)
 
