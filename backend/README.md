@@ -7,6 +7,10 @@ Web server for Edna.
 You can use [Stack](http://haskellstack.org/) or [Cabal](https://www.haskell.org/cabal/) to build Edna server.
 Run `stack build` or `cabal build`.
 
+## Tests instructions
+
+To run tests you need to have `pg_tmp` to run DB for tests. Then run `./scripts/test.sh` to execute tests.
+
 ## Usage instructions
 
 Run `stack exec -- edna-server -c config.yaml` or `cabal run -- edna-server -c config.yaml` depending on the build tool you used.

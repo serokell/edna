@@ -1,11 +1,11 @@
-create table project
+create table if not exists project
 (
     project_id  serial not null primary key,
     name        text   not null unique,
     description text   null
 );
 
-create table test_methodology
+create table if not exists test_methodology
 (
     test_methodology_id serial        not null primary key,
     name                text          not null unique,
@@ -14,7 +14,7 @@ create table test_methodology
 );
 
 -- Corresponds to an EXCEL file
-create table experiment
+create table if not exists experiment
 (
     experiment_id  serial                   not null primary key,
     project_id     int                      not null,
@@ -39,7 +39,7 @@ create table experiment
             on delete no action
 );
 
-create table measurement
+create table if not exists measurement
 (
     measurement_id serial           not null primary key,
     experiment_id  int              not null,
@@ -54,7 +54,7 @@ create table measurement
             on update cascade
 );
 
-create table analysis_method
+create table if not exists analysis_method
 (
     analysis_method_id serial not null primary key,
     description        text   null,
@@ -62,7 +62,7 @@ create table analysis_method
     parameters         json   null
 );
 
-create table analysis
+create table if not exists analysis
 (
     analysis_id        serial not null primary key,
     analysis_method_id int    not null,
@@ -86,7 +86,7 @@ create table analysis
     -- measurement table?
 );
 
-create table analysis_removed_measurements
+create table if not exists analysis_removed_measurements
 (
     analysis_id    int not null,
     measurement_id int not null,
