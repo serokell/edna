@@ -14,7 +14,7 @@ maintainer:     Serokell <hi@serokell.io>
 copyright:      2021 Serokell <https://serokell.io>
 -- TODO: add license
 build-type:     Simple
-extra-source-files: ./resources/testSheets/**/*
+extra-source-files: sql/initial_schema.sql, ./resources/testSheets/**/*
 
 source-repository head
   type: git
@@ -31,7 +31,12 @@ common common-options
 library
   import: common-options
   exposed-modules:
-      Edna.Config
+      Edna.Config.Definition
+      Edna.Config.Utils
+      Edna.DB.Connection
+      Edna.DB.Integration
+      Edna.DB.Schema
+      Edna.Setup
       Edna.Web.Server
       Edna.Web.Swagger
       Edna.Web.Handlers
@@ -39,22 +44,28 @@ library
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
       Edna.Web.Types
+      Edna.Util
   other-modules:
       Paths_edna
       Edna.Web.API
       Edna.Web.Error
-      Edna.Util
   hs-source-dirs:
       src
   build-depends:
     aeson,
     aeson-casing,
+    beam-core,
+    beam-postgres,
     bytestring,
     containers,
     fmt,
     microlens,
     microlens-platform,
+    optparse-applicative,
+    postgresql-simple,
     text,
+    resource-pool,
+    rio,
     servant,
     servant-multipart,
     servant-server,
@@ -63,6 +74,7 @@ library
     servant-swagger-ui,
     split,
     swagger2,
+    time,
     warp,
     xlsx
 
@@ -76,6 +88,7 @@ executable edna-server
   build-depends:
       edna,
       optparse-applicative,
+      with-utf8,
       yaml
 
 test-suite edna-test
@@ -85,6 +98,7 @@ test-suite edna-test
   other-modules:
       Test.Edna
       Test.Parser
+      Test.Setup
       Paths_edna
   hs-source-dirs:
       test
@@ -110,12 +124,13 @@ test-suite edna-test
       tasty-discover:tasty-discover
   build-depends:
       HUnit
-    , edna
     , bytestring
     , containers
+    , edna
     , filepath
     , hspec
     , microlens
+    , rio
     , tasty
     , tasty-hunit-compat
     , tasty-hspec
