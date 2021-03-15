@@ -98,7 +98,7 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Test.Edna
+      Test.DB
       Test.Gen
       Test.Parser
       Test.Setup
@@ -127,8 +127,7 @@ test-suite edna-test
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
-      HUnit
-    , bytestring
+      bytestring
     , containers
     , edna
     , filepath
@@ -141,6 +140,5 @@ test-suite edna-test
     , rio
     , servant-swagger
     , tasty
-    , tasty-hunit-compat
     , tasty-hspec
     , xlsx
