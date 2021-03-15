@@ -10,13 +10,6 @@
 # * Postgres server
 # * pg_tmp (http://eradman.com/ephemeralpg/)
 
-# Prerequisites:
-# * Specify your database user name via 'PGUSER' variable; default user name is your OS username.
-#   If you haven't created a database user yet, run
-#   > sudo -u postgres createuser --interactive --pwprompt
-# * If your database user's password is not empty, specify it in .pgpass file
-#   (see https://www.postgresql.org/docs/9.3/libpq-pgpass.html).
-
 set -e -o pipefail
 
 if ! which initdb > /dev/null; then
