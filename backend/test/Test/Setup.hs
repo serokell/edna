@@ -55,7 +55,6 @@ withContext :: SpecWith EdnaContext -> Spec
 withContext =
   let testConfig =
         defaultEdnaConfig & (ecDb . dbInitiation) ?~
-        DbInitiation Enable "./sql/initial_schema.sql" in
+        DbInitiation Enable "./sql/init.sql" in
   beforeAll (setupDbConnection >>= (pure . EdnaContext testConfig) >>= setupDbSchema) .
   afterAll (resetDbSchema <> resetConnection)
-

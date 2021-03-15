@@ -1,0 +1,17 @@
+# Config intended to be used by developers in daily work
+api:
+  listen-addr: "*:9000"
+  serve-docs: true
+
+db:
+  # Syntax: https://www.postgresql.org/docs/9.5/libpq-connect.html#LIBPQ-CONNSTRING
+  # It should match parameters from `/deployment/docker-compose.yml`
+  conn-string: "host=localhost dbname=ednadb user=ednauser password=ednapass"
+  max-connection: 200
+  # Optional value used if you want to init DB on start
+  initiation:
+    # Two options of DB initialization from the app:
+    # * "enable" will run init script on the app start,
+    # * "enable-with-drop" will run drop script before init
+    mode: "enable"
+    init-script: "./sql/init.sql"
