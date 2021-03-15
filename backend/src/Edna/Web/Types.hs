@@ -6,7 +6,6 @@ module Edna.Web.Types
   , WithId (..)
   , WithExtra (..)
   , StubSortBy (..)
-  , FileUploadReq (..)
   , FileSummary (..)
   , FileSummaryItem (..)
   , Project (..)
@@ -87,16 +86,6 @@ instance FromHttpApiData StubSortBy where
 -- Entities
 ----------------
 
--- | Input data submitted along with uploaded file.
-data FileUploadReq = FileUploadReq
-  { furProject :: SqlId Project
-  -- ^ ID of the project the file belongs to.
-  , furTestMethodology :: SqlId TestMethodology
-  -- ^ ID of the test methodology used throughout the file.
-  , furDescription :: Text
-  -- ^ Description of the file.
-  } deriving stock (Generic, Show)
-
 -- | Summary of an experiment data file.
 newtype FileSummary = FileSummary
   { unFileSummary :: [FileSummaryItem]
@@ -168,7 +157,6 @@ data Target = Target
 deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
 deriveToJSON ednaAesonWebOptions ''WithId
 deriveToJSON ednaAesonWebOptions ''WithExtra
-deriveJSON ednaAesonWebOptions ''FileUploadReq
 deriveToJSON ednaAesonWebOptions ''FileSummaryItem
 deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
@@ -189,9 +177,6 @@ instance ToSchema t => ToSchema (WithId t) where
   declareNamedSchema = gDeclareNamedSchema
 
 instance (ToSchema t, ToSchema e) => ToSchema (WithExtra t e) where
-  declareNamedSchema = gDeclareNamedSchema
-
-instance ToSchema FileUploadReq where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema FileSummaryItem where

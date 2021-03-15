@@ -33,6 +33,7 @@ import Network.URI (URIAuth(..))
 import Test.QuickCheck (Arbitrary(..))
 import Test.QuickCheck.Hedgehog (hedgehog)
 
+import Edna.Upload.API (FileUploadReq(..))
 import Edna.Web.Types
 
 ----------------

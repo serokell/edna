@@ -45,6 +45,8 @@ library
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
       Edna.Web.Types
+      Edna.Upload.API
+      Edna.Upload.Service
       Edna.Util
   other-modules:
       Paths_edna

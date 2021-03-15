@@ -7,35 +7,30 @@ where
 import Universum
 
 import Servant.API.Generic (ToServant)
-import Servant.Multipart (FileData(..), Mem, MultipartData(..))
-import Servant.Server (Handler, err501)
+import Servant.Server (err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
-import Edna.ExperimentReader.Parser (parseExperimentXls)
+import qualified Edna.Upload.API as Upload
+
+import Edna.Setup (Edna)
 import Edna.Web.API
-  (CompoundEndpoints(..), EdnaEndpoints(..), FileUploadEndpoints(..), MethodologyEndpoints(..),
-  ProjectEndpoints(..), TargetEndpoints(..))
+  (CompoundEndpoints(..), EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..),
+  TargetEndpoints(..))
 import Edna.Web.Error (EdnaServerError(..))
-import Edna.Web.Types (ExperimentalMeasurement(..))
 
 type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 
 -- | Server handler implementation for Edna API.
-ednaHandlers :: EdnaHandlers Handler
+ednaHandlers :: EdnaHandlers Edna
 ednaHandlers = genericServerT EdnaEndpoints
-  { eeUploadExperiment = uploadExperiment
-  , eeFileUploadEndpoints = fileUploadEndpoints
+  { eeUploadExperiment = Upload.uploadExperiment
+  , eeFileUploadEndpoints = Upload.fileUploadEndpoints
   , eeProjectEndpoints = projectEndpoints
   , eeMethodologyEndpoints = methodologyEndpoints
   , eeCompoundEndpoints = compoundEndpoints
   , eeTargetEndpoints = targetEndpoints
   }
   where
-    fileUploadEndpoints = genericServerT FileUploadEndpoints
-      { fueParseFile = \_ -> throwM err501
-      , fueUploadFile = \_ _ -> throwM err501
-      }
-
     projectEndpoints = genericServerT ProjectEndpoints
       { peAddProject = \_ -> throwM err501
       , peEditProject = \_ _ -> throwM err501
@@ -61,9 +56,3 @@ ednaHandlers = genericServerT EdnaEndpoints
       { teGetTargets = \_ _ _ -> throwM err501
       , teGetTarget = \_ -> throwM err501
       }
-
-uploadExperiment :: MultipartData Mem -> Handler [ExperimentalMeasurement]
-uploadExperiment multipart = do
-  file <- maybe (throwM NoExperimentFileError) pure (safeHead (files multipart))
-  putStrLn $ "Excel file name " ++ show (fdFileName file)
-  either (throwM . XlsxParingError) pure (parseExperimentXls $ fdPayload file)
