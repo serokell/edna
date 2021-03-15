@@ -7,13 +7,14 @@ import Universum
 import Lens.Micro ((?~))
 import RIO (runRIO)
 import System.Environment (lookupEnv)
-import Test.Hspec (Spec, SpecWith, afterAll, beforeAll)
+import Test.Hspec (Spec, SpecWith, around)
 
-import Edna.Config.Definition (DbInitiation(..), dbInitiation, defaultEdnaConfig, ecDb)
-import Edna.DB.Connection (ConnPool(..), createConnPool, destroyConnPool)
+import Edna.Config.Definition
+  (DbInitiation(..), dbConnString, dbInitiation, defaultEdnaConfig, ecDb)
+import Edna.DB.Connection (withPostgresConn)
 import Edna.DB.Integration (runPg)
-import Edna.DB.Schema (resetSchema, schemaInit)
-import Edna.Setup (EdnaContext(..), edConnectionPool)
+import Edna.DB.Schema (resetSchema)
+import Edna.Setup (EdnaContext(..))
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
 
 -- | Env variable from which `pg_tmp` temp server connection string
@@ -32,29 +33,21 @@ postgresTestServerConnString = lookupEnv postgresTestServerEnvName >>= \case
       putTextLn "Warning: empty connection string to postgres server specified"
     pure $ ConnString $ encodeUtf8 res
 
-postgresTestDbConnections :: Int
-postgresTestDbConnections = 200
-
-setupDbConnection :: IO ConnPool
-setupDbConnection = do
-  connString <- postgresTestServerConnString
-  createConnPool connString postgresTestDbConnections
-
-setupDbSchema :: EdnaContext -> IO EdnaContext
-setupDbSchema context = do
-  runRIO context schemaInit
-  pure context
-
 resetDbSchema :: EdnaContext -> IO ()
 resetDbSchema context = runRIO context $ runPg resetSchema
 
-resetConnection :: EdnaContext -> IO ()
-resetConnection = destroyConnPool . (^. edConnectionPool)
-
+-- | Provide 'EdnaContext' to a spec. It's based on the default config,
+-- but uses a custom connection string specifically for tests.
+-- It initializes DB and resets it in the end.
 withContext :: SpecWith EdnaContext -> Spec
-withContext =
-  let testConfig =
-        defaultEdnaConfig & (ecDb . dbInitiation) ?~
-        DbInitiation Enable "./sql/init.sql" in
-  beforeAll (setupDbConnection >>= (pure . EdnaContext testConfig) >>= setupDbSchema) .
-  afterAll (resetDbSchema <> resetConnection)
+withContext = around withContext'
+  where
+    withContext' :: (EdnaContext -> IO a) -> IO a
+    withContext' callback = do
+      connString <- postgresTestServerConnString
+      let testConfig = defaultEdnaConfig &
+            ecDb . dbInitiation ?~ DbInitiation Enable "./sql/init.sql" &
+            ecDb . dbConnString .~ connString
+      withPostgresConn testConfig $ \connPool -> do
+        let ctx = EdnaContext testConfig connPool
+        callback ctx <* resetDbSchema ctx
