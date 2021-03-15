@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-# Runs blnd-tender tests.
-# All passed parameters go to --test-arguments parameter of the test executable.
+# Setup temporary DB for testing.
+# This is a helper script for the Makefile we are using.
+# It prints PostgreSQL connection string that we then put into a certain env var.
+# pg_tmp shutdowns and cleans up automatically after a period of inactivity,
+# so we don't need to clean up manually.
 
 # Dependencies:
 # * Postgres server
@@ -21,16 +24,6 @@ if ! which initdb > /dev/null; then
     exit 2
 fi
 
-# A temporal server does not live long (60 sec by default), building tests first.
-stack test --no-run-tests
-
 # Running a server in background.
 # Set log level to warning to avoid polluting NOTICE messages in tests.
-conn_str="$(pg_tmp)&options=-c%20client_min_messages\%3DWARNING"
-
-# Executing tests.
-# This thing wraps every argument into double quotes because that's what stack wants :/
-args=( "${@/#/\"}" ); args=( "${args[@]/%/\"}" )
-TEST_PG_CONN_STRING="$conn_str" stack test --test-arguments "${args[*]}"
-
-# pg_tmp shutdowns and cleans up automatically after a period of inactivity
+echo "$(pg_tmp)&options=-c%20client_min_messages\%3DWARNING"
