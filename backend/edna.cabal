@@ -14,7 +14,7 @@ maintainer:     Serokell <hi@serokell.io>
 copyright:      2021 Serokell <https://serokell.io>
 -- TODO: add license
 build-type:     Simple
-extra-source-files: sql/initial_schema.sql, ./resources/testSheets/**/*
+extra-source-files: sql/init.sql, ./resources/testSheets/**/*
 
 source-repository head
   type: git

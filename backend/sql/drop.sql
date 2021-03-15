@@ -1,7 +1,10 @@
 drop table if exists project cascade;
 drop table if exists test_methodology cascade;
+drop table if exists compound cascade;
+drop table if exists target cascade;
+drop table if exists experiment_file cascade;
 drop table if exists experiment cascade;
 drop table if exists measurement cascade;
 drop table if exists analysis_method cascade;
-drop table if exists analysis cascade;
-drop table if exists analysis_removed_measurements cascade;
+drop table if exists subexperiment cascade;
+drop table if exists removed_measurements cascade;
