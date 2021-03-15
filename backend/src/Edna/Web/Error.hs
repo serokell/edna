@@ -20,9 +20,11 @@ import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 data EdnaServerError
   = XlsxParingError ExperimentParsingError
   | NoExperimentFileError
+  | TooManyExperimentFilesError
   deriving stock (Show, Generic)
 
-instance Exception EdnaServerError
+instance Exception EdnaServerError where
+  displayException = pretty
 
 -- | Class of exceptions which can be transformed to @ServerError@
 class Exception e => ToServerError e where
@@ -31,9 +33,9 @@ class Exception e => ToServerError e where
 instance Buildable EdnaServerError where
   build (XlsxParingError err) = "Xlsx parsing error: "+| err |+""
   build NoExperimentFileError = "Experiment file not attached"
+  build TooManyExperimentFilesError = "More than one experiment file attached"
 
 instance ToServerError EdnaServerError where
-  toServerError er@(XlsxParingError _) =
-    err400 { errBody = encodeUtf8 (pretty @EdnaServerError @Text er) }
-  toServerError er@NoExperimentFileError =
-    err400 { errBody = encodeUtf8 (pretty @EdnaServerError @Text er) }
+  toServerError err = err400 { errBody = prettyErr }
+    where
+      prettyErr = encodeUtf8 @Text $ pretty err
