@@ -9,8 +9,7 @@ import RIO (runRIO)
 import System.Environment (lookupEnv)
 import Test.Hspec (Spec, SpecWith, around)
 
-import Edna.Config.Definition
-  (DbInitiation(..), dbConnString, dbInitiation, defaultEdnaConfig, ecDb)
+import Edna.Config.Definition (DbInit(..), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb)
 import Edna.DB.Connection (withPostgresConn)
 import Edna.DB.Integration (runPg)
 import Edna.DB.Schema (resetSchema)
@@ -46,7 +45,7 @@ withContext = around withContext'
     withContext' callback = do
       connString <- postgresTestServerConnString
       let testConfig = defaultEdnaConfig &
-            ecDb . dbInitiation ?~ DbInitiation Enable "./sql/init.sql" &
+            ecDb . dbInitialisation ?~ DbInit Enable "./sql/init.sql" &
             ecDb . dbConnString .~ connString
       withPostgresConn testConfig $ \connPool -> do
         let ctx = EdnaContext testConfig connPool
