@@ -1,0 +1,83 @@
+@import "src/styles/variables";
+
+.ednaTable {
+  $border-color: #dfe3e3;
+  $head-vertical-padding: 20 * $px;
+  $head-line-height: 17 * $px;
+  $cell-indent: 20 * $px;
+  border-spacing: 0;
+
+  &__columnHead {
+    position: relative;
+    padding-top: $head-vertical-padding;
+    padding-bottom: $head-vertical-padding;
+    padding-left: $cell-indent;
+
+    font-size: 14 * $px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: $head-line-height;
+
+    color: #9ba5a1;
+    text-align: left;
+    border-bottom: $px solid $border-color;
+
+    &:last-child {
+      border-right: 0;
+    }
+  }
+
+  &__headRightBorder {
+    $height: 20 * $px;
+    position: absolute;
+    top: (2 * $head-vertical-padding + $head-line-height - $height) / 2;
+    right: 0;
+    width: $px;
+    height: $height;
+    background-color: #eaeaea;
+  }
+
+  &__rowHovered {
+    &:hover {
+      background-color: $color-light-green;
+    }
+  }
+
+  &__cell {
+    padding-top: 16 * $px;
+    padding-bottom: 16 * $px;
+
+    padding-left: $cell-indent;
+    border-bottom: $px solid $border-color;
+  }
+
+  &__cell_odd {
+    background-color: $color-light-green;
+    border: 0;
+
+    &:first-child {
+      border-bottom-left-radius: 8 * $px;
+    }
+
+    &:last-child {
+      border-bottom-right-radius: 8 * $px;
+    }
+  }
+
+  &__cell_even {
+    border: 0;
+
+    &:first-child {
+      border-bottom-left-radius: 8 * $px;
+    }
+
+    &:last-child {
+      border-bottom-right-radius: 8 * $px;
+    }
+  }
+
+  &__cell_small {
+    padding-top: 11 * $px;
+    padding-bottom: 11 * $px;
+  }
+}
