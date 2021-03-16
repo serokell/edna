@@ -1,5 +1,5 @@
-module Test.Swagger
-  ( spec_swagger
+module Test.SwaggerSpec
+  ( spec
   ) where
 
 import Universum
@@ -12,6 +12,6 @@ import Edna.Web.Swagger ()
 
 import Test.Gen ()
 
-spec_swagger :: Spec
-spec_swagger = do
+spec :: Spec
+spec = do
   context "ToJSON matches ToSchema" $ validateEveryToJSON ednaAPI

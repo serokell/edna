@@ -96,20 +96,20 @@ executable edna-server
 test-suite edna-test
   import: common-options
   type: exitcode-stdio-1.0
-  main-is: Main.hs
+  main-is: Spec.hs
   other-modules:
-      Test.Edna
+      Test.DBSpec
       Test.Gen
-      Test.Parser
+      Test.ParserSpec
       Test.Setup
-      Test.Swagger
+      Test.SwaggerSpec
       Paths_edna
   hs-source-dirs:
       test
   ghc-options:
     -- Non-exhaustive patterns are ok and useful in tests.
     -Wno-incomplete-patterns
-    -- tasty runs tests in parallel, so using multiple threads should be useful.
+    -- hspec runs tests in parallel, so using multiple threads should be useful.
     -threaded
     -- should be harmless, but helps some people analyse something :shrug:
     -eventlog
@@ -125,10 +125,9 @@ test-suite edna-test
     -- otherwise it splits by spaces.
     "-with-rtsopts=-N -A64m -AL256m"
   build-tool-depends:
-      tasty-discover:tasty-discover
+      hspec-discover:hspec-discover
   build-depends:
-      HUnit
-    , bytestring
+      bytestring
     , containers
     , edna
     , filepath
@@ -140,7 +139,4 @@ test-suite edna-test
     , QuickCheck
     , rio
     , servant-swagger
-    , tasty
-    , tasty-hunit-compat
-    , tasty-hspec
     , xlsx

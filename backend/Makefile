@@ -4,21 +4,30 @@
 
 .PHONY: build test clean
 
-STACK_BUILD_OPTIONS = --haddock --fast --test --bench --no-run-tests --no-run-benchmarks --file-watch
+STACK_BUILD_OPTIONS = --haddock --fast --test --bench --no-run-tests --no-run-benchmarks
 CABAL_BUILD_OPTIONS = --enable-tests --enable-benchmarks -O0
 STACK_TEST_OPTIONS = --haddock --fast --test
-# Addtional (specified by user) options passed to test executable
+# Addtional (specified by user) options passed to test executable.
+# If you use double quotes there, please be careful: with `stack` you need to
+# escape them while we `cabal` you don't.
+# Examples:
+# TEST_ARGUMENTS='--dry-run --no-color --match \"Valid tables\"' EDNA_USE_CABAL=0 make test
+# TEST_ARGUMENTS='--dry-run --no-color --match "Valid tables"' EDNA_USE_CABAL=1 make test
 TEST_ARGUMENTS ?=
 # Packages to apply the command (build, test, etc.) for.
 PACKAGE = edna
 
 ifeq (${EDNA_USE_CABAL},1)
 	call_build = cabal new-build $(CABAL_BUILD_OPTIONS)
-	call_test = cabal new-run $(PACKAGE):edna-test $(CABAL_BUILD_OPTIONS) -- --color always $(TEST_ARGUMENTS)
+	call_build_no_watch = cabal new-build $(CABAL_BUILD_OPTIONS)
+	call_test = cabal new-run $(PACKAGE):edna-test $(CABAL_BUILD_OPTIONS) -- \
+		--color $(TEST_ARGUMENTS)
 	call_clean = cabal new-clean
 else
-	call_build = stack build $(STACK_BUILD_OPTIONS) $(PACKAGE)
-	call_test = ./scripts/test.sh
+	call_build = stack build $(STACK_BUILD_OPTIONS) --file-watch $(PACKAGE)
+	call_build_no_watch = stack build $(STACK_BUILD_OPTIONS) $(PACKAGE)
+	call_test = stack build $(STACK_TEST_OPTIONS) $(PACKAGE) \
+		--test-arguments "--color $(TEST_ARGUMENTS)"
 	call_clean = stack clean $(PACKAGE)
 endif
 
@@ -28,7 +37,10 @@ build:
 
 # Run tests in all packages which have them.
 test:
-	$(call call_test)
+	# We build everything first because setup-test-db creates a temporary DB
+	# that doesn't live long.
+	$(call call_build_no_watch)
+	TEST_PG_CONN_STRING="`scripts/setup-test-db.sh`" $(call call_test)
 
 clean:
 	$(call call_clean)
