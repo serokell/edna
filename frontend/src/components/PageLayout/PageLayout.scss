@@ -1,0 +1,13 @@
+@import "src/styles/variables";
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-width: $container-max-width;
+
+  padding-top: 62 * $px;
+  padding-right: $container-side-padding;
+  padding-left: $container-side-padding;
+  margin-right: auto;
+  margin-left: auto;
+}
