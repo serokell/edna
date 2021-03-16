@@ -76,7 +76,7 @@ data ProjectEndpoints route = ProjectEndpoints
       :- "project"
       :> Summary "Add a new project"
       :> ReqBody '[JSON] Project
-      :> Post '[JSON] (WithId Project)
+      :> Post '[JSON] (WithExtra Project ProjectExtra)
 
   , -- | Update an existing project.
     peEditProject :: route
@@ -84,7 +84,7 @@ data ProjectEndpoints route = ProjectEndpoints
       :> Summary "Update an existing project"
       :> Capture "projectId" (SqlId Project)
       :> ReqBody '[JSON] Project
-      :> Put '[JSON] (WithId Project)
+      :> Put '[JSON] (WithExtra Project ProjectExtra)
 
   , -- | Get known projects with optional pagination and sorting
     peGetProjects :: route
