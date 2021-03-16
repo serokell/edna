@@ -1,4 +1,6 @@
 @import "variables";
+//@import url("root-ui-font/stylesheet.css");
+@import "fonts/PTRootUI";
 
 * {
   box-sizing: border-box;
@@ -7,7 +9,7 @@
 html,
 body {
   min-width: 22rem;
-  font-family: "Roboto, Arial, sans-serif", sans-serif;
+  font-family: "PT Root UI", serif;
 }
 
 .endaInput,
