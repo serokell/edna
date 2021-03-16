@@ -37,6 +37,7 @@ library
       Edna.DB.Integration
       Edna.DB.Schema
       Edna.Setup
+      Edna.Web.API
       Edna.Web.Server
       Edna.Web.Swagger
       Edna.Web.Handlers
@@ -47,7 +48,6 @@ library
       Edna.Util
   other-modules:
       Paths_edna
-      Edna.Web.API
       Edna.Web.Error
   hs-source-dirs:
       src
@@ -61,9 +61,10 @@ library
     fmt,
     microlens,
     microlens-platform,
+    network-uri,
+    network-uri-json,
     optparse-applicative,
     postgresql-simple,
-    text,
     resource-pool,
     rio,
     servant,
@@ -74,6 +75,7 @@ library
     servant-swagger-ui,
     split,
     swagger2,
+    text,
     time,
     warp,
     xlsx
@@ -97,8 +99,10 @@ test-suite edna-test
   main-is: Main.hs
   other-modules:
       Test.Edna
+      Test.Gen
       Test.Parser
       Test.Setup
+      Test.Swagger
       Paths_edna
   hs-source-dirs:
       test
@@ -128,9 +132,14 @@ test-suite edna-test
     , containers
     , edna
     , filepath
+    , hedgehog
+    , hedgehog-quickcheck
     , hspec
     , microlens
+    , network-uri
+    , QuickCheck
     , rio
+    , servant-swagger
     , tasty
     , tasty-hunit-compat
     , tasty-hspec
