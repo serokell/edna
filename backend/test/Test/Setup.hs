@@ -12,7 +12,7 @@ import Test.Hspec (Spec, SpecWith, around)
 import Edna.Config.Definition (DbInit(..), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb)
 import Edna.DB.Connection (withPostgresConn)
 import Edna.DB.Integration (runPg)
-import Edna.DB.Schema (resetSchema)
+import Edna.DB.Initialisation (resetSchema)
 import Edna.Setup (EdnaContext(..))
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
 

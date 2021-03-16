@@ -34,6 +34,7 @@ library
       Edna.Config.Definition
       Edna.Config.Utils
       Edna.DB.Connection
+      Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
       Edna.Setup
