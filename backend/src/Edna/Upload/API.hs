@@ -5,12 +5,15 @@ module Edna.Upload.API
   , FileUploadEndpoints (..)
   , FileUploadAPI
   , fileUploadEndpoints
+
+  -- * Legacy
+  , ExperimentalMeasurement (..)
   , uploadExperiment
   ) where
 
 import Universum
 
-import Data.Aeson.TH (deriveJSON)
+import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (ToSchema(..))
 import Servant.API (Get, JSON, Post, ReqBody, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
@@ -18,6 +21,7 @@ import Servant.Multipart (FileData(..), Mem, MultipartData(..), MultipartForm)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
+import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMeasurements(..))
 import Edna.Setup (Edna)
 import Edna.Upload.Service (parseFile, uploadFile)
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
@@ -68,13 +72,6 @@ fileUploadEndpoints = genericServerT FileUploadEndpoints
         name contents
   }
 
--- Legacy function
-uploadExperiment :: MultipartData Mem -> Edna [ExperimentalMeasurement]
-uploadExperiment multipart = do
-  (fileName, file) <- expectOneFile multipart
-  putStrLn $ "Excel file name " ++ show fileName
-  either (throwM . XlsxParingError) pure (parseExperimentXls file)
-
 ----------------
 -- Helpers
 ----------------
@@ -84,3 +81,42 @@ expectOneFile multipart = case files multipart of
   [file] -> pure (fdFileName file, fdPayload file)
   [] -> throwM NoExperimentFileError
   _ -> throwM TooManyExperimentFilesError
+
+----------------
+-- Legacy
+----------------
+
+-- | Legacy type that will be removed soon.
+data ExperimentalMeasurement = ExperimentalMeasurement
+  { emCompoundId :: Text
+  , emTargetId :: Text
+  , emConcentration :: Double
+  , emSignal :: Double
+  , emOutlier :: Bool
+  } deriving stock (Generic, Show, Eq)
+
+deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
+
+instance ToSchema ExperimentalMeasurement where
+  declareNamedSchema = gDeclareNamedSchema
+
+-- Legacy function
+uploadExperiment :: MultipartData Mem -> Edna [ExperimentalMeasurement]
+uploadExperiment multipart = do
+  (fileName, file) <- expectOneFile multipart
+  putStrLn $ "Excel file name " ++ show fileName
+  fileContents <-
+    either (throwM . XlsxParingError) pure (parseExperimentXls file)
+  let
+    flatten :: (Text, TargetMeasurements) -> [ExperimentalMeasurement]
+    flatten (targetName, TargetMeasurements targetMeasurements) =
+      flip concatMap (toPairs targetMeasurements) $ \(compoundName, measurements) ->
+      flip map measurements $ \Measurement {..} ->
+        ExperimentalMeasurement
+          { emCompoundId = compoundName
+          , emTargetId = targetName
+          , emConcentration = mConcentration
+          , emSignal = mSignal
+          , emOutlier = mIsOutlier
+          }
+  return $ concatMap flatten $ toPairs $ fcMeasurements fileContents

@@ -79,6 +79,7 @@ library
     swagger2,
     text,
     time,
+    unordered-containers,
     warp,
     xlsx
 

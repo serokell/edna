@@ -30,7 +30,7 @@ data EdnaEndpoints route = EdnaEndpoints
       :- "experiment"
       :> Summary "Upload an EXCEL file describing one experiment"
       :> MultipartForm Mem (MultipartData Mem)
-      :> Post '[JSON] [ExperimentalMeasurement]
+      :> Post '[JSON] [Upload.ExperimentalMeasurement]
 
   , eeFileUploadEndpoints :: route :- "file" :> Upload.FileUploadAPI
   , eeProjectEndpoints :: route :- ProjectAPI
