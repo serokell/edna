@@ -1,8 +1,7 @@
 -- | Bridge types used to communicate between the server app and frontend.
 
 module Edna.Web.Types
-  ( ExperimentalMeasurement (..)
-  , SqlId (..)
+  ( SqlId (..)
   , WithId (..)
   , WithExtra (..)
   , StubSortBy (..)
@@ -29,18 +28,6 @@ import Network.URI.JSON ()
 import Servant (FromHttpApiData(..))
 
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, gToParamSchema)
-
-----------------
--- Legacy
-----------------
-
-data ExperimentalMeasurement = ExperimentalMeasurement
-  { emCompoundId :: Text
-  , emTargetId :: Text
-  , emConcentration :: Double
-  , emSignal :: Double
-  , emOutlier :: Bool
-  } deriving stock (Generic, Show, Eq)
 
 ----------------
 -- General types
@@ -154,7 +141,6 @@ data Target = Target
 -- JSON
 ----------------
 
-deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
 deriveToJSON ednaAesonWebOptions ''WithId
 deriveToJSON ednaAesonWebOptions ''WithExtra
 deriveToJSON ednaAesonWebOptions ''FileSummaryItem
@@ -169,9 +155,6 @@ deriving newtype instance ToJSON FileSummary
 ----------------
 -- Swagger
 ----------------
-
-instance ToSchema ExperimentalMeasurement where
-  declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema t => ToSchema (WithId t) where
   declareNamedSchema = gDeclareNamedSchema

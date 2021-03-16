@@ -7,9 +7,10 @@ module Edna.Upload.Service
 
 import Universum
 
-import Lens.Micro.Platform (at)
+import Lens.Micro.Platform (at, (?~))
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
+import Edna.ExperimentReader.Types
 import Edna.Setup
 import Edna.Web.Types
 
@@ -17,7 +18,8 @@ import Edna.Web.Types
 -- Uses database to determine which targets are new.
 parseFile :: LByteString -> Edna FileSummary
 parseFile content =
-  measurementsToSummary =<< either throwM pure (parseExperimentXls content)
+  measurementsToSummary . fcMeasurements =<<
+  either throwM pure (parseExperimentXls content)
 
 -- Need DB access for that
 compoundNameToId :: Text -> Edna (Maybe (SqlId Compound))
@@ -26,26 +28,22 @@ compoundNameToId _ = pure Nothing
 targetNameToId :: Text -> Edna (Maybe (SqlId Target))
 targetNameToId _ = pure Nothing
 
--- TODO: once we drop legacy API, I think we should drop 'ExperimentalMeasurement'
--- data type completely and update the parser to return something more compact.
-measurementsToSummary :: [ExperimentalMeasurement] -> Edna FileSummary
+measurementsToSummary :: HashMap Text TargetMeasurements -> Edna FileSummary
 measurementsToSummary =
-  fmap (FileSummary . toList) . foldM step mempty
+  fmap (FileSummary . toList) . foldM step mempty . toPairs
   where
     step ::
-      Map Text FileSummaryItem -> ExperimentalMeasurement ->
-      Edna $ Map Text FileSummaryItem
-    step acc ExperimentalMeasurement {..} = do
-      compound <- maybeToLeft emCompoundId <$> compoundNameToId emCompoundId
-      target <- maybeToLeft emCompoundId <$> targetNameToId emTargetId
-      let
-        mapExisting :: Maybe FileSummaryItem -> Maybe FileSummaryItem
-        mapExisting = \case
-          Nothing -> Just $ FileSummaryItem target [compound]
-          Just fsi -> Just $ fsi
-            { fsiCompounds = compound : fsiCompounds fsi
-            }
-      return $ acc & at emTargetId %~ mapExisting
+      HashMap Text FileSummaryItem -> (Text, TargetMeasurements) ->
+      Edna $ HashMap Text FileSummaryItem
+    step acc (targetName, TargetMeasurements targetMeasurements) = do
+      target <- maybeToLeft targetName <$> targetNameToId targetName
+      compounds <- forM (keys targetMeasurements) $ \compoundName ->
+        maybeToLeft compoundName <$> compoundNameToId compoundName
+      return $ acc & at targetName ?~ FileSummaryItem
+        { fsiTarget = target
+        , fsiCompounds = compounds
+        }
+
 
 -- | Parse an experiment data file and save it to DB.
 uploadFile ::

@@ -7,6 +7,7 @@ module Edna.ExperimentReader.Parser
 import Universum
 
 import qualified Data.ByteString.Lazy as L
+import qualified Data.HashMap.Strict as HM
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 
@@ -18,8 +19,8 @@ import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Types
-  (CellType(..), Parameter(..), ParameterType(..), PlateUnit(..), PointYX(..), Signal(..))
-import Edna.Web.Types (ExperimentalMeasurement(..))
+  (CellType(..), FileContents(..), Measurement(..), Parameter(..), ParameterType(..), PlateUnit(..),
+  PointYX(..), Signal(..), TargetMeasurements(..))
 
 type ParserType a = Either ExperimentParsingError a
 
@@ -82,16 +83,16 @@ paramsSplit workSheet pType normalAxisPoint indexes = constructParams (last inde
       restParams <- constructParams lastId (id2 : ids)
       pure $ Parameter name (id1, id2 - 1) : restParams
 
--- | Parse xlsx file representing as ByteString and return list ExperimentalMeasurement where
--- each ExperimentalMeasurement is a point of measurement from this file
-parseExperimentXls :: L.ByteString -> ParserType [ExperimentalMeasurement]
+-- | Parse xlsx file represented as 'L.ByteString' and return all its data
+-- as 'FileContents'.
+parseExperimentXls :: L.ByteString -> ParserType FileContents
 parseExperimentXls content = do
   xlsx <- first FileParsingError $ toXlsxEither content
   workSheet <- maybeToRight WorksheetNotFound $ xlsx ^? xlSheets . ix 0 . _2
   processWorkSheet workSheet
 
-processWorkSheet :: Worksheet -> ParserType [ExperimentalMeasurement]
-processWorkSheet workSheet = do
+processWorkSheet :: Worksheet -> ParserType FileContents
+processWorkSheet workSheet = flip FileContents () <$> do
   -- Check that plate exists and start from the top left corner of the table
   unless (cellSatisfy workSheet "<>" $ PointYX (1, 1)) $ Left PlateStartNotFound
 
@@ -112,20 +113,40 @@ processWorkSheet workSheet = do
 
   -- For each unit find targets and compounds (their names and indexes range)
   plateUnits <- forM plateUnitsIndexes $ \unit -> do
-    tuTargets <- paramsSplit workSheet Target 2 unit
+    puTargets <- paramsSplit workSheet Target 2 unit
     -- Compound size always equals to 3, so it is needed to set it after split
-    tuCompounds <- map (\p@(pIndexes -> (s, _)) -> p {pIndexes = (s, s + 2)}) <$>
+    puCompounds <- map (\p@(pIndexes -> (s, _)) -> p {pIndexes = (s, s + 2)}) <$>
       paramsSplit workSheet Compound (head unit - 1) (3 :| [4..plateHeight])
     pure PlateUnit{..}
 
-  -- For each unit, for each target and compound find corresponding values
-  sequenceA $ filter (either (\case {EmptyCell _ -> False; _ -> True}) (const True)) $ do
-    PlateUnit {..} <- plateUnits
-    target <- tuTargets
-    compound <- tuCompounds
-    x <- [fst $ pIndexes target .. snd $ pIndexes target]
-    y <- [fst $ pIndexes compound .. snd $ pIndexes compound]
-    pure $ do
-      Signal{..} <- specificCellAt workSheet (PointYX (y, x)) CSignal
-      concentration <- specificCellAt workSheet (PointYX (y + plateHeight - 1, x)) CDouble
-      pure $ ExperimentalMeasurement (pName compound) (pName target) concentration sValue sOutlier
+  let
+    groupToMap :: (Semigroup s, Container s) => [(Text, s)] -> HashMap Text s
+    groupToMap =
+      flip foldr HM.empty $ \(key, val) ->
+        if null (toList val) then id else HM.insertWith (<>) key val
+
+    ignoreEmptyCell :: Either ExperimentParsingError a -> Bool
+    ignoreEmptyCell = either (\case {EmptyCell _ -> False; _ -> True}) (const True)
+
+    processTarget :: [Parameter] -> Parameter -> ParserType (Text, TargetMeasurements)
+    processTarget compounds target =
+      (pName target,) . TargetMeasurements . groupToMap <$>
+      mapM (processCompound target) compounds
+
+    processCompound :: Parameter -> Parameter -> ParserType (Text, [Measurement])
+    processCompound target compound =
+      fmap (pName compound,) . sequenceA . filter ignoreEmptyCell $ do
+        x <- [fst $ pIndexes target .. snd $ pIndexes target]
+        y <- [fst $ pIndexes compound .. snd $ pIndexes compound]
+        pure $ do
+          Signal{..} <- specificCellAt workSheet (PointYX (y, x)) CSignal
+          concentration <- specificCellAt workSheet (PointYX (y + plateHeight - 1, x)) CDouble
+          pure $ Measurement concentration sValue sOutlier
+
+  -- Here we get all measurements, but they are not grouped, so there can be
+  -- more than one item with the same target or compound.
+  ungrouped <- sequenceA $ do
+    pu <- plateUnits
+    map (processTarget $ puCompounds pu) (puTargets pu)
+
+  return $ groupToMap ungrouped
