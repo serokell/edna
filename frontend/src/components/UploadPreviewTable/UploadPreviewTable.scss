@@ -2,18 +2,11 @@
 
 .uploadPreviewTable {
   max-height: 300 * $px;
-
-  table,
-  th,
-  td {
-    border: $px solid #acacac;
-  }
+  border: $px solid #9ba5a1;
+  border-radius: 8 * $px;
 
   &__actions {
     display: flex;
     justify-content: center;
-    padding-top: 7 * $px;
-    padding-bottom: 7 * $px;
-    //margin: (7 * $px) auto;
   }
 }

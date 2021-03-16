@@ -1,5 +1,12 @@
 @import "src/styles/variables";
 
+@mixin btn-typography() {
+  font-size: 14 * $px;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 18 * $px;
+}
+
 .primaryButton {
   height: 3rem;
   padding: (16 * $px) (26 * $px);
@@ -49,15 +56,12 @@
 }
 
 .secondaryButton {
+  @include btn-typography();
+
   padding: (9 * $px) (20 * $px);
 
-  font-size: 14 * $px;
-  font-style: normal;
-  font-weight: bold;
-  line-height: 18 * $px;
-
   color: #3a8370;
-  background-color: #c4dad5;
+  background-color: $color-disabled-green;
   border: 0;
   border-radius: 50 * $px;
 
@@ -71,17 +75,19 @@
 
   &:active:not(&_disabled) {
     color: white;
-    background-color: #3a8370;
+    background-color: $color-green;
   }
 
   &_disabled {
-    color: #3a8370;
-    background: #f6faf8;
+    color: $color-green;
+    background: $color-light-green;
   }
 }
 
 .linkButton {
-  padding: (4 * $px) (16 * $px);
+  @include btn-typography();
+
+  padding: (3 * $px) (18 * $px);
   color: white;
   background-color: #8e8e8e;
   border: 0;

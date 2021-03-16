@@ -31,9 +31,9 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
             setParsedFile({ state: "uploading", progress: 0 });
             try {
               // TODO remove it
-              await delay(1000);
-              setParsedFile({ state: "uploading", progress: 30 });
-              await delay(1000);
+              // await delay(1000);
+              // setParsedFile({ state: "uploading", progress: 30 });
+              // await delay(1000);
 
               const parsed = await Api.parseExcelFile(file, percent => {
                 if (percent === 100) setParsedFile({ state: "verifying" });

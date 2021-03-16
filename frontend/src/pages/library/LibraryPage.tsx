@@ -2,7 +2,7 @@ import React, { FunctionComponent, useState } from "react";
 import { useRecoilValue } from "recoil";
 import cx from "classnames";
 import Header from "../../components/Header/Header";
-import { LibraryTable } from "./LibraryTable";
+import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
 import { methodologiesAtom, projectsAtom } from "../../store/atoms";
 import { SuspenseSpinner } from "../../components/SuspsenseSpinner";
@@ -105,7 +105,7 @@ function ProjectsSuspendable() {
     ],
     []
   );
-  return <LibraryTable data={projects} columns={projectColumns} />;
+  return <Table mode="bordered" data={projects} columns={projectColumns} />;
 }
 
 function MethodsSuspendable() {
@@ -119,5 +119,5 @@ function MethodsSuspendable() {
     ],
     []
   );
-  return <LibraryTable data={methodologies} columns={methodologiesColumns} />;
+  return <Table mode="bordered" data={methodologies} columns={methodologiesColumns} />;
 }
