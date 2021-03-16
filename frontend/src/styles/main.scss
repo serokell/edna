@@ -10,13 +10,6 @@ body {
   font-family: "Roboto, Arial, sans-serif", sans-serif;
 }
 
-$border-radius: 9 * $px;
-$input-border-color: #e1e1e1;
-$input-border-outlined: #2684ff;
-$elem-padding: 10 * $px;
-$container-side-padding: 20 * $px;
-$container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
-
 .endaInput,
 .ednaTextarea {
   box-sizing: border-box;
@@ -30,76 +23,4 @@ $container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding
   border: $px solid $input-border-outlined;
   outline: none;
   box-shadow: 0 0 0 $px $input-border-outlined;
-}
-
-.primaryButton {
-  height: 3rem;
-  padding: $elem-padding;
-  font-weight: 500;
-  color: white;
-  background-color: #474747;
-  border: 0;
-  border-radius: $border-radius;
-
-  &:focus {
-    outline: none;
-  }
-
-  &:active {
-    color: #eae8e8;
-    background-color: #979797;
-  }
-
-  &_disabled {
-    color: #f6f6f6;
-    background-color: #c4c4c4;
-  }
-}
-
-.outlinedButton {
-  height: 3rem;
-  padding: $elem-padding;
-  font-weight: 500;
-  color: #474747;
-  background-color: white;
-  border: 0;
-  border-radius: $border-radius;
-
-  &:focus {
-    outline: none;
-  }
-
-  //&:active {
-  //  color: #eae8e8;
-  //  background-color: #979797;
-  //}
-
-  &_disabled {
-    color: #c4c4c4;
-  }
-}
-
-.secondaryButton {
-  padding: (8 * $px) (16 * $px);
-  color: #303030;
-  background-color: #f2f2f2;
-  border-color: #c4c4c4;
-  border-radius: 8 * $px;
-
-  &:hover,
-  &:active {
-    background-color: #cbcbcb;
-  }
-}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  max-width: $container-max-width;
-
-  padding-top: 62 * $px;
-  padding-right: $container-side-padding;
-  padding-left: $container-side-padding;
-  margin-right: auto;
-  margin-left: auto;
 }

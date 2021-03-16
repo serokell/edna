@@ -8,6 +8,12 @@ export interface MeasurementDto {
   outlier: boolean;
 }
 
+export type ParsedTargetDto = {
+  isNew: boolean;
+  target: string;
+  compounds: string[];
+};
+
 export type CompoundsMap = { [compoundId: string]: MeasurementDto[] };
 
 export function groupCompounds(mes: MeasurementDto[]): CompoundsMap {
