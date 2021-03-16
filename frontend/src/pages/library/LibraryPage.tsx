@@ -6,6 +6,8 @@ import { LibraryTable } from "./LibraryTable";
 import "./LibraryPage.scss";
 import { methodologiesAtom, projectsAtom } from "../../store/atoms";
 import { SuspenseSpinner } from "../../components/SuspsenseSpinner";
+import { Button } from "../../components/Button/Button";
+import PlusSvg from "../../assets/svg/plus.svg";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -13,6 +15,21 @@ export const LibraryPage: FunctionComponent = () => {
       <Header />
       <div className="container">
         <EntitiesTab
+          renderAddButton={activeTab => {
+            if (activeTab === "project")
+              return (
+                <Button type="secondary" className="libraryPage__addBtn">
+                  <PlusSvg /> project
+                </Button>
+              );
+            if (activeTab === "methodology")
+              return (
+                <Button type="secondary" className="libraryPage__addBtn">
+                  <PlusSvg /> methodology
+                </Button>
+              );
+            return <></>;
+          }}
           render={entity => {
             if (entity === "project") {
               return (
@@ -47,9 +64,10 @@ type EntityType = keyof typeof entities;
 
 interface EntitiesTabProps {
   render: (entity: EntityType) => React.ReactNode;
+  renderAddButton: (activeTab: EntityType) => React.ReactNode;
 }
 
-function EntitiesTab({ render }: EntitiesTabProps) {
+function EntitiesTab({ render, renderAddButton }: EntitiesTabProps) {
   const [entityTab, setEntityTab] = useState<EntityType>("project");
 
   return (
@@ -64,6 +82,8 @@ function EntitiesTab({ render }: EntitiesTabProps) {
             {title}
           </div>
         ))}
+
+        {renderAddButton(entityTab)}
       </div>
       {render(entityTab)}
     </>

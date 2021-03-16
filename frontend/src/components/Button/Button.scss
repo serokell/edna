@@ -49,19 +49,34 @@
 }
 
 .secondaryButton {
-  padding: (8 * $px) (16 * $px);
-  color: #303030;
-  background-color: #f2f2f2;
-  border-color: #c4c4c4;
-  border-radius: 8 * $px;
+  padding: (9 * $px) (20 * $px);
+
+  font-size: 14 * $px;
+  font-style: normal;
+  font-weight: bold;
+  line-height: 18 * $px;
+
+  color: #3a8370;
+  background-color: #c4dad5;
+  border: 0;
+  border-radius: 50 * $px;
 
   &:focus {
     outline: none;
   }
 
-  &:hover,
+  &:hover:not(&_disabled) {
+    background-color: #9ac3b9;
+  }
+
   &:active:not(&_disabled) {
-    background-color: #cbcbcb;
+    color: white;
+    background-color: #3a8370;
+  }
+
+  &_disabled {
+    color: #3a8370;
+    background: #f6faf8;
   }
 }
 
