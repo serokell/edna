@@ -75,7 +75,7 @@ genURI = do
       }
 
 genFileUploadReq :: MonadGen m => m FileUploadReq
-genFileUploadReq = FileUploadReq <$> genSqlId <*> genSqlId
+genFileUploadReq = FileUploadReq <$> genSqlId <*> genSqlId <*> genDescription
 
 genFileSummaryItem :: MonadGen m => m FileSummaryItem
 genFileSummaryItem = do
