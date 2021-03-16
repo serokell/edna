@@ -1,19 +1,17 @@
 @import "src/styles/variables";
 
-.uploadPreviewTable {
+.uploadPreviewTableContainer {
   max-height: 300 * $px;
+  overflow-y: scroll;
+}
 
-  table,
-  th,
-  td {
-    border: $px solid #acacac;
-  }
+.uploadPreviewTable {
+  width: 100%;
+  border: $px solid #9ba5a1;
+  border-radius: 8 * $px;
 
   &__actions {
     display: flex;
     justify-content: center;
-    padding-top: 7 * $px;
-    padding-bottom: 7 * $px;
-    //margin: (7 * $px) auto;
   }
 }

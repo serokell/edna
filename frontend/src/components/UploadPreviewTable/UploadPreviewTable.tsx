@@ -1,45 +1,67 @@
 import React from "react";
-import { v4 as uuidv4 } from "uuid";
 import "./UploadPreviewTable.scss";
 import cx from "classnames";
 import { Button } from "../Button/Button";
 import { ParsedTargetDto } from "../../api/types";
+import { Table } from "../Table/Table";
 
 interface UploadTableProps {
   className?: string;
   targets: ParsedTargetDto[];
 }
 
-// TODO this table will be styled properly in library task
-export function UploadPreviewTable({ className, targets }: UploadTableProps): React.ReactElement {
-  return (
-    <table className={cx(["uploadPreviewTable", className])}>
-      <thead>
-        <tr>
-          <th>Compound</th>
-          <th>Target</th>
-          <th />
-        </tr>
-      </thead>
+interface PreviewRow {
+  compound: string;
+  target: string;
+  actions: React.ReactNode;
+}
 
-      <tbody>
-        {targets.map(ex =>
-          ex.compounds.map(cp => (
-            <tr key={uuidv4()}>
-              <td>{cp}</td>
-              <td>
-                {ex.target}
-                {ex.isNew ? "*" : ""}
-              </td>
-              <td className="uploadPreviewTable__actions">
-                <Button type="link" disabled>
-                  View
-                </Button>
-              </td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
+export function UploadPreviewTable({ className, targets }: UploadTableProps): React.ReactElement {
+  const previewColumns = React.useMemo(
+    () => [
+      {
+        Header: "Compound",
+        accessor: "compound" as const, // accessor is the "key" in the data
+      },
+      {
+        Header: "Target",
+        accessor: "target" as const,
+      },
+
+      {
+        accessor: "actions" as const,
+      },
+    ],
+    []
+  );
+
+  const data: PreviewRow[] = [];
+
+  targets.map(ex =>
+    ex.compounds.forEach(compound => {
+      data.push({
+        compound,
+        target: ex.target + (ex.isNew ? "*" : ""),
+        actions: (
+          <div className="uploadPreviewTable__actions">
+            <Button type="link" disabled>
+              View
+            </Button>
+          </div>
+        ),
+      });
+    })
+  );
+
+  return (
+    <div className="uploadPreviewTableContainer">
+      <Table
+        mode="alternate"
+        small
+        data={data}
+        columns={previewColumns}
+        className={cx(["uploadPreviewTable", className])}
+      />
+    </div>
   );
 }
