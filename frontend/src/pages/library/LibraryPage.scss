@@ -1,6 +1,9 @@
 @import "src/styles/variables";
 
 .libraryPage {
+  &__addBtn {
+    margin-left: auto;
+  }
 }
 
 .entityTabs {
