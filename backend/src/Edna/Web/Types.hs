@@ -93,6 +93,8 @@ data FileUploadReq = FileUploadReq
   -- ^ ID of the project the file belongs to.
   , furTestMethodology :: SqlId TestMethodology
   -- ^ ID of the test methodology used throughout the file.
+  , furDescription :: Text
+  -- ^ Description of the file.
   } deriving stock (Generic, Show)
 
 -- | Summary of an experiment data file.

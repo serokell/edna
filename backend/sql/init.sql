@@ -51,6 +51,9 @@ create table if not exists experiment_file
     upload_date        timestamp not null,
     -- Arbitrary metadata from the file
     meta               json      null,
+    -- Description provided from UI, it's like additional metadata
+    -- that we store in a separate string
+    description        text      not null,
 
     -- Name of the file
     name               text      not null,
