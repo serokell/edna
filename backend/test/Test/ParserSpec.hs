@@ -1,5 +1,5 @@
-module Test.Parser
-  ( spec_parser
+module Test.ParserSpec
+  ( spec
   ) where
 
 import Universum
@@ -38,8 +38,8 @@ tableBaseTest path sheetName eCompounds eTargets eOutliers eNumberOfMeasurements
   outliers `shouldBe` Right eOutliers
   numberOfMeasurements `shouldBe` Right eNumberOfMeasurements
 
-spec_parser :: Spec
-spec_parser = do
+spec :: Spec
+spec = do
   describe "Example tables" $ do
     it "First table" $
       tableBaseTest ("exampleSheets" </> "Ex1.xlsx") "Magellan Sheet 1"
