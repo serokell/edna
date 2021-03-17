@@ -39,7 +39,7 @@ import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, gToParamSchema)
 -- identified by this ID.
 newtype SqlId t = SqlId
   { unSqlId :: Word
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
     deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema)
 
 -- | This data type is useful when you want to return something with its ID.
@@ -76,7 +76,7 @@ instance FromHttpApiData StubSortBy where
 -- | Summary of an experiment data file.
 newtype FileSummary = FileSummary
   { unFileSummary :: [FileSummaryItem]
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 -- | One element in 'FileSummary'. Corresponds to one target from the file.
 -- Contains all compounds that interact with the target in the file.
@@ -87,7 +87,7 @@ data FileSummaryItem = FileSummaryItem
   -- instead.
   , fsiCompounds :: [Either (SqlId Compound) Text]
   -- IDs of all compounds interacting with this target. Or names for new ones.
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 -- | Project as submitted by end users.
 data Project = Project
