@@ -1,4 +1,5 @@
 import React from "react";
+import "../RoundSpinner.scss";
 import "./Button.scss";
 import cx from "classnames";
 
@@ -9,6 +10,7 @@ interface ButtonProps {
   className?: string;
   disabled?: boolean;
   children: React.ReactNode;
+  loading?: boolean;
 
   [prop: string]: any;
 }
@@ -19,6 +21,7 @@ export function Button({
   className,
   disabled,
   children,
+  loading,
   ...props
 }: ButtonProps): React.ReactElement {
   const buttonModifiers = {
@@ -35,7 +38,7 @@ export function Button({
       type={type === "submit" ? "submit" : "button"}
       className={cx(buttonModifiers, [className])}
     >
-      {children}
+      {children} {loading && <div className="round-spinner btn-spinner" />}
     </button>
   );
 }

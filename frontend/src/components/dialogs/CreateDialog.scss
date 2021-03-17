@@ -1,0 +1,22 @@
+@import "src/styles/variables";
+@import "src/styles/fonts";
+
+.createDialog {
+  &__description {
+    resize: vertical;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+  }
+
+  &__submitBtn {
+    margin-right: 20 * $px;
+  }
+
+  &__errorMsg {
+    font-size: 15 * $px;
+    color: var(--error-msg);
+  }
+}

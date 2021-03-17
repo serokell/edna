@@ -12,15 +12,16 @@ body {
   font-family: "PT Root UI", serif;
 }
 
-.endaInput,
+.ednaInput,
 .ednaTextarea {
   box-sizing: border-box;
+  min-height: 38 * $px;
   padding: $elem-padding;
   border: $px solid $input-border-color;
   border-radius: $border-radius;
 }
 
-.endaInput:focus,
+.ednaInput:focus,
 .ednaTextarea:focus {
   border: $px solid $input-border-outlined;
   outline: none;

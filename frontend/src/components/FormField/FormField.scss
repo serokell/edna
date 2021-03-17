@@ -16,4 +16,8 @@
     font-size: 12 * $px;
     color: var(--error-msg);
   }
+
+  &__required {
+    color: var(--error-msg);
+  }
 }

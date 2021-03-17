@@ -6,8 +6,8 @@ import "./LibraryPage.scss";
 import { methodologiesAtom, projectsAtom } from "../../store/atoms";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
-import { Button } from "../../components/Button/Button";
-import PlusSvg from "../../assets/svg/plus.svg";
+import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
+import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -15,17 +15,9 @@ export const LibraryPage: FunctionComponent = () => {
       <EntitiesTab
         renderAddButton={activeTab => {
           if (activeTab === "project")
-            return (
-              <Button type="secondary" className="libraryPage__addBtn">
-                <PlusSvg /> project
-              </Button>
-            );
+            return <CreateProjectButton className="libraryPage__addBtn" />;
           if (activeTab === "methodology")
-            return (
-              <Button type="secondary" className="libraryPage__addBtn">
-                <PlusSvg /> methodology
-              </Button>
-            );
+            return <CreateMethodologyButton className="libraryPage__addBtn" />;
           return <></>;
         }}
         render={entity => {

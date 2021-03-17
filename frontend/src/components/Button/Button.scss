@@ -1,72 +1,93 @@
 @import "src/styles/variables";
 
-@mixin btn-typography() {
+@mixin is-btn() {
+  &:focus {
+    outline: none;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:disabled {
+    pointer-events: none;
+  }
+}
+
+@mixin main-btn() {
+  @include is-btn();
+  font-size: 18 * $px;
+  font-weight: 400;
+  line-height: 22 * $px;
+}
+
+@mixin snd-btn() {
+  @include is-btn();
   font-size: 14 * $px;
+  font-weight: 400;
   line-height: 18 * $px;
 }
 
 .primaryButton {
-  height: 3rem;
-  padding: (16 * $px) (26 * $px);
-  font-weight: 500;
+  @include main-btn();
+  position: relative;
+  display: flex;
+
+  padding: (16 * $px) (36 * $px);
   color: white;
-  background-color: #474747;
+  background-color: $color-green;
   border: 0;
   border-radius: $border-radius;
 
-  &:focus {
-    outline: none;
-  }
-
   &:disabled {
-    color: #f6f6f6;
     pointer-events: none;
-    background-color: #c4c4c4;
+    background-color: #c4dad5;
   }
 
-  &:active,
+  &:active {
+    background-color: #175a49;
+  }
+
   &:hover {
-    color: #eae8e8;
-    background-color: #979797;
+    cursor: pointer;
+    background-color: #206c58;
   }
 }
 
 .outlinedButton {
-  height: 3rem;
-  padding: (16 * $px) (26 * $px);
-  font-weight: 500;
-  color: #474747;
+  @include main-btn();
+
+  padding: (16 * $px) (36 * $px);
+  color: $color-green;
   background-color: white;
-  border: $px solid #474747;
+  border: $px solid $color-green;
   border-radius: $border-radius;
 
-  &:focus {
-    outline: none;
-  }
-
   &:disabled {
-    color: #c4c4c4;
+    color: #c4dad5;
     pointer-events: none;
+    border-color: #c4dad5;
   }
 
-  &:active,
+  &:active {
+    color: #175a49;
+  }
+
   &:hover {
-    background-color: #d6d6d6;
+    color: #206c58;
+    cursor: pointer;
   }
 }
 
 .secondaryButton {
-  @include btn-typography();
+  @include snd-btn();
 
   padding: (9 * $px) (20 * $px);
+  font-weight: 700;
   color: $color-green;
   background-color: $color-disabled-green;
   border: 0;
   border-radius: 50 * $px;
-
-  &:focus {
-    outline: none;
-  }
 
   &:hover {
     background-color: #9ac3b9;
@@ -85,17 +106,13 @@
 }
 
 .linkButton {
-  @include btn-typography();
+  @include snd-btn();
 
   padding: (3 * $px) (18 * $px);
   color: white;
   background-color: #8e8e8e;
   border: 0;
   border-radius: 4 * $px;
-
-  &:focus {
-    outline: none;
-  }
 
   &:disabled {
     color: #7d7d7d;
@@ -107,4 +124,10 @@
   &:hover {
     background-color: #545454;
   }
+}
+
+.btn-spinner {
+  position: absolute;
+  right: 8 * $px;
+  font-size: 3 * $px;
 }

@@ -6,6 +6,7 @@ import { ErrorMessage, Field, useField } from "formik";
 interface FormFieldProps<V> {
   name: string;
   label: string;
+  required?: boolean;
   className?: string;
   classNameInner?: string;
   children?: (field: FormikCompatible<V>) => React.ReactNode | React.ComponentType;
@@ -24,6 +25,7 @@ function FormField<V>({
   children,
   className,
   classNameInner,
+  required,
   ...props
 }: FormFieldProps<V>): React.ReactElement {
   // eslint-disable-next-line no-empty-pattern
@@ -31,7 +33,7 @@ function FormField<V>({
   return (
     <div className={cn("formField", className)}>
       <div className="formField__label">
-        {label}
+        {label} {required && <span className="formField__required">*</span>}
         <span className="formField__error">
           <ErrorMessage name={name} />
         </span>

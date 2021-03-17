@@ -1,5 +1,26 @@
+@import "variables";
+
 @mixin headline4() {
   font-size: 2rem;
   font-weight: 400;
   color: #4a4a4a;
+}
+
+@mixin headline1() {
+  font-size: 32 * $px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 40 * $px;
+  text-align: left;
+  letter-spacing: 0;
+}
+
+
+@mixin paragraph-p2() {
+  font-size: 12 * $px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 15 * $px;
+  text-align: left;
+  letter-spacing: 0;
 }

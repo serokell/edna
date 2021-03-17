@@ -11,6 +11,17 @@ export interface UploadExperimentsArgs {
   description: string;
 }
 
+interface CreateMethodologyArgs {
+  name: string;
+  description: string;
+  confluence: string;
+}
+
+interface CreateProjectArgs {
+  name: string;
+  description: string;
+}
+
 interface EdnaApiInterface {
   parseExcelFile: (
     excelFile: Blob,
@@ -19,9 +30,9 @@ interface EdnaApiInterface {
 
   uploadExperiments(form: UploadExperimentsArgs): Promise<unknown>;
   fetchProjects: () => Promise<Project[]>;
-  createProject: (projectName: string) => Promise<Project>;
+  createProject: (args: CreateProjectArgs) => Promise<Project>;
   fetchMethodologies: () => Promise<Methodology[]>;
-  createMethodology: (methodologyName: string) => Promise<Methodology>;
+  createMethodology: (args: CreateMethodologyArgs) => Promise<Methodology>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -71,12 +82,20 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
       });
     },
 
-    createProject: async (projectName: string) => {
+    createProject: async (args: CreateProjectArgs) => {
       // TODO send a request to backend, show some notifications on result
       // delay up to 3 seconds
-      await delay(Math.random() * 2000 + 1000);
-      const projId = Math.floor(Math.random() * 1000000000);
-      return { projectId: projId, name: projectName };
+      await delay(Math.random() * 2000);
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      return axios
+        .post("/project", args)
+        .then(() => {
+          const projId = Math.floor(Math.random() * 1000000000);
+          return { projectId: projId, name: args.name };
+        })
+        .catch(error => {
+          throw new Error(error.response.data);
+        });
     },
 
     fetchProjects: async () => {
@@ -99,12 +118,20 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
       ];
     },
 
-    createMethodology: async (methodologyName: string) => {
-      // TODO send a request to backend, show some notifications on result
+    createMethodology: async (args: CreateMethodologyArgs) => {
+      // TODO parse response from backend
       // delay up to 3 seconds
-      await delay(Math.random() * 2000 + 1000);
-      const methId = Math.floor(Math.random() * 1000000000);
-      return { methodologyId: methId, name: methodologyName };
+      await delay(Math.random() * 2000);
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      return axios
+        .post("/methodology", args)
+        .then(() => {
+          const methId = Math.floor(Math.random() * 1000000000);
+          return { methodologyId: methId, name: args.name };
+        })
+        .catch(error => {
+          throw new Error(error.response.data);
+        });
     },
 
     fetchMethodologies: async () => {
