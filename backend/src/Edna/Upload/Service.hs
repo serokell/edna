@@ -3,6 +3,9 @@
 module Edna.Upload.Service
   ( parseFile
   , uploadFile
+
+  -- * Exported for tests
+  , parseFile'
   ) where
 
 import Universum
@@ -18,8 +21,14 @@ import Edna.Web.Types
 -- Uses database to determine which targets are new.
 parseFile :: LByteString -> Edna FileSummary
 parseFile content =
-  measurementsToSummary . fcMeasurements =<<
+  parseFile' =<<
   either throwM pure (parseExperimentXls content)
+
+-- | Testable version of 'parseFile'. It takes an already parsed file
+-- and this is more convenient for parsing because it's hard to generate
+-- experiment data files in tests, but not hard to generate 'FileContents'.
+parseFile' :: FileContents -> Edna FileSummary
+parseFile' = measurementsToSummary . fcMeasurements
 
 -- Need DB access for that
 compoundNameToId :: Text -> Edna (Maybe (SqlId Compound))

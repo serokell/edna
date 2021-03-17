@@ -37,14 +37,14 @@ data Measurement = Measurement
   -- ^ Something that is measured.
   , mIsOutlier :: Bool
   -- ^ Whether this measurement was explicitly marked as outlier.
-  } deriving stock (Show)
+  } deriving stock (Show, Eq)
 
 -- | All measurements for one target.
 -- Keys are compound names, corresponding values are measurements for
 -- this compound.
 newtype TargetMeasurements = TargetMeasurements
   { unTargetMeasurements :: HashMap Text [Measurement]
-  } deriving stock (Show)
+  } deriving stock (Show, Eq)
     deriving newtype (Container)
 
 instance Semigroup TargetMeasurements where
@@ -59,7 +59,7 @@ instance Monoid TargetMeasurements where
 -- just read as a list of strings.
 newtype FileMetadata = FileMetadata
   { unFileMetadata :: [Text]
-  } deriving stock (Show)
+  } deriving stock (Show, Eq)
     deriving newtype (ToJSON, FromJSON)
 
 -- | All data that we read from a single experiment data file.
@@ -70,7 +70,7 @@ data FileContents = FileContents
   -- this target.
   , fcMetadata :: FileMetadata
   -- ^ Metadata stored in the file.
-  } deriving stock (Show)
+  } deriving stock (Show, Eq)
 
 ----------------
 -- Internal types
