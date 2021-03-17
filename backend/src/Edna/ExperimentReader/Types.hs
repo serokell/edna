@@ -5,6 +5,7 @@
 module Edna.ExperimentReader.Types
   ( Measurement (..)
   , TargetMeasurements (..)
+  , FileMetadata (..)
   , FileContents (..)
 
   , Parameter (..)
@@ -17,6 +18,7 @@ module Edna.ExperimentReader.Types
 
 import Universum
 
+import Data.Aeson (FromJSON, ToJSON)
 import qualified Data.HashMap.Strict as HM
 import qualified GHC.Show as S
 
@@ -52,15 +54,22 @@ instance Semigroup TargetMeasurements where
 instance Monoid TargetMeasurements where
   mempty = TargetMeasurements mempty
 
+-- | Metadata stored in an experiment data file.
+-- It has some structure, but currently we don't interpret it in any way and
+-- just read as a list of strings.
+newtype FileMetadata = FileMetadata
+  { unFileMetadata :: [Text]
+  } deriving stock (Show)
+    deriving newtype (ToJSON, FromJSON)
+
 -- | All data that we read from a single experiment data file.
 data FileContents = FileContents
   { fcMeasurements :: HashMap Text TargetMeasurements
   -- ^ All measumerents in a file.
   -- Keys are target names, corresponding values are measurements for
   -- this target.
-  , fcMetadata :: ()
-  -- ^ Metadata stored in the file. It's currently ignored, will be implemented
-  -- later.
+  , fcMetadata :: FileMetadata
+  -- ^ Metadata stored in the file.
   } deriving stock (Show)
 
 ----------------
