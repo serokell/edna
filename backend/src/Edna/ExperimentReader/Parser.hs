@@ -19,8 +19,8 @@ import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Types
-  (CellType(..), FileContents(..), Measurement(..), Parameter(..), ParameterType(..), PlateUnit(..),
-  PointYX(..), Signal(..), TargetMeasurements(..))
+  (CellType(..), FileContents(..), FileMetadata(..), Measurement(..), Parameter(..),
+  ParameterType(..), PlateUnit(..), PointYX(..), Signal(..), TargetMeasurements(..))
 
 type ParserType a = Either ExperimentParsingError a
 
@@ -92,7 +92,7 @@ parseExperimentXls content = do
   processWorkSheet workSheet
 
 processWorkSheet :: Worksheet -> ParserType FileContents
-processWorkSheet workSheet = flip FileContents () <$> do
+processWorkSheet workSheet = do
   -- Check that plate exists and start from the top left corner of the table
   unless (cellSatisfy workSheet "<>" $ PointYX (1, 1)) $ Left PlateStartNotFound
 
@@ -149,4 +149,14 @@ processWorkSheet workSheet = flip FileContents () <$> do
     pu <- plateUnits
     map (processTarget $ puCompounds pu) (puTargets pu)
 
-  return $ groupToMap ungrouped
+  let
+    minMetadataRow = 2 * plateHeight
+    maxMetadataRow = shtHeight
+
+  metadata <- forM [minMetadataRow .. maxMetadataRow] $ \row ->
+    specificCellAt workSheet (PointYX (row, 1)) CText
+
+  return FileContents
+    { fcMeasurements = groupToMap ungrouped
+    , fcMetadata = FileMetadata metadata
+    }

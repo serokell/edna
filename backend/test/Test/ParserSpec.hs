@@ -15,7 +15,8 @@ import Test.Hspec (Expectation, Spec, describe, expectationFailure, it, shouldBe
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Parser (processWorkSheet)
 import Edna.ExperimentReader.Types
-  (CellType(..), FileContents(..), Measurement(..), PointYX(..), TargetMeasurements(..))
+  (CellType(..), FileContents(..), FileMetadata(..), Measurement(..), PointYX(..),
+  TargetMeasurements(..))
 
 tablesPath :: FilePath
 tablesPath = "resources" </> "testSheets"
@@ -25,8 +26,18 @@ getWorkSheet filePath sheetName = do
   file <- L.readFile filePath
   maybe (throwM WorksheetNotFound) pure $ toXlsx file ^? ixSheet sheetName
 
-tableBaseTest :: FilePath -> Text -> [Text] -> [Text] -> Int -> Int -> Expectation
-tableBaseTest path sheetName eCompounds eTargets eOutliers eNumberOfMeasurements = do
+data MetadataExp = MetadataExp
+  { meSize :: Int
+  , meHead :: Maybe Text
+  , meLast :: Maybe Text
+  }
+
+noMetadataExp :: MetadataExp
+noMetadataExp = MetadataExp 0 Nothing Nothing
+
+tableBaseTest ::
+  FilePath -> Text -> [Text] -> [Text] -> Int -> Int -> MetadataExp -> Expectation
+tableBaseTest path sheetName eCompounds eTargets eOutliers eNumberOfMeasurements eMetadata = do
   workSheet <- getWorkSheet (tablesPath </> path) sheetName
   let parsingResultEither = processWorkSheet workSheet
   parsingResult <- either throwM pure parsingResultEither
@@ -48,6 +59,10 @@ tableBaseTest path sheetName eCompounds eTargets eOutliers eNumberOfMeasurements
   compounds `shouldBe` eCompounds
   outliers `shouldBe` eOutliers
   numberOfMeasurements `shouldBe` eNumberOfMeasurements
+  let metadata = unFileMetadata $ fcMetadata parsingResult
+  length metadata `shouldBe` meSize eMetadata
+  meHead eMetadata `shouldBe` (head <$> nonEmpty metadata)
+  meLast eMetadata `shouldBe` (last <$> nonEmpty metadata)
 
 spec :: Spec
 spec = do
@@ -57,31 +72,37 @@ spec = do
         ["MOL100","MOL11","MOL123","MOL322","MOL456","MOL900"]
         ["PATAK-1"]
         0
-        170
+        170 $
+        MetadataExp 44 (Just "Number of plates: 8") (Just "Sample IDs list: ---")
     it "Second table" $
       tableBaseTest ("exampleSheets" </> "Ex2.xlsx") "Magellan Sheet 1"
         ["MOL00","MOL12","MOLaa (aga)","MOLab","MOLbb (aga)","MOLyar"]
         ["KKKarta"]
         0
         180
+        noMetadataExp
     it "Third table" $
       tableBaseTest ("exampleSheets" </> "Ex3.xlsx") "Magellan Sheet 1"
         ["MOL","MOL-MOL","MOL10-foo-bar","MOL9-foo-bar","MOLPOG-122","MOLPOGKAR"]
         ["QWE-12"]
         15
-        180
+        180 $
+        MetadataExp 36
+          (Just "Number of plates: 6")
+          (Just "Date: 2019-07-01, Time: 17:29:58")
     it "Fourth table" $
       tableBaseTest ("exampleSheets" </> "Ex4.xlsx") "Magellan Sheet 1"
         ["MOL098","MOLrad","MOLyad"] ["Pol16","Pol8"]
         0
         216
+        noMetadataExp
   describe "Valid tables" $ do
     it "Small plate" $
-      tableBaseTest "Valid.xlsx" "SmallPlate" ["A"] ["A"] 0 3
+      tableBaseTest "Valid.xlsx" "SmallPlate" ["A"] ["A"] 0 3 noMetadataExp
     it "Empty plate" $
-      tableBaseTest "Valid.xlsx" "EmptyPlate" [] [] 0 0
+      tableBaseTest "Valid.xlsx" "EmptyPlate" [] [] 0 0 noMetadataExp
     it "Complex plate" $
-      tableBaseTest "Valid.xlsx" "Complex" ["A","B"] ["A","B","C","D"] 9 32
+      tableBaseTest "Valid.xlsx" "Complex" ["A","B"] ["A","B","C","D"] 9 32 noMetadataExp
   describe "Invalid tables" $ do
     let expectErr res errExpected = case res of
           Left err
