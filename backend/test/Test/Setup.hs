@@ -1,9 +1,12 @@
 module Test.Setup
   ( withContext
+  , ednaTestMode
   ) where
 
 import Universum
 
+import Control.Monad.Morph (hoist)
+import Hedgehog.Internal.Property (PropertyT(..))
 import Lens.Micro ((?~))
 import RIO (runRIO)
 import System.Environment (lookupEnv)
@@ -11,9 +14,8 @@ import Test.Hspec (Spec, SpecWith, around)
 
 import Edna.Config.Definition (DbInit(..), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb)
 import Edna.DB.Connection (withPostgresConn)
-import Edna.DB.Integration (runPg)
-import Edna.DB.Initialisation (resetSchema)
-import Edna.Setup (EdnaContext(..))
+import Edna.DB.Initialisation (schemaInit)
+import Edna.Setup (Edna, EdnaContext(..))
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
 
 -- | Env variable from which `pg_tmp` temp server connection string
@@ -32,9 +34,6 @@ postgresTestServerConnString = lookupEnv postgresTestServerEnvName >>= \case
       putTextLn "Warning: empty connection string to postgres server specified"
     pure $ ConnString $ encodeUtf8 res
 
-resetDbSchema :: EdnaContext -> IO ()
-resetDbSchema context = runRIO context $ runPg resetSchema
-
 -- | Provide 'EdnaContext' to a spec. It's based on the default config,
 -- but uses a custom connection string specifically for tests.
 -- It initializes DB and resets it in the end.
@@ -45,8 +44,11 @@ withContext = around withContext'
     withContext' callback = do
       connString <- postgresTestServerConnString
       let testConfig = defaultEdnaConfig &
-            ecDb . dbInitialisation ?~ DbInit Enable "./sql/init.sql" &
+            ecDb . dbInitialisation ?~ DbInit EnableWithDrop "./sql/init.sql" &
             ecDb . dbConnString .~ connString
       withPostgresConn testConfig $ \connPool -> do
         let ctx = EdnaContext testConfig connPool
-        callback ctx <* resetDbSchema ctx
+        callback ctx
+
+ednaTestMode :: EdnaContext -> PropertyT Edna a -> PropertyT IO ()
+ednaTestMode ctx = void . hoist (\action -> runRIO ctx $ schemaInit *> action)
