@@ -3,19 +3,25 @@
 module Edna.Upload.Service
   ( parseFile
   , uploadFile
+  , UploadError (..)
 
   -- * Exported for tests
   , parseFile'
+  , uploadFile'
   ) where
 
 import Universum
 
+import Database.Beam.Query (all_, guard_, select, val_, (==.))
+import Fmt (Buildable(..), pretty)
 import Lens.Micro.Platform (at, (?~))
 
+import Edna.DB.Integration (runSelectReturningOne')
+import Edna.DB.Schema (CompoundT(..), EdnaSchema(..), TargetT(..), ednaSchema)
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types
 import Edna.Setup
-import Edna.Web.Types
+import Edna.Web.Types hiding (cName, tName)
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
 -- Uses database to determine which targets are new.
@@ -63,12 +69,30 @@ measurementsToSummary =
         , fsiCompounds = compounds
         }
 
+data UploadError =
+    UEUnknownProject (SqlId Project)
+  | UEUnknownTestMethodology (SqlId TestMethodology)
+  deriving stock (Show, Eq)
+
+instance Buildable UploadError where
+  build = \case
+    UEUnknownProject i -> "Unknown project: " <> build i
+    UEUnknownTestMethodology i -> "Unknown test methodology: " <> build i
+
+instance Exception UploadError where
+  displayException = pretty
 
 -- | Parse an experiment data file and save it to DB.
 uploadFile ::
   SqlId Project -> SqlId TestMethodology -> Text -> Text -> LByteString ->
   Edna FileSummary
-uploadFile _proj _methodology _description _fileName content = do
-  _parsedFile <- either throwM pure (parseExperimentXls content)
+uploadFile proj methodology description fileName content = do
+  uploadFile' proj methodology description fileName =<<
+    either throwM pure (parseExperimentXls content)
+
+uploadFile' ::
+  SqlId Project -> SqlId TestMethodology -> Text -> Text -> FileContents ->
+  Edna FileSummary
+uploadFile' _proj _methodology _description _fileName fc = do
   -- Stub implementation
-  parseFile content
+  parseFile' fc

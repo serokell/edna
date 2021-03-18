@@ -132,9 +132,9 @@ genTarget = do
   tCreationDate <- Gen.integral (Range.constant 0 1000)
   return Target {..}
 
-genFileContents :: MonadGen m => m FileContents
-genFileContents = do
-  fcMeasurements <- genFileMeasurements
+genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
+genFileContents genTargetName genCompoundName = do
+  fcMeasurements <- genFileMeasurements genTargetName genCompoundName
   -- Metadata entities are similar to description items in some sense.
   fcMetadata <- genFileMetadata
   return FileContents {..}
@@ -143,24 +143,28 @@ genFileMetadata :: MonadGen m => m FileMetadata
 genFileMetadata = FileMetadata <$> Gen.list (Range.constant 0 50) genDescription
 
 -- Common logic of 'genFileMeasurements' and 'genTargetMeasurements'.
-genHashMap :: forall m v. MonadGen m => Int -> m v -> m (HashMap Text v)
-genHashMap minSize genV = do
-  names <- Gen.set (Range.linear minSize 10) genName
+genHashMap ::
+  forall m k v. (MonadGen m, Text ~ k) =>
+  m k -> Int -> m v -> m (HashMap k v)
+genHashMap genK minSize genV = do
+  names <- Gen.set (Range.linear minSize 10) genK
   let
-    step :: HashMap Text v -> Text -> m (HashMap Text v)
+    step :: HashMap k v -> k -> m (HashMap k v)
     step acc name = do
       v <- genV
       return $ acc & at name ?~ v
 
   foldM step mempty names
 
-genFileMeasurements :: MonadGen m => m (HashMap Text TargetMeasurements)
-genFileMeasurements = genHashMap 0 genTargetMeasurements
+genFileMeasurements ::
+  MonadGen m => m Text -> m Text -> m (HashMap Text TargetMeasurements)
+genFileMeasurements genTargetName genCompoundName =
+  genHashMap genTargetName 0 (genTargetMeasurements genCompoundName)
 
-genTargetMeasurements :: MonadGen m => m TargetMeasurements
-genTargetMeasurements =
+genTargetMeasurements :: MonadGen m => m Text -> m TargetMeasurements
+genTargetMeasurements genCompoundName =
   TargetMeasurements <$>
-  genHashMap 1 (Gen.list (Range.linear 1 50) genMeasurement)
+  genHashMap genCompoundName 1 (Gen.list (Range.linear 1 50) genMeasurement)
 
 genMeasurement :: MonadGen m => m Measurement
 genMeasurement = do

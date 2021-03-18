@@ -37,6 +37,7 @@ library
       Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
+      Edna.Orphans
       Edna.Setup
       Edna.Web.API
       Edna.Web.Server
