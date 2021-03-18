@@ -22,6 +22,7 @@ import Universum
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
+import Fmt (Buildable(..))
 import Lens.Micro ((?~))
 import Network.URI (URI(..))
 import Network.URI.JSON ()
@@ -40,7 +41,10 @@ import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, gToParamSchema)
 newtype SqlId t = SqlId
   { unSqlId :: Word
   } deriving stock (Generic, Show, Eq)
-    deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema)
+    deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema, Hashable)
+
+instance Buildable (SqlId t) where
+  build (SqlId n) = "ID#" <> build n
 
 -- | This data type is useful when you want to return something with its ID.
 data WithId t = WithId
@@ -93,7 +97,7 @@ data FileSummaryItem = FileSummaryItem
 data Project = Project
   { pName :: Text
   , pDescription :: Text
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 -- | Extra data about projects that is not submitted by users, but is stored
 -- in DB.
@@ -112,7 +116,7 @@ data TestMethodology = TestMethodology
   { tmName :: Text
   , tmDescription :: Text
   , tmConfluence :: URI
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 -- | Compounds are not submitted directly by users, so for now
 -- there is only one representation for frontend.
