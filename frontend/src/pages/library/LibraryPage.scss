@@ -32,8 +32,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
 
-  &__actions {
-    padding-right: 20 * $px;
-  }
+.contextActions {
+  padding-right: 20 * $px;
 }

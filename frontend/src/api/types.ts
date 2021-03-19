@@ -50,6 +50,24 @@ interface ProjectExtra {
 
 export type ProjectDto = Dto<ProjectBody, ProjectExtra>;
 
+interface NameWithProjects {
+  name: string;
+  projects: string[];
+}
+
+export type TargetDto = {
+  id: number;
+  item: NameWithProjects;
+  creationDate: Timestamp;
+};
+
+export type CompoundDto = {
+  id: number;
+  item: NameWithProjects;
+  creationDate: Timestamp;
+};
+
+// TODO remove these random generators
 export function genRandomProject(): ProjectDto {
   return {
     id: randomInt(1000000000),
@@ -62,6 +80,17 @@ export function genRandomProject(): ProjectDto {
       lastUpdate: randomInt(2000000000000),
       compoundNames: genSeq(randomInt(10), () => randomString(randomPos(10))),
     },
+  };
+}
+
+export function genRandomTarget(): TargetDto {
+  return {
+    id: randomInt(1000000000),
+    item: {
+      name: randomString(randomPos(20)),
+      projects: genSeq(randomInt(5), genRandomProject).map(x => x.item.name),
+    },
+    creationDate: randomInt(2000000000000),
   };
 }
 
@@ -83,7 +112,6 @@ function randomPos(r: number) {
   return randomRange(1, r);
 }
 
-// TODO remove it
 function randomString(size: number): string {
   const alphaChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let generatedString = "";

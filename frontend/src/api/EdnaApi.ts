@@ -3,12 +3,15 @@ import { AxiosInstance, AxiosResponse } from "axios";
 import { Experiment, Methodology } from "../store/types";
 import { delay } from "../utils/utils";
 import {
+  CompoundDto,
   genRandomProject,
+  genRandomTarget,
   genSeq,
   groupCompounds,
   MeasurementDto,
   ParsedTargetDto,
   ProjectDto,
+  TargetDto,
 } from "./types";
 
 export interface UploadExperimentsArgs {
@@ -36,15 +39,26 @@ interface EdnaApiInterface {
   ) => Promise<[ParsedTargetDto[], Experiment[]]>;
 
   uploadExperiments(form: UploadExperimentsArgs): Promise<unknown>;
-
   fetchProjects: () => Promise<ProjectDto[]>;
   createProject: (args: CreateProjectArgs) => Promise<ProjectDto>;
+  fetchTargets: () => Promise<TargetDto[]>;
+  fetchCompounds: () => Promise<CompoundDto[]>;
   fetchMethodologies: () => Promise<Methodology[]>;
   createMethodology: (args: CreateMethodologyArgs) => Promise<Methodology>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
   return {
+    fetchCompounds: async (): Promise<CompoundDto[]> => {
+      await delay(1000);
+      return genSeq(10, genRandomTarget);
+    },
+
+    fetchTargets: async (): Promise<TargetDto[]> => {
+      await delay(1000);
+      return genSeq(10, genRandomTarget);
+    },
+
     parseExcelFile: async (
       excelFile: Blob,
       onUploadProgress: (percent: number) => void

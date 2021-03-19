@@ -2,13 +2,29 @@
 import { atom, selector } from "recoil";
 import { FileUploadState, Methodology, ModalDialogState } from "./types";
 import Api from "../api/api";
-import { ProjectDto } from "../api/types";
+import { CompoundDto, ProjectDto, TargetDto } from "../api/types";
 
 export const projectsAtom = atom<ProjectDto[]>({
   key: "Projects",
   default: selector({
     key: "Projects/Default",
     get: () => Api.fetchProjects(),
+  }),
+});
+
+export const targetsAtom = atom<TargetDto[]>({
+  key: "Targets",
+  default: selector({
+    key: "Targets/Default",
+    get: () => Api.fetchTargets(),
+  }),
+});
+
+export const compoundsAtom = atom<CompoundDto[]>({
+  key: "Compounds",
+  default: selector({
+    key: "Compounds/Default",
+    get: () => Api.fetchCompounds(),
   }),
 });
 
