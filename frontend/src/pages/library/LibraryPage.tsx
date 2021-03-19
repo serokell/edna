@@ -11,6 +11,7 @@ import { CreateProjectButton } from "../../components/buttons/CreateProjectButto
 import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
 import { formatTimestamp } from "../../utils/utils";
 import DotsSvg from "../../assets/svg/dots.svg";
+import { MethodologyPlate } from "../../components/MethodologyPlate/MethodologyPlate";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -175,14 +176,11 @@ function TargetsSuspendable() {
 
 function MethodsSuspendable() {
   const methodologies = useRecoilValue(methodologiesAtom);
-  const methodologiesColumns = React.useMemo(
-    () => [
-      {
-        Header: "Methodology",
-        accessor: "name" as const, // accessor is the "key" in the data
-      },
-    ],
-    []
+  return (
+    <>
+      {methodologies.map(m => (
+        <MethodologyPlate key={m.name} title={m.name} description={m?.description} />
+      ))}
+    </>
   );
-  return <Table mode="bordered" data={methodologies} columns={methodologiesColumns} />;
 }

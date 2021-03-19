@@ -1,0 +1,38 @@
+@import "src/styles/variables";
+@import "src/styles/fonts";
+
+.methodologyPlate {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 32 * $px;
+  border: $px solid #9ba5a1;
+  border-radius: $border-radius;
+
+  &__title {
+    @include headline2();
+    margin-bottom: 16 * $px;
+  }
+
+  &__description {
+    font-size: 14 * $px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 23 * $px;
+
+    color: $color-black;
+    text-align: left;
+    letter-spacing: 0;
+    opacity: 70%;
+  }
+
+  &__contextActions {
+    position: absolute;
+    top: 24 * $px;
+    right: 24 * $px;
+  }
+
+  & + & {
+    margin-top: 28 * $px;
+  }
+}

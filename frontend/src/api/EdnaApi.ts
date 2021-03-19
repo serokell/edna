@@ -189,10 +189,12 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         {
           methodologyId: 1,
           name: "Meth 1",
+          description: "Cool cool methodology 1",
         },
         {
           methodologyId: 2,
           name: "Meth 2",
+          description: "Cool cool methodology 2",
         },
       ];
     },
