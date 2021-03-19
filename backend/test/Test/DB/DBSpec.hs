@@ -9,11 +9,11 @@ import Database.Beam.Backend (SqlSerial(..))
 import Test.Hspec (Spec, describe, it)
 import Test.Hspec.Hedgehog (forAll, modifyMaxShrinks, modifyMaxSuccess, (===))
 
-import Edna.DB.Integration (runInsert', runSelectReturningOne')
+import Edna.DB.Integration (runInsert', runSelectReturningList', runSelectReturningOne')
 import Edna.DB.Schema
   (AnalysisMethodT(..), CompoundT(..), EdnaSchema(..), ExperimentFileT(..), ExperimentT(..),
-  MeasurementT(..), ProjectT(..), SubExperimentT(..), TargetT(..), TestMethodologyT(..),
-  ednaSchema)
+  MeasurementT(..), ProjectT(..), SubExperimentT(..), TargetT(..), TestMethodologyT(..), ednaSchema,
+  theOnlyAnalysisMethod, theOnlyAnalysisMethodId)
 import Test.DB.Gen
   (genAnalysisMethodRec, genCompoundRec, genExperimentFileRec, genExperimentRec, genMeasurementRec,
   genProjectRec, genRemovedMeasurementsRec, genSubExperimentRec, genTargetRec,
@@ -68,7 +68,12 @@ spec = withContext $
           lift $ insertWithConflict esMeasurement $ insertValues [expectedMeasurement]
           pure expectedMeasurement
     let insertAnalysisMethod = do
-          expectedAnalysisMethod <- forAll $ genAnalysisMethodRec 1
+          -- Analysis method with ID 1 is added by default.
+          -- We never add a new one in the current version, but we will do it
+          -- one day and we want to check that our types are accurate.
+          -- So we add it with ID 2.
+          expectedAnalysisMethod <-
+            forAll $ genAnalysisMethodRec $ succ theOnlyAnalysisMethodId
           lift $ insertWithConflict esAnalysisMethod $ insertValues [expectedAnalysisMethod]
           pure expectedAnalysisMethod
     let insertSubExperiment = do
@@ -100,8 +105,10 @@ spec = withContext $
       insertExperiment >>= commonCheck esExperiment
     it "Measurement" $ \ctx -> ednaTestMode ctx $
       insertMeasurement >>= commonCheck esMeasurement
-    it "AnalysisMethod" $ \ctx -> ednaTestMode ctx $
-      insertAnalysisMethod >>= commonCheck esAnalysisMethod
+    it "AnalysisMethod" $ \ctx -> ednaTestMode ctx $ do
+      expected2 <- insertAnalysisMethod
+      actual <- lift $ runSelectReturningList' $ select $ all_ esAnalysisMethod
+      actual === [theOnlyAnalysisMethod, expected2]
     it "SubExperiment" $ \ctx -> ednaTestMode ctx $
       insertSubExperiment >>= commonCheck esSubExperiment
     it "RemovedMeasurements" $ \ctx -> ednaTestMode ctx $

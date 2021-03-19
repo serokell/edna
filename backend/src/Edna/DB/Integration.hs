@@ -5,6 +5,7 @@ module Edna.DB.Integration
   , runInsert'
   , runUpdate'
   , runInsertReturningList'
+  , runInsertReturningOne'
   , runUpdateAffected'
   , runDelete'
   , runSelectReturningOne'
@@ -50,6 +51,20 @@ runInsertReturningList' ::
   ) => SqlInsert Postgres table -> Edna [table Identity]
 runInsertReturningList' = runPg . runInsertReturningList
 
+-- | Insert items and expect one item in the result. The caller is responsible
+-- for ensuring that exactly one result will be returned.
+runInsertReturningOne' ::
+  ( Beamable table
+  , FromBackendRow Postgres (table Identity)
+  ) => SqlInsert Postgres table -> Edna (table Identity)
+runInsertReturningOne' = fmap expectOneInsertion . runInsertReturningList'
+  where
+    expectOneInsertion :: HasCallStack => [x] -> x
+    expectOneInsertion = \case
+      [x] -> x
+      xs -> error $
+        "Expected to insert 1 item, but inserted: " <> show (length xs)
+
 runUpdate' :: SqlUpdate Postgres tbl -> Edna ()
 runUpdate' = runPg . runUpdate
 
@@ -64,4 +79,3 @@ runSelectReturningOne' = runPg . runSelectReturningOne
 
 runSelectReturningList' :: FromBackendRow Postgres a => SqlSelect Postgres a -> Edna [a]
 runSelectReturningList' = runPg . runSelectReturningList
-

@@ -24,12 +24,16 @@ module Edna.DB.Schema
 
   , AnalysisMethodT (..)
   , AnalysisMethodRec
+  , theOnlyAnalysisMethod
+  , theOnlyAnalysisMethodId
 
   , SubExperimentT (..)
   , SubExperimentRec
 
   , RemovedMeasurementsT (..)
   , RemovedMeasurementsRec
+
+  , PrimaryKey (..)
 
   , EdnaSchema (..)
   , ednaSchema
@@ -38,9 +42,9 @@ module Edna.DB.Schema
 import Universum
 
 import Data.Time (LocalTime)
-import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial)
+import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial(..))
 import Database.Beam.Backend.Types (Nullable)
-import Database.Beam.Postgres (PgJSON, Postgres)
+import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Schema
   (Beamable, C, Database, DatabaseSettings, Table(..), TableEntity, defaultDbSettings)
 
@@ -159,7 +163,7 @@ data ExperimentFileT f = ExperimentFileRec
   , efProjectId :: C f Word32
   , efMethodologyId :: C (Nullable f) Word32
   , efUploadDate :: C f LocalTime
-  , efMeta :: C (Nullable f) (PgJSON FileMetadata)
+  , efMeta :: C f (PgJSON FileMetadata)
   , efDescription :: C f Text
   , efName :: C f Text
   , efContents :: C f LByteString
@@ -240,7 +244,7 @@ deriving stock instance Eq (PrimaryKey MeasurementT Identity)
 data AnalysisMethodT f = AnalysisMethodRec
   { amAnalysisMethodId :: C f (SqlSerial Word32)
   , amDescription :: C (Nullable f) Text
-  , amParameters :: C (Nullable f) (PgJSON ()) -- TODO add corresponding type
+  , amParameters :: C f (PgJSON ()) -- TODO add corresponding type
   } deriving stock Generic
     deriving anyclass Beamable
 
@@ -257,6 +261,20 @@ instance Table AnalysisMethodT where
 
 deriving stock instance Show (PrimaryKey AnalysisMethodT Identity)
 deriving stock instance Eq (PrimaryKey AnalysisMethodT Identity)
+
+-- | Currently we always have only one analysis method that is inserted upon
+-- initialization.
+theOnlyAnalysisMethod :: AnalysisMethodRec
+theOnlyAnalysisMethod = AnalysisMethodRec
+  { amAnalysisMethodId = 1
+  , amDescription = Just "IC50"
+  , amParameters = PgJSON ()
+  }
+
+-- | Currently we always have only one analysis method that is inserted upon
+-- initialization. This value is its ID.
+theOnlyAnalysisMethodId :: Word32
+theOnlyAnalysisMethodId = unSerial (amAnalysisMethodId theOnlyAnalysisMethod)
 
 --------------------------
 -- Sub-experiment
