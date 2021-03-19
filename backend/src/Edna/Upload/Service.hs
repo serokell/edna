@@ -30,12 +30,22 @@ parseFile content =
 parseFile' :: FileContents -> Edna FileSummary
 parseFile' = measurementsToSummary . fcMeasurements
 
--- Need DB access for that
 compoundNameToId :: Text -> Edna (Maybe (SqlId Compound))
-compoundNameToId _ = pure Nothing
+compoundNameToId compoundName =
+  fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
+    compound <- all_ (esCompound ednaSchema)
+    guard_ (cName compound ==. val_ compoundName)
+    return $ cCompoundId compound
 
 targetNameToId :: Text -> Edna (Maybe (SqlId Target))
-targetNameToId _ = pure Nothing
+targetNameToId targetName =
+  fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
+    target <- all_ (esTarget ednaSchema)
+    guard_ (tName target ==. val_ targetName)
+    return $ tTargetId target
+
+mkSqlId :: Integral x => x -> SqlId y
+mkSqlId = SqlId . fromIntegral
 
 measurementsToSummary :: HashMap Text TargetMeasurements -> Edna FileSummary
 measurementsToSummary =
