@@ -25,3 +25,15 @@
     }
   }
 }
+
+.project {
+  &__compounds {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__actions {
+    padding-right: 20 * $px;
+  }
+}

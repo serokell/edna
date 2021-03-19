@@ -8,6 +8,9 @@ import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
+import { ProjectDto } from "../../api/types";
+import { formatTimestamp } from "../../utils/utils";
+import DotsSvg from "../../assets/svg/dots.svg";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -80,16 +83,39 @@ function EntitiesTab({ render, renderAddButton }: EntitiesTabProps) {
 }
 
 function ProjectsSuspendable() {
+  const formatCompounds = (compounds: string[]) => {
+    if (compounds.length <= 4) return compounds.join(", ");
+    return `${compounds.slice(0, 4).join(", ")} and ${compounds.length - 4} more`;
+  };
+
   const projects = useRecoilValue(projectsAtom);
   const projectColumns = React.useMemo(
     () => [
       {
         Header: "Project",
-        accessor: "name" as const, // accessor is the "key" in the data
+        accessor: (p: ProjectDto) => p.item.name,
       },
       {
-        Header: "Description",
-        accessor: "description" as const,
+        Header: "Compounds",
+        accessor: (p: ProjectDto) => (
+          <span className="project__compounds">{formatCompounds(p.extra.compoundNames)}</span>
+        ),
+      },
+      {
+        Header: "Creation date",
+        accessor: (p: ProjectDto) => formatTimestamp(p.extra.creationDate),
+      },
+      {
+        Header: "Last update",
+        accessor: (p: ProjectDto) => formatTimestamp(p.extra.lastUpdate),
+      },
+      {
+        id: "actions",
+        accessor: () => (
+          <div className="project__actions">
+            <DotsSvg />{" "}
+          </div>
+        ),
       },
     ],
     []

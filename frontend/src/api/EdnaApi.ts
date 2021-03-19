@@ -1,8 +1,15 @@
 // The module might be removed if we start using open api client generator
 import { AxiosInstance, AxiosResponse } from "axios";
-import { Experiment, Methodology, Project } from "../store/types";
+import { Experiment, Methodology } from "../store/types";
 import { delay } from "../utils/utils";
-import { groupCompounds, MeasurementDto, ParsedTargetDto } from "./types";
+import {
+  genRandomProject,
+  genSeq,
+  groupCompounds,
+  MeasurementDto,
+  ParsedTargetDto,
+  ProjectDto,
+} from "./types";
 
 export interface UploadExperimentsArgs {
   file: File;
@@ -29,8 +36,9 @@ interface EdnaApiInterface {
   ) => Promise<[ParsedTargetDto[], Experiment[]]>;
 
   uploadExperiments(form: UploadExperimentsArgs): Promise<unknown>;
-  fetchProjects: () => Promise<Project[]>;
-  createProject: (args: CreateProjectArgs) => Promise<Project>;
+
+  fetchProjects: () => Promise<ProjectDto[]>;
+  createProject: (args: CreateProjectArgs) => Promise<ProjectDto>;
   fetchMethodologies: () => Promise<Methodology[]>;
   createMethodology: (args: CreateMethodologyArgs) => Promise<Methodology>;
 }
@@ -90,8 +98,7 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
       return axios
         .post("/project", args)
         .then(() => {
-          const projId = Math.floor(Math.random() * 1000000000);
-          return { projectId: projId, name: args.name };
+          return genRandomProject();
         })
         .catch(error => {
           throw new Error(error.response.data);
@@ -101,21 +108,48 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     fetchProjects: async () => {
       // TODO remove delay. For network emulation purposes
       // await delay(1000);
-      return [
+      const randomProjs: ProjectDto[] = genSeq(10, genRandomProject);
+      return randomProjs.concat([
         {
-          projectId: 1,
-          name: "Project 1",
-          description: "Supa pupa project 1",
+          id: 1,
+          item: {
+            name: "Project 1",
+            description: "Supa pupa project 1",
+          },
+          extra: {
+            creationDate: 1000000000,
+            lastUpdate: 1000000000,
+            compoundNames: ["Nl", "H", "Li"],
+          },
         },
+
         {
-          projectId: 2,
-          name: "Project 2",
+          id: 2,
+          item: {
+            name: "Project 2",
+            description: "Supa pupa project 2",
+          },
+          extra: {
+            creationDate: 2000000000,
+            lastUpdate: 2000000000,
+            compoundNames: ["Am", "Ke", "U", "F"],
+          },
         },
+
         {
-          projectId: 3,
-          name: "Project 3",
+          id: 3,
+          item: {
+            name: "Project 3",
+            description:
+              "There is a long long description of the project kjdsjdssldjsghfj she jksgh",
+          },
+          extra: {
+            creationDate: 3000000000,
+            lastUpdate: 3000000000,
+            compoundNames: ["Am", "Ke", "U", "F"],
+          },
         },
-      ];
+      ]);
     },
 
     createMethodology: async (args: CreateMethodologyArgs) => {

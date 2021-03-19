@@ -2,12 +2,6 @@
 
 import { MeasurementDto, ParsedTargetDto } from "../api/types";
 
-export interface Project {
-  projectId: number;
-  name: string;
-  description?: string;
-}
-
 export interface Methodology {
   methodologyId: number;
   name: string;
