@@ -6,6 +6,8 @@ module Test.SMT.SMTSpec
 
 import Universum
 
+import qualified Data.ByteString.Lazy as BSL
+
 import Hedgehog
   (Callback(..), Command(..), HTraversable(..), MonadGen, MonadTest, Var, annotate, assert,
   executeSequential, failure, forAll, (===))
@@ -96,12 +98,13 @@ data UploadFile (v :: Type -> Type) = UploadFile
   , ufTestMethodology :: SqlId TestMethodology
   , ufDescription :: Text
   , ufFileName :: Text
+  , ufBytes :: LByteString
   , ufFileContents :: FileContents
   }
   deriving stock (Show, Eq)
 
 instance HTraversable UploadFile where
-  htraverse _ (UploadFile p tm d fn fc) = pure (UploadFile p tm d fn fc)
+  htraverse _ (UploadFile p tm d fn b fc) = pure (UploadFile p tm d fn b fc)
 
 -- If the list is not empty, generate one of its elements with high probability.
 -- If the list is empty or unlikely scenario happens, the provided generator
@@ -125,6 +128,11 @@ cmdUploadFile ctx =
       ufTestMethodology <- genOneOfLikely genSqlId $ keys _esTestMethodologies
       ufDescription <- genDescription
       ufFileName <- genName
+      -- Generate empty bytes for now because generating proper bytestring
+      -- with xlsx contents is complicated and not worth it.
+      -- Probably later we will generate just a random string here and
+      -- will only check that exactly this bytestring is returned.
+      let ufBytes = BSL.empty
       let genTargetName = genOneOfLikely genName $ keys _esTargetByName
       let genCompoundName = genOneOfLikely genName $ keys _esCompoundByName
       ufFileContents <- genFileContents genTargetName genCompoundName
@@ -132,7 +140,7 @@ cmdUploadFile ctx =
     execute UploadFile {..} =
       liftIO $ try @_ @UploadError $
       runRIO ctx $ uploadFile'
-        ufProject ufTestMethodology ufDescription ufFileName ufFileContents
+        ufProject ufTestMethodology ufDescription ufFileName ufBytes ufFileContents
 
   in Command gen execute
   [ Update applyUploadFile
