@@ -45,6 +45,8 @@ library
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
       Edna.Web.Types
+      Edna.Upload.API
+      Edna.Upload.Service
       Edna.Util
   other-modules:
       Paths_edna
@@ -77,6 +79,7 @@ library
     swagger2,
     text,
     time,
+    unordered-containers,
     warp,
     xlsx
 
@@ -102,6 +105,8 @@ test-suite edna-test
       Test.Gen
       Test.ParserSpec
       Test.Setup
+      Test.SMT.SMTSpec
+      Test.SMT.State
       Test.SwaggerSpec
       Paths_edna
   hs-source-dirs:
@@ -134,7 +139,9 @@ test-suite edna-test
     , hedgehog
     , hedgehog-quickcheck
     , hspec
+    , hspec-hedgehog
     , microlens
+    , microlens-platform
     , network-uri
     , QuickCheck
     , rio

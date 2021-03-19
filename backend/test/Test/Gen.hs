@@ -20,6 +20,9 @@ module Test.Gen
   , genTestMethodology
   , genCompound
   , genTarget
+  , genFileContents
+  , genTargetMeasurements
+  , genMeasurement
   ) where
 
 import Universum
@@ -29,10 +32,14 @@ import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
 
 import Hedgehog (MonadGen)
+import Lens.Micro (at, (?~))
 import Network.URI (URIAuth(..))
 import Test.QuickCheck (Arbitrary(..))
 import Test.QuickCheck.Hedgehog (hedgehog)
 
+import Edna.ExperimentReader.Types
+  (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
+import Edna.Upload.API (ExperimentalMeasurement(..), FileUploadReq(..))
 import Edna.Web.Types
 
 ----------------
@@ -116,6 +123,39 @@ genTarget = do
   tCreationDate <- Gen.integral (Range.constant 0 1000)
   return Target {..}
 
+genFileContents :: MonadGen m => m FileContents
+genFileContents = do
+  fcMeasurements <- genFileMeasurements
+  -- Metadata entities are similar to description items in some sense.
+  fcMetadata <- FileMetadata <$> Gen.list (Range.constant 0 50) genDescription
+  return FileContents {..}
+
+-- Common logic of 'genFileMeasurements' and 'genTargetMeasurements'.
+genHashMap :: forall m v. MonadGen m => Int -> m v -> m (HashMap Text v)
+genHashMap minSize genV = do
+  names <- Gen.set (Range.linear minSize 10) genName
+  let
+    step :: HashMap Text v -> Text -> m (HashMap Text v)
+    step acc name = do
+      v <- genV
+      return $ acc & at name ?~ v
+
+  foldM step mempty names
+
+genFileMeasurements :: MonadGen m => m (HashMap Text TargetMeasurements)
+genFileMeasurements = genHashMap 0 genTargetMeasurements
+
+genTargetMeasurements :: MonadGen m => m TargetMeasurements
+genTargetMeasurements =
+  TargetMeasurements <$>
+  genHashMap 1 (Gen.list (Range.linear 1 50) genMeasurement)
+
+genMeasurement :: MonadGen m => m Measurement
+genMeasurement = do
+  mConcentration <- Gen.double (Range.constant 0 100500)
+  mSignal <- Gen.double (Range.constant 0 100500)
+  mIsOutlier <- Gen.bool
+  return Measurement {..}
 
 ----------------
 -- QuickCheck

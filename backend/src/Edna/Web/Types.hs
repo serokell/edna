@@ -1,12 +1,10 @@
 -- | Bridge types used to communicate between the server app and frontend.
 
 module Edna.Web.Types
-  ( ExperimentalMeasurement (..)
-  , SqlId (..)
+  ( SqlId (..)
   , WithId (..)
   , WithExtra (..)
   , StubSortBy (..)
-  , FileUploadReq (..)
   , FileSummary (..)
   , FileSummaryItem (..)
   , Project (..)
@@ -32,18 +30,6 @@ import Servant (FromHttpApiData(..))
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, gToParamSchema)
 
 ----------------
--- Legacy
-----------------
-
-data ExperimentalMeasurement = ExperimentalMeasurement
-  { emCompoundId :: Text
-  , emTargetId :: Text
-  , emConcentration :: Double
-  , emSignal :: Double
-  , emOutlier :: Bool
-  } deriving stock (Generic, Show, Eq)
-
-----------------
 -- General types
 ----------------
 
@@ -53,7 +39,7 @@ data ExperimentalMeasurement = ExperimentalMeasurement
 -- identified by this ID.
 newtype SqlId t = SqlId
   { unSqlId :: Word
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
     deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema)
 
 -- | This data type is useful when you want to return something with its ID.
@@ -87,20 +73,10 @@ instance FromHttpApiData StubSortBy where
 -- Entities
 ----------------
 
--- | Input data submitted along with uploaded file.
-data FileUploadReq = FileUploadReq
-  { furProject :: SqlId Project
-  -- ^ ID of the project the file belongs to.
-  , furTestMethodology :: SqlId TestMethodology
-  -- ^ ID of the test methodology used throughout the file.
-  , furDescription :: Text
-  -- ^ Description of the file.
-  } deriving stock (Generic, Show)
-
 -- | Summary of an experiment data file.
 newtype FileSummary = FileSummary
   { unFileSummary :: [FileSummaryItem]
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 -- | One element in 'FileSummary'. Corresponds to one target from the file.
 -- Contains all compounds that interact with the target in the file.
@@ -111,7 +87,7 @@ data FileSummaryItem = FileSummaryItem
   -- instead.
   , fsiCompounds :: [Either (SqlId Compound) Text]
   -- IDs of all compounds interacting with this target. Or names for new ones.
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 -- | Project as submitted by end users.
 data Project = Project
@@ -165,10 +141,8 @@ data Target = Target
 -- JSON
 ----------------
 
-deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
 deriveToJSON ednaAesonWebOptions ''WithId
 deriveToJSON ednaAesonWebOptions ''WithExtra
-deriveJSON ednaAesonWebOptions ''FileUploadReq
 deriveToJSON ednaAesonWebOptions ''FileSummaryItem
 deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
@@ -182,16 +156,10 @@ deriving newtype instance ToJSON FileSummary
 -- Swagger
 ----------------
 
-instance ToSchema ExperimentalMeasurement where
-  declareNamedSchema = gDeclareNamedSchema
-
 instance ToSchema t => ToSchema (WithId t) where
   declareNamedSchema = gDeclareNamedSchema
 
 instance (ToSchema t, ToSchema e) => ToSchema (WithExtra t e) where
-  declareNamedSchema = gDeclareNamedSchema
-
-instance ToSchema FileUploadReq where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema FileSummaryItem where
