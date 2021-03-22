@@ -14,7 +14,7 @@ import Test.Hspec (Spec, describe, it, shouldBe, shouldThrow, xit)
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
-import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), SqlId(..))
+import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), SqlId(..))
 
 import Test.Setup (runWithInit, withContext)
 
@@ -87,19 +87,25 @@ m5 = Measurement
   , mIsOutlier = True
   }
 
+newNAI :: Text -> NameAndId anything
+newNAI name = NameAndId name Nothing
+
 sampleFileSummary :: FileSummary
 sampleFileSummary = FileSummary
-  [ FileSummaryItem (Right "tar1") [Right "comp3", Right "comp2", Right "comp1"]
-  , FileSummaryItem (Right "tar2") [Right "comp2"]
-  , FileSummaryItem (Right "tar3") [Right "comp4", Right "comp1"]
+  [ FileSummaryItem (newNAI "tar1") [newNAI "comp3", newNAI "comp2", newNAI "comp1"]
+  , FileSummaryItem (newNAI "tar2") [newNAI "comp2"]
+  , FileSummaryItem (newNAI "tar3") [newNAI "comp4", newNAI "comp1"]
   ]
+
+oldNAI :: Word -> Text -> NameAndId anything
+oldNAI i name = NameAndId name (Just (SqlId i))
 
 sampleFileSummary2 :: FileSummary
 sampleFileSummary2 = FileSummary
-  [ FileSummaryItem (Left (SqlId 1))
-      [Left (SqlId 3), Left (SqlId 2), Left (SqlId 1)]
-  , FileSummaryItem (Left (SqlId 2)) [Left (SqlId 2)]
-  , FileSummaryItem (Left (SqlId 3)) [Left (SqlId 4), Left (SqlId 1)]
+  [ FileSummaryItem (oldNAI 1 "tar1")
+      [oldNAI 3 "tar3", oldNAI 2 "tar2", oldNAI 1 "tar1"]
+  , FileSummaryItem (oldNAI 2 "tar2") [oldNAI 2 "comp2"]
+  , FileSummaryItem (oldNAI 3 "tar3") [oldNAI 4 "tar4", oldNAI 1 "tar1"]
   ]
 
 sampleMetadata :: FileMetadata

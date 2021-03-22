@@ -14,6 +14,7 @@ module Test.Gen
   , genWithExtra
   , genStubSortBy
   , genFileUploadReq
+  , genNameAndId
   , genFileSummaryItem
   , genProject
   , genProjectExtra
@@ -93,13 +94,13 @@ genURI = do
 genFileUploadReq :: MonadGen m => m FileUploadReq
 genFileUploadReq = FileUploadReq <$> genSqlId <*> genSqlId <*> genDescription
 
+genNameAndId :: MonadGen m => m (NameAndId x)
+genNameAndId = NameAndId <$> genName <*> Gen.maybe genSqlId
+
 genFileSummaryItem :: MonadGen m => m FileSummaryItem
 genFileSummaryItem = do
-  let
-    genIdOrName :: MonadGen m => m (Either (SqlId x) Text)
-    genIdOrName = Gen.either genSqlId genName
-  compounds <- Gen.list (Range.linear 0 10) genIdOrName
-  FileSummaryItem <$> genIdOrName <*> pure compounds
+  compounds <- Gen.list (Range.linear 0 10) genNameAndId
+  FileSummaryItem <$> genNameAndId <*> pure compounds
 
 genProject :: MonadGen m => m Project
 genProject = Project <$> genName <*> genDescription
@@ -231,6 +232,9 @@ instance Arbitrary FileUploadReq where
   arbitrary = hedgehog genFileUploadReq
 
 deriving newtype instance Arbitrary FileSummary
+
+instance Arbitrary (NameAndId t) where
+  arbitrary = hedgehog genNameAndId
 
 instance Arbitrary FileSummaryItem where
   arbitrary = hedgehog genFileSummaryItem
