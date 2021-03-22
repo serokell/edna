@@ -16,11 +16,12 @@ import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
+import Edna.ExperimentReader.Error (ExperimentParsingError)
 import Edna.Setup (Edna, EdnaContext)
-import Edna.Upload.Error (UploadApiError)
+import Edna.Upload.Error (UploadApiError, UploadError)
 import Edna.Util (NetworkAddress(..))
 import Edna.Web.API (EdnaAPI, ednaAPI)
-import Edna.Web.Error (toServerError)
+import Edna.Web.Error (ToServerError(..))
 import Edna.Web.Handlers (ednaHandlers)
 import Edna.Web.Swagger (ednaAPIWithDocs, ednaApiSwagger, withSwaggerUI)
 
@@ -48,10 +49,13 @@ ednaServer ctx = hoistServer ednaAPI (ednaToHandler ctx) ednaHandlers
 ednaToHandler :: EdnaContext -> Edna a -> Handler a
 ednaToHandler ctx action =
   runRIO ctx action
-  `catch` throwServant -- catch 'EdnaServerError'
+  `catch` throwPurely @ExperimentParsingError
+  `catch` throwPurely @UploadError
+  `catch` throwPurely @UploadApiError
   `catch` throwError   -- catch 'ServantError'
   where
-    throwServant = throwError . toServerError @UploadApiError
+    throwPurely :: ToServerError e => e -> Handler a
+    throwPurely = throwError . toServerError
 
 -- | Runs the web server which serves Edna API.
 edna :: Edna ()
