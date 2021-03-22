@@ -19,3 +19,6 @@ Then run `make test` to execute tests.
 Run `stack exec -- edna-server -c dev-config.yaml` or `cabal run -- edna-server -c dev-config.yaml` depending on the build tool you used.
 * The server endpoints will be available at `http://localhost:9000/api/*`.
 * Swagger docs will be available at `http://localhost:9000/docs/`.
+
+Set `EDNA_DEBUG_DB=1` to enable logging of all DB actions made.
+It works in tests as well.
