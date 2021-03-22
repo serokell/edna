@@ -111,6 +111,7 @@ test-suite edna-test
       Test.SMT.SMTSpec
       Test.SMT.State
       Test.SwaggerSpec
+      Test.UploadSpec
       Paths_edna
   hs-source-dirs:
       test
@@ -154,4 +155,5 @@ test-suite edna-test
     , QuickCheck
     , rio
     , servant-swagger
+    , unordered-containers
     , xlsx
