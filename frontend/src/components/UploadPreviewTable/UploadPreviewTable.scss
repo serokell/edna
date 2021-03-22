@@ -3,12 +3,12 @@
 .uploadPreviewTableContainer {
   max-height: 300 * $px;
   overflow-y: scroll;
+  border: $px solid #9ba5a1;
+  border-radius: 8 * $px;
 }
 
 .uploadPreviewTable {
   width: 100%;
-  border: $px solid #9ba5a1;
-  border-radius: 8 * $px;
 
   &__actions {
     display: flex;

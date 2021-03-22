@@ -36,12 +36,11 @@ export function UploadPreviewTable({ className, targets }: UploadTableProps): Re
   );
 
   const data: PreviewRow[] = [];
-
-  targets.map(ex =>
+  targets.forEach(ex =>
     ex.compounds.forEach(compound => {
       data.push({
         compound,
-        target: ex.target + (ex.isNew ? "*" : ""),
+        target: `${ex.target} ${ex.isNew ? "*" : ""}`,
         actions: (
           <div className="uploadPreviewTable__actions">
             <Button type="link" disabled>
