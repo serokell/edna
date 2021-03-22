@@ -54,6 +54,10 @@ in
         location ''${API_PATH} {
           proxy_pass http://''${API_HOST}:''${API_PORT}/;
         }
+
+        location /health/ {
+          return 204;
+        }
       }
     '';
   in buildImage {
