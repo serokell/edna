@@ -1,5 +1,6 @@
 module Test.Setup
   ( withContext
+  , runWithInit
   , ednaTestMode
   ) where
 
@@ -49,5 +50,9 @@ withContext = around withContext'
         ctx <- ask
         liftIO $ callback ctx
 
+-- | Drop existing DB, initialize it and then run given 'Edna' action.
+runWithInit :: EdnaContext -> Edna a -> IO a
+runWithInit ctx action = runRIO ctx $ schemaInit *> action
+
 ednaTestMode :: EdnaContext -> PropertyT Edna a -> PropertyT IO ()
-ednaTestMode ctx = void . hoist (\action -> runRIO ctx $ schemaInit *> action)
+ednaTestMode ctx = void . hoist (runWithInit ctx)

@@ -40,7 +40,7 @@ import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, gToParamSchema)
 -- identified by this ID.
 newtype SqlId t = SqlId
   { unSqlId :: Word
-  } deriving stock (Generic, Show, Eq)
+  } deriving stock (Generic, Show, Eq, Ord)
     deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema, Hashable)
 
 instance Buildable (SqlId t) where
@@ -91,7 +91,7 @@ data FileSummaryItem = FileSummaryItem
   -- instead.
   , fsiCompounds :: [Either (SqlId Compound) Text]
   -- IDs of all compounds interacting with this target. Or names for new ones.
-  } deriving stock (Generic, Show, Eq)
+  } deriving stock (Generic, Show, Eq, Ord)
 
 -- | Project as submitted by end users.
 data Project = Project
