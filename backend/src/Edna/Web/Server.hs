@@ -47,7 +47,8 @@ ednaServer ctx = hoistServer ednaAPI (ednaToHandler ctx) ednaHandlers
 ednaToHandler :: EdnaContext -> Edna a -> Handler a
 ednaToHandler ctx action =
   runRIO ctx action
-  `catch` throwServant
+  `catch` throwServant -- catch 'EdnaServerError'
+  `catch` throwError   -- catch 'ServantError'
   where
     throwServant = throwError . toServerError @EdnaServerError
 
