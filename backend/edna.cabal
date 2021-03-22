@@ -34,6 +34,7 @@ library
       Edna.Config.Definition
       Edna.Config.Utils
       Edna.DB.Connection
+      Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
       Edna.Setup
@@ -101,7 +102,8 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Test.DBSpec
+      Test.DB.DBSpec
+      Test.DB.Gen
       Test.Gen
       Test.ParserSpec
       Test.Setup
@@ -132,7 +134,9 @@ test-suite edna-test
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:
-      bytestring
+      beam-core
+    , beam-postgres
+    , bytestring
     , containers
     , edna
     , filepath
@@ -142,7 +146,10 @@ test-suite edna-test
     , hspec-hedgehog
     , microlens
     , microlens-platform
+    , mmorph
     , network-uri
+    , text
+    , time
     , QuickCheck
     , rio
     , servant-swagger

@@ -15,7 +15,7 @@ import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 
 import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
-import Edna.DB.Schema (schemaInit)
+import Edna.DB.Initialisation (schemaInit)
 import Edna.Setup (Edna, EdnaContext)
 import Edna.Util (NetworkAddress(..))
 import Edna.Web.API (EdnaAPI, ednaAPI)
