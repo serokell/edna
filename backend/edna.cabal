@@ -48,6 +48,7 @@ library
       Edna.ExperimentReader.Types
       Edna.Web.Types
       Edna.Upload.API
+      Edna.Upload.Error
       Edna.Upload.Service
       Edna.Util
   other-modules:

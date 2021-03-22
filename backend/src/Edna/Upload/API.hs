@@ -23,9 +23,9 @@ import Servant.Server.Generic (AsServerT, genericServerT)
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMeasurements(..))
 import Edna.Setup (Edna)
+import Edna.Upload.Error (UploadApiError(..))
 import Edna.Upload.Service (parseFile, uploadFile)
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
-import Edna.Web.Error (EdnaServerError(..))
 import Edna.Web.Types
 
 -- | Input data submitted along with uploaded file.
@@ -105,8 +105,7 @@ uploadExperiment :: MultipartData Mem -> Edna [ExperimentalMeasurement]
 uploadExperiment multipart = do
   (fileName, file) <- expectOneFile multipart
   putStrLn $ "Excel file name " ++ show fileName
-  fileContents <-
-    either (throwM . XlsxParingError) pure (parseExperimentXls file)
+  fileContents <- either throwM pure (parseExperimentXls file)
   let
     flatten :: (Text, TargetMeasurements) -> [ExperimentalMeasurement]
     flatten (targetName, TargetMeasurements targetMeasurements) =

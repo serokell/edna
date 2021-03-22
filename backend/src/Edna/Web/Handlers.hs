@@ -1,8 +1,6 @@
 module Edna.Web.Handlers
   ( ednaHandlers
-  , EdnaServerError (..)
-  )
-where
+  ) where
 
 import Universum
 
@@ -16,7 +14,6 @@ import Edna.Setup (Edna)
 import Edna.Web.API
   (CompoundEndpoints(..), EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..),
   TargetEndpoints(..))
-import Edna.Web.Error (EdnaServerError(..))
 
 type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 

@@ -20,7 +20,6 @@ import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Query
   (QExpr, all_, default_, guard_, insert, insertExpressions, insertValues, lookup_, select, val_,
   (==.))
-import Fmt (Buildable(..), pretty)
 import Lens.Micro.Platform (at, (?~))
 
 import Edna.DB.Integration
@@ -29,6 +28,7 @@ import Edna.DB.Schema as DB
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Setup
+import Edna.Upload.Error (UploadError(..))
 import Edna.Web.Types hiding (cName, tName)
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
@@ -76,19 +76,6 @@ measurementsToSummary =
         { fsiTarget = target
         , fsiCompounds = compounds
         }
-
-data UploadError =
-    UEUnknownProject (SqlId Project)
-  | UEUnknownTestMethodology (SqlId TestMethodology)
-  deriving stock (Show, Eq)
-
-instance Buildable UploadError where
-  build = \case
-    UEUnknownProject i -> "Unknown project: " <> build i
-    UEUnknownTestMethodology i -> "Unknown test methodology: " <> build i
-
-instance Exception UploadError where
-  displayException = pretty
 
 -- | Parse an experiment data file and save it to DB.
 uploadFile ::
