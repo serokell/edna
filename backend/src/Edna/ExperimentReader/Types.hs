@@ -26,7 +26,7 @@ import Codec.Xlsx (CellValue(..))
 import Fmt (Buildable(..), pretty, (+|), (|+))
 
 ----------------
--- ExperimenterReader API types
+-- ExperimentReader API types
 ----------------
 
 -- | A single experimental measurement from an experiment data file.

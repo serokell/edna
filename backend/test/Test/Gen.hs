@@ -20,17 +20,26 @@ module Test.Gen
   , genTestMethodology
   , genCompound
   , genTarget
+  , genName
+  , genURI
+  , genDescription
   , genFileContents
+  , genFileMetadata
   , genTargetMeasurements
   , genMeasurement
+  , genLocalTime
+  , genByteString
+  , genDoubleSmallPrec
   ) where
 
 import Universum
 
+import qualified Data.ByteString.Lazy as BL
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
 
+import Data.Time (LocalTime(..), fromGregorian, secondsToDiffTime, timeToTimeOfDay)
 import Hedgehog (MonadGen)
 import Lens.Micro (at, (?~))
 import Network.URI (URIAuth(..))
@@ -127,8 +136,11 @@ genFileContents :: MonadGen m => m FileContents
 genFileContents = do
   fcMeasurements <- genFileMeasurements
   -- Metadata entities are similar to description items in some sense.
-  fcMetadata <- FileMetadata <$> Gen.list (Range.constant 0 50) genDescription
+  fcMetadata <- genFileMetadata
   return FileContents {..}
+
+genFileMetadata :: MonadGen m => m FileMetadata
+genFileMetadata = FileMetadata <$> Gen.list (Range.constant 0 50) genDescription
 
 -- Common logic of 'genFileMeasurements' and 'genTargetMeasurements'.
 genHashMap :: forall m v. MonadGen m => Int -> m v -> m (HashMap Text v)
@@ -152,10 +164,34 @@ genTargetMeasurements =
 
 genMeasurement :: MonadGen m => m Measurement
 genMeasurement = do
-  mConcentration <- Gen.double (Range.constant 0 100500)
-  mSignal <- Gen.double (Range.constant 0 100500)
+  mConcentration <- genDoubleSmallPrec
+  mSignal <- genDoubleSmallPrec
   mIsOutlier <- Gen.bool
   return Measurement {..}
+
+genLocalTime :: MonadGen m => m LocalTime
+genLocalTime = do
+    y <- toInteger <$> Gen.int (Range.constant 2000 2030)
+    m <- Gen.int (Range.constant 1 12)
+    d <- Gen.int (Range.constant 1 28)
+    let day = fromGregorian y m d
+    secs <- toInteger <$> Gen.int (Range.constant 0 86401)
+    let timeOfDay = timeToTimeOfDay $ secondsToDiffTime secs
+    pure $ LocalTime day timeOfDay
+
+genByteString :: MonadGen m => m LByteString
+genByteString = BL.fromStrict <$> Gen.bytes (Range.linear 5 200)
+
+-- | Generate a 'Double' value with a small number of digits.
+-- High precision numbers (presumably more than 15 digits) may cause issues
+-- when you put them into PostgreSQL and then read.
+-- In Edna we don't need very high precision because small imprecision won't
+-- noticeably affect analysis outcome.
+genDoubleSmallPrec :: MonadGen m => m Double
+genDoubleSmallPrec = divideBy128 <$> Gen.word64 (Range.constant 0 300)
+  where
+    divideBy128 :: Word64 -> Double
+    divideBy128 d = fromInteger (toInteger d) / 128
 
 ----------------
 -- QuickCheck
