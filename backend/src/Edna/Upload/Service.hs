@@ -69,9 +69,9 @@ measurementsToSummary =
       HashMap Text FileSummaryItem -> (Text, TargetMeasurements) ->
       Edna $ HashMap Text FileSummaryItem
     step acc (targetName, TargetMeasurements targetMeasurements) = do
-      target <- maybeToLeft targetName <$> targetNameToId targetName
+      target <- NameAndId targetName <$> targetNameToId targetName
       compounds <- forM (keys targetMeasurements) $ \compoundName ->
-        maybeToLeft compoundName <$> compoundNameToId compoundName
+        NameAndId compoundName <$> compoundNameToId compoundName
       return $ acc & at targetName ?~ FileSummaryItem
         { fsiTarget = target
         , fsiCompounds = compounds

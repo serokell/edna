@@ -22,7 +22,8 @@ import Edna.ExperimentReader.Types (FileContents(..), TargetMeasurements(..))
 import Edna.Orphans ()
 import Edna.Setup (EdnaContext)
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
-import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), Project, SqlId(..), TestMethodology)
+import Edna.Web.Types
+  (FileSummary(..), FileSummaryItem(..), NameAndId(..), Project, SqlId(..), TestMethodology)
 
 import Test.Gen
 import Test.SMT.State
@@ -81,9 +82,9 @@ correctFileSummary oldState _ (ParseFile fileContents) fileSummary =
       HashMap Text FileSummaryItem -> (Text, TargetMeasurements) ->
       EdnaReader (HashMap Text FileSummaryItem)
     step acc (targetName, TargetMeasurements targetMeasurements) = do
-      target <- maybeToLeft targetName <$> targetNameToId targetName
+      target <- NameAndId targetName <$> targetNameToId targetName
       compounds <- forM (keys targetMeasurements) $ \compoundName ->
-        maybeToLeft compoundName <$> compoundNameToId compoundName
+        NameAndId compoundName <$> compoundNameToId compoundName
       return $ acc & at targetName ?~ FileSummaryItem
         { fsiTarget = target
         , fsiCompounds = compounds
