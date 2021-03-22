@@ -19,7 +19,7 @@ module Test.Gen
   , genProjectExtra
   , genTestMethodology
   , genCompound
-  , genTarget
+  , genTargetResp
   , genName
   , genURI
   , genDescription
@@ -48,7 +48,9 @@ import Test.QuickCheck.Hedgehog (hedgehog)
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
+import Edna.Library.Web.Types (TargetResp(..))
 import Edna.Upload.API (ExperimentalMeasurement(..))
+import Edna.Util (SqlId(..))
 import Edna.Web.Types
 
 ----------------
@@ -58,10 +60,10 @@ import Edna.Web.Types
 genSqlId :: MonadGen m => m (SqlId t)
 genSqlId = SqlId <$> Gen.integral (Range.constant 0 100)
 
-genWithId :: MonadGen m => m t -> m (WithId t)
+genWithId :: MonadGen m => m t -> m (WithId k t)
 genWithId genT = WithId <$> genSqlId <*> genT
 
-genWithExtra :: MonadGen m => m t -> m e -> m (WithExtra t e)
+genWithExtra :: MonadGen m => m t -> m e -> m (WithExtra k t e)
 genWithExtra genT genE = WithExtra <$> genSqlId <*> genT <*> genE
 
 genStubSortBy :: MonadGen m => m StubSortBy
@@ -122,12 +124,12 @@ genCompound = do
   cAdditionDate <- Gen.integral (Range.constant 0 1000)
   return Compound {..}
 
-genTarget :: MonadGen m => m Target
-genTarget = do
-  tName <- genName
-  tProjects <- Gen.list (Range.linear 0 5) genName
-  tCreationDate <- Gen.integral (Range.constant 0 1000)
-  return Target {..}
+genTargetResp :: MonadGen m => m TargetResp
+genTargetResp = do
+  trName <- genName
+  trProjects <- Gen.list (Range.linear 0 5) genName
+  trCreationDate <- genLocalTime
+  return TargetResp {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
 genFileContents genTargetName genCompoundName = do
@@ -212,10 +214,10 @@ instance Arbitrary ExperimentalMeasurement where
 
 deriving newtype instance Arbitrary (SqlId t)
 
-instance Arbitrary t => Arbitrary (WithId t) where
+instance Arbitrary t => Arbitrary (WithId k t) where
   arbitrary = hedgehog $ genWithId HQC.arbitrary
 
-instance (Arbitrary t, Arbitrary e) => Arbitrary (WithExtra t e) where
+instance (Arbitrary t, Arbitrary e) => Arbitrary (WithExtra k t e) where
   arbitrary = hedgehog $ genWithExtra HQC.arbitrary HQC.arbitrary
 
 instance Arbitrary StubSortBy where
@@ -244,5 +246,5 @@ instance Arbitrary TestMethodology where
 instance Arbitrary Compound where
   arbitrary = hedgehog genCompound
 
-instance Arbitrary Target where
-  arbitrary = hedgehog genTarget
+instance Arbitrary TargetResp where
+  arbitrary = hedgehog genTargetResp

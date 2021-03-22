@@ -8,12 +8,12 @@ import Servant.API.Generic (ToServant)
 import Servant.Server (err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
+import qualified Edna.Library.Web.API as Library
 import qualified Edna.Upload.API as Upload
 
 import Edna.Setup (Edna)
 import Edna.Web.API
-  (CompoundEndpoints(..), EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..),
-  TargetEndpoints(..))
+  (CompoundEndpoints(..), EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..))
 
 type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 
@@ -25,7 +25,7 @@ ednaHandlers = genericServerT EdnaEndpoints
   , eeProjectEndpoints = projectEndpoints
   , eeMethodologyEndpoints = methodologyEndpoints
   , eeCompoundEndpoints = compoundEndpoints
-  , eeTargetEndpoints = targetEndpoints
+  , eeTargetEndpoints = Library.targetEndpoints
   }
   where
     projectEndpoints = genericServerT ProjectEndpoints
@@ -47,9 +47,4 @@ ednaHandlers = genericServerT EdnaEndpoints
       { ceEditChemSoft = \_ _ -> throwM err501
       , ceGetCompounds = \_ _ _ -> throwM err501
       , ceGetCompound = \_ -> throwM err501
-      }
-
-    targetEndpoints = genericServerT TargetEndpoints
-      { teGetTargets = \_ _ _ -> throwM err501
-      , teGetTarget = \_ -> throwM err501
       }

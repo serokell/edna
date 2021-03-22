@@ -43,10 +43,16 @@ library
       Edna.Web.Server
       Edna.Web.Swagger
       Edna.Web.Handlers
+      Edna.Web.Types
       Edna.ExperimentReader.Error
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
-      Edna.Web.Types
+      Edna.Library.Error
+      Edna.Library.DB.Query
+      Edna.Library.DB.Schema
+      Edna.Library.Web.API
+      Edna.Library.Web.Types
+      Edna.Library.Service
       Edna.Upload.API
       Edna.Upload.Error
       Edna.Upload.Service

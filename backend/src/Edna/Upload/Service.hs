@@ -27,9 +27,11 @@ import Edna.DB.Integration
 import Edna.DB.Schema as DB
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
+import Edna.Library.DB.Schema (TargetT(..))
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
-import Edna.Web.Types hiding (cName, tName)
+import Edna.Util (IdType(..), SqlId(..))
+import Edna.Web.Types hiding (cName)
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
 -- Uses database to determine which targets are new.
@@ -51,7 +53,7 @@ compoundNameToId compoundName =
     guard_ (cName compound ==. val_ compoundName)
     return $ cCompoundId compound
 
-targetNameToId :: Text -> Edna (Maybe (SqlId Target))
+targetNameToId :: Text -> Edna (Maybe (SqlId 'TargetId))
 targetNameToId targetName =
   fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
     target <- all_ (esTarget ednaSchema)
@@ -99,7 +101,7 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
       `whenNothingM_`
       throwM (UEUnknownTestMethodology methodSqlId)
 
-    transact $ insertAll (fromIntegral proj) (fromIntegral method)
+    transact $ insertAll proj method
   where
     insertAll :: HasCallStack => Word32 -> Word32 -> Edna FileSummary
     insertAll projId methodId = do
@@ -127,7 +129,7 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
       measurementsToSummary fileMeasurements
 
 insertTarget :: Text -> Edna (Text, Word32)
-insertTarget targetName = (targetName,) . fromIntegral . unSqlId <$> do
+insertTarget targetName = (targetName,) . unSqlId <$> do
   runInsert' $ Pg.insert
     (esTarget ednaSchema)
     (insertExpressions [TargetRec default_ (val_ targetName) default_])
@@ -136,7 +138,7 @@ insertTarget targetName = (targetName,) . fromIntegral . unSqlId <$> do
     targetNameToId targetName
 
 insertCompound :: Text -> Edna (Text, Word32)
-insertCompound compoundName = (compoundName,) . fromIntegral . unSqlId <$> do
+insertCompound compoundName = (compoundName,) . unSqlId <$> do
   runInsert' $ Pg.insert
     (esCompound ednaSchema)
     (insertExpressions [CompoundRec default_ (val_ compoundName) default_ default_])

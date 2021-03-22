@@ -22,8 +22,9 @@ import Edna.ExperimentReader.Types (FileContents(..), TargetMeasurements(..))
 import Edna.Orphans ()
 import Edna.Setup (EdnaContext)
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
+import Edna.Util (SqlId(..))
 import Edna.Web.Types
-  (FileSummary(..), FileSummaryItem(..), NameAndId(..), Project, SqlId(..), TestMethodology)
+  (FileSummary(..), FileSummaryItem(..), NameAndId(..), Project, TestMethodology)
 
 import Test.Gen
 import Test.SMT.State

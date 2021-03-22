@@ -23,7 +23,8 @@ import Edna.DB.Schema
   (AnalysisMethodRec, AnalysisMethodT(..), CompoundRec, CompoundT(..), ExperimentFileRec,
   ExperimentFileT(..), ExperimentRec, ExperimentT(..), MeasurementRec, MeasurementT(..), ProjectRec,
   ProjectT(..), RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec,
-  SubExperimentT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
+  SubExperimentT(..), TestMethodologyRec, TestMethodologyT(..))
+import Edna.Library.DB.Schema (TargetRec, TargetT(..))
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
   genURI)

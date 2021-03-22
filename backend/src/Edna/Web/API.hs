@@ -10,17 +10,18 @@ module Edna.Web.API
   , ProjectEndpoints (..)
   , MethodologyEndpoints (..)
   , CompoundEndpoints (..)
-  , TargetEndpoints (..)
   ) where
 
 import Universum
 
-import Servant.API (Capture, Delete, Get, JSON, Post, Put, QueryParam, ReqBody, Summary, (:>))
-import Servant.API.Generic (AsApi, ToServant, (:-))
+import Servant.API ((:>), Capture, Delete, Get, JSON, Post, Put, QueryParam, ReqBody, Summary)
+import Servant.API.Generic ((:-), AsApi, ToServant)
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
 import qualified Edna.Upload.API as Upload
 
+import Edna.Library.Web.API (TargetAPI)
+import Edna.Util (SqlId(..))
 import Edna.Web.Types
 
 -- | API endpoints specification.
@@ -57,7 +58,7 @@ data ProjectEndpoints route = ProjectEndpoints
       :- "project"
       :> Summary "Add a new project"
       :> ReqBody '[JSON] Project
-      :> Post '[JSON] (WithExtra Project ProjectExtra)
+      :> Post '[JSON] (WithExtra Project Project ProjectExtra)
 
   , -- | Update an existing project.
     peEditProject :: route
@@ -65,7 +66,7 @@ data ProjectEndpoints route = ProjectEndpoints
       :> Summary "Update an existing project"
       :> Capture "projectId" (SqlId Project)
       :> ReqBody '[JSON] Project
-      :> Put '[JSON] (WithExtra Project ProjectExtra)
+      :> Put '[JSON] (WithExtra Project Project ProjectExtra)
 
   , -- | Get known projects with optional pagination and sorting
     peGetProjects :: route
@@ -74,14 +75,14 @@ data ProjectEndpoints route = ProjectEndpoints
       :> QueryParam "page" Word
       :> QueryParam "size" Word
       :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithExtra Project ProjectExtra]
+      :> Get '[JSON] [WithExtra Project Project ProjectExtra]
 
   , -- | Get project data by ID
     peGetProject :: route
       :- "project"
       :> Summary "Get project data by ID"
       :> Capture "projectId" (SqlId Project)
-      :> Get '[JSON] (WithExtra Project ProjectExtra)
+      :> Get '[JSON] (WithExtra Project Project ProjectExtra)
   } deriving stock (Generic)
 
 type ProjectAPI = ToServant ProjectEndpoints AsApi
@@ -93,7 +94,7 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :- "methodology"
       :> Summary "Add a new methodology"
       :> ReqBody '[JSON] TestMethodology
-      :> Post '[JSON] (WithId TestMethodology)
+      :> Post '[JSON] (WithId TestMethodology TestMethodology)
 
   , -- | Update an existing methodology.
     meEditMethodology :: route
@@ -101,7 +102,7 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :> Summary "Update an existing methodology"
       :> Capture "methodologyId" (SqlId TestMethodology)
       :> ReqBody '[JSON] TestMethodology
-      :> Put '[JSON] (WithId TestMethodology)
+      :> Put '[JSON] (WithId TestMethodology TestMethodology)
 
   , -- | Delete an existing methodology.
     meDeleteMethodology :: route
@@ -117,14 +118,14 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :> QueryParam "page" Word
       :> QueryParam "size" Word
       :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId TestMethodology]
+      :> Get '[JSON] [WithId TestMethodology TestMethodology]
 
   , -- | Get methodology data by ID
     meGetMethodology :: route
       :- "methodology"
       :> Summary "Get methodology data by ID"
       :> Capture "methodologyId" (SqlId TestMethodology)
-      :> Get '[JSON] (WithId TestMethodology)
+      :> Get '[JSON] (WithId TestMethodology TestMethodology)
   } deriving stock (Generic)
 
 type MethodologyAPI = ToServant MethodologyEndpoints AsApi
@@ -138,7 +139,7 @@ data CompoundEndpoints route = CompoundEndpoints
       :> Summary "Update ChemSoft link of a compound"
       :> Capture "compoundId" (SqlId Compound)
       :> ReqBody '[JSON] URI
-      :> Put '[JSON] (WithId Compound)
+      :> Put '[JSON] (WithId Compound Compound)
 
   , -- | Get known compounds with optional pagination and sorting
     ceGetCompounds :: route
@@ -147,35 +148,14 @@ data CompoundEndpoints route = CompoundEndpoints
       :> QueryParam "page" Word
       :> QueryParam "size" Word
       :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId Compound]
+      :> Get '[JSON] [WithId Compound Compound]
 
   , -- | Get compound data by ID
     ceGetCompound :: route
       :- "compound"
       :> Summary "Get compound data by ID"
       :> Capture "compoundId" (SqlId Compound)
-      :> Get '[JSON] (WithId Compound)
+      :> Get '[JSON] (WithId Compound Compound)
   } deriving stock (Generic)
 
 type CompoundAPI = ToServant CompoundEndpoints AsApi
-
--- | Endpoints related to targets.
-data TargetEndpoints route = TargetEndpoints
-  { -- | Get known targets with optional pagination and sorting
-    teGetTargets :: route
-      :- "targets"
-      :> Summary "Get known targets"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId Target]
-
-  , -- | Get target data by ID
-    teGetTarget :: route
-      :- "target"
-      :> Summary "Get target data by ID"
-      :> Capture "targetId" (SqlId Target)
-      :> Get '[JSON] (WithId Target)
-  } deriving stock (Generic)
-
-type TargetAPI = ToServant TargetEndpoints AsApi

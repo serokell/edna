@@ -9,8 +9,9 @@ import Universum
 
 import Fmt (Buildable(..), pretty)
 
+import Edna.Util (SqlId)
 import Edna.Web.Error (ToServerError(..))
-import Edna.Web.Types (Project, SqlId, TestMethodology)
+import Edna.Web.Types (Project, TestMethodology)
 
 -- | Errors that can happen inside Upload service.
 data UploadError =

@@ -14,7 +14,8 @@ import Test.Hspec (Spec, describe, it, shouldBe, shouldThrow, xit)
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
-import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), SqlId(..))
+import Edna.Util (SqlId(..))
+import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
 
 import Test.Setup (runWithInit, withContext)
 
@@ -97,7 +98,7 @@ sampleFileSummary = FileSummary
   , FileSummaryItem (newNAI "tar3") [newNAI "comp4", newNAI "comp1"]
   ]
 
-oldNAI :: Word -> Text -> NameAndId anything
+oldNAI :: Word32 -> Text -> NameAndId anything
 oldNAI i name = NameAndId name (Just (SqlId i))
 
 sampleFileSummary2 :: FileSummary

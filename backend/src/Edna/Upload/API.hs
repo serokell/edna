@@ -24,7 +24,7 @@ import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMea
 import Edna.Setup (Edna)
 import Edna.Upload.Error (UploadApiError(..))
 import Edna.Upload.Service (parseFile, uploadFile)
-import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
+import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, SqlId (..))
 import Edna.Web.Types
 
 -- | Endpoints necessary to implement file uploading.
