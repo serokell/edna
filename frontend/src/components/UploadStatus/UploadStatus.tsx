@@ -5,7 +5,7 @@ import FailedIcon from "../../assets/svg/failed.svg";
 import { excelFileAtom } from "../../store/atoms";
 import "./UploadStatus.scss";
 
-export function UploadStatus() {
+export function UploadStatus(): React.ReactElement {
   const uploadState = useRecoilValue(excelFileAtom);
 
   return uploadState ? (

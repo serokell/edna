@@ -2,8 +2,6 @@
 
 @mixin btn-typography() {
   font-size: 14 * $px;
-  font-style: normal;
-  font-weight: normal;
   line-height: 18 * $px;
 }
 
@@ -22,11 +20,12 @@
 
   &:disabled {
     color: #f6f6f6;
+    pointer-events: none;
     background-color: #c4c4c4;
   }
 
   &:active,
-  &:hover:not(:disabled) {
+  &:hover {
     color: #eae8e8;
     background-color: #979797;
   }
@@ -47,10 +46,11 @@
 
   &:disabled {
     color: #c4c4c4;
+    pointer-events: none;
   }
 
   &:active,
-  &:hover:not(:disabled) {
+  &:hover {
     background-color: #d6d6d6;
   }
 }
@@ -59,8 +59,7 @@
   @include btn-typography();
 
   padding: (9 * $px) (20 * $px);
-
-  color: #3a8370;
+  color: $color-green;
   background-color: $color-disabled-green;
   border: 0;
   border-radius: 50 * $px;
@@ -69,17 +68,18 @@
     outline: none;
   }
 
-  &:hover:not(:disabled) {
+  &:hover {
     background-color: #9ac3b9;
   }
 
-  &:active:not(:disabled) {
+  &:active {
     color: white;
     background-color: $color-green;
   }
 
   &:disabled {
     color: $color-green;
+    pointer-events: none;
     background: $color-light-green;
   }
 }
@@ -99,11 +99,12 @@
 
   &:disabled {
     color: #7d7d7d;
+    pointer-events: none;
     background-color: #cbcbcb;
   }
 
   &:active,
-  &:hover:not(:disabled) {
+  &:hover {
     background-color: #545454;
   }
 }

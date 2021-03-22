@@ -1,6 +1,7 @@
 import React from "react";
 import { Column, useTable } from "react-table";
 import "./Table.scss";
+import cx from "classnames";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 interface LibraryTableProps<T extends object> {
@@ -24,13 +25,7 @@ export function Table<T extends object>({
     data,
   });
 
-  let lastColumnWithRightBorder = columns.length - 2;
-  for (let i = columns.length - 1; i >= 0; i--) {
-    lastColumnWithRightBorder = i - 1;
-    if (columns[i].Header) {
-      break;
-    }
-  }
+  const lastColumnWithRightBorder = computeLastColumnWithRightBorder(columns);
 
   return (
     <table {...getTableProps()} className={`ednaTable ${className ?? ""}`}>
@@ -52,7 +47,7 @@ export function Table<T extends object>({
           return (
             <tr
               {...row.getRowProps()}
-              className={mode === "bordered" ? "ednaTable__rowHovered" : ""}
+              className={cx({ ednaTable__row_withHover: mode === "bordered" })}
             >
               {row.cells.map(cell => {
                 return (
@@ -80,4 +75,16 @@ export function Table<T extends object>({
       </tbody>
     </table>
   );
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+function computeLastColumnWithRightBorder<T extends object>(columns: Column<T>[]) {
+  let lastColumnWithRightBorder = columns.length - 2;
+  for (let i = columns.length - 1; i >= 0; i--) {
+    lastColumnWithRightBorder = i - 1;
+    if (columns[i].Header) {
+      break;
+    }
+  }
+  return lastColumnWithRightBorder;
 }

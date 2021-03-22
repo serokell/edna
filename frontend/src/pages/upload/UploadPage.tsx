@@ -2,7 +2,7 @@ import React, { FunctionComponent, ReactElement } from "react";
 import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
 import Api from "../../api/api";
-import "../../components/Spinner.scss";
+import "../../components/Spinner/Spinner.scss";
 import MeasurementsCharts from "./MeasurementsCharts";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
