@@ -17,10 +17,11 @@ import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
 import Edna.Setup (Edna, EdnaContext)
+import Edna.Upload.Error (UploadApiError)
 import Edna.Util (NetworkAddress(..))
 import Edna.Web.API (EdnaAPI, ednaAPI)
 import Edna.Web.Error (toServerError)
-import Edna.Web.Handlers (EdnaServerError, ednaHandlers)
+import Edna.Web.Handlers (ednaHandlers)
 import Edna.Web.Swagger (ednaAPIWithDocs, ednaApiSwagger, withSwaggerUI)
 
 -- | Sets the given listen address in a Warp server settings.
@@ -50,7 +51,7 @@ ednaToHandler ctx action =
   `catch` throwServant -- catch 'EdnaServerError'
   `catch` throwError   -- catch 'ServantError'
   where
-    throwServant = throwError . toServerError @EdnaServerError
+    throwServant = throwError . toServerError @UploadApiError
 
 -- | Runs the web server which serves Edna API.
 edna :: Edna ()
