@@ -37,6 +37,7 @@ library
       Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
+      Edna.Orphans
       Edna.Setup
       Edna.Web.API
       Edna.Web.Server
@@ -47,6 +48,7 @@ library
       Edna.ExperimentReader.Types
       Edna.Web.Types
       Edna.Upload.API
+      Edna.Upload.Error
       Edna.Upload.Service
       Edna.Util
   other-modules:
@@ -110,6 +112,7 @@ test-suite edna-test
       Test.SMT.SMTSpec
       Test.SMT.State
       Test.SwaggerSpec
+      Test.UploadSpec
       Paths_edna
   hs-source-dirs:
       test
@@ -153,4 +156,5 @@ test-suite edna-test
     , QuickCheck
     , rio
     , servant-swagger
+    , unordered-containers
     , xlsx

@@ -27,14 +27,14 @@ create table if not exists target
 (
     target_id       serial      not null primary key,
     name            text        not null unique,
-    creation_date   timestamp   not null
+    creation_date   timestamp   not null default now()
 );
 
 create table if not exists compound
 (
     compound_id     serial          not null primary key,
     name            text            not null unique,
-    creation_date   timestamp       not null,
+    creation_date   timestamp       not null default now(),
     chemsoft_link   varchar(1000)   null
 );
 
@@ -45,12 +45,12 @@ create table if not exists compound
 -- it should be possible to download these files.
 create table if not exists experiment_file
 (
-    experiment_file_id serial not null primary key,
+    experiment_file_id serial    not null primary key,
     project_id         int       not null,
     methodology_id     int       null,  -- normally not null, but methodology can be removed
-    upload_date        timestamp not null,
+    upload_date        timestamp not null default now(),
     -- Arbitrary metadata from the file
-    meta               json      null,
+    meta               json      not null,
     -- Description provided from UI, it's like additional metadata
     -- that we store in a separate string
     description        text      not null,
@@ -132,8 +132,11 @@ create table if not exists analysis_method
     analysis_method_id serial not null primary key,
     description        text   null,
     -- Analysis-specific parameters
-    parameters         json   null
+    parameters         json   not null
 );
+
+-- Currently we have only one hardcoded analysis method.
+insert into analysis_method values (1, 'IC50', '[]'::json) on conflict do nothing;
 
 -- Sub-experiment is an experiment with disabled points.
 -- An experiment is a sub-experiment of itself with 0 disabled points.

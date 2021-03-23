@@ -21,8 +21,8 @@ import Hedgehog.Range (constant)
 
 import Edna.DB.Schema
   (AnalysisMethodRec, AnalysisMethodT(..), CompoundRec, CompoundT(..), ExperimentFileRec,
-  ExperimentFileT(..), ExperimentRec, ExperimentT(..), MeasurementRec, MeasurementT(..),
-  ProjectRec, ProjectT(..), RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec,
+  ExperimentFileT(..), ExperimentRec, ExperimentT(..), MeasurementRec, MeasurementT(..), ProjectRec,
+  ProjectT(..), RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec,
   SubExperimentT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
@@ -59,7 +59,7 @@ genCompoundRec compoundId = do
 genExperimentFileRec :: Gen.MonadGen m => Word32 -> Word32 -> Word32 -> m ExperimentFileRec
 genExperimentFileRec experimentFileId efProjectId methodologyId = do
   efUploadDate <- genLocalTime
-  efMeta <- PgJSON <<$>> Gen.maybe genFileMetadata
+  efMeta <- PgJSON <$> genFileMetadata
   efDescription <- genDescription
   efName <- genName
   efContents <- genByteString
@@ -83,7 +83,7 @@ genMeasurementRec measurementId mExperimentId = do
 genAnalysisMethodRec :: Gen.MonadGen m => Word32 -> m AnalysisMethodRec
 genAnalysisMethodRec analysisMethodId = do
   amDescription <- Gen.maybe genDescription
-  amParameters <- PgJSON <<$>> Gen.maybe (pure ())
+  let amParameters = PgJSON ()
   pure AnalysisMethodRec {amAnalysisMethodId = SqlSerial analysisMethodId, ..}
 
 genSubExperimentRec :: Gen.MonadGen m => Word32 -> Word32 -> Word32 -> m SubExperimentRec

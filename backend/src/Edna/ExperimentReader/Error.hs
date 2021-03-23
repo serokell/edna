@@ -9,6 +9,7 @@ import Data.Typeable (cast)
 import Fmt (Buildable(..), (+|), (|+))
 
 import Edna.ExperimentReader.Types (CellType, PointYX(..))
+import Edna.Web.Error (ToServerError(..))
 
 data ExperimentParsingError
   = forall a . Typeable a => UnexpectedCellType PointYX (CellType a) (Maybe CellValue)
@@ -17,7 +18,7 @@ data ExperimentParsingError
   | PlateStartNotFound
   | FileParsingError ParseError
   | NoConcentrationPlate
-  deriving anyclass Exception
+  deriving anyclass (Exception, ToServerError)
 
 deriving stock instance Show ExperimentParsingError
 instance Eq ExperimentParsingError where

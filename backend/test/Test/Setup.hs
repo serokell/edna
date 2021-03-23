@@ -1,5 +1,6 @@
 module Test.Setup
   ( withContext
+  , runWithInit
   , ednaTestMode
   ) where
 
@@ -13,12 +14,11 @@ import System.Environment (lookupEnv)
 import Test.Hspec (Spec, SpecWith, around)
 
 import Edna.Config.Definition (DbInit(..), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb)
-import Edna.DB.Connection (withPostgresConn)
 import Edna.DB.Initialisation (schemaInit)
-import Edna.Setup (Edna, EdnaContext(..))
+import Edna.Setup (Edna, EdnaContext(..), runEdna)
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
 
--- | Env variable from which `pg_tmp` temp server connection string
+-- | Env variable from which @pg_tmp@ temp server connection string
 -- is read.
 postgresTestServerEnvName :: String
 postgresTestServerEnvName = "TEST_PG_CONN_STRING"
@@ -46,9 +46,13 @@ withContext = around withContext'
       let testConfig = defaultEdnaConfig &
             ecDb . dbInitialisation ?~ DbInit EnableWithDrop "./sql/init.sql" &
             ecDb . dbConnString .~ connString
-      withPostgresConn testConfig $ \connPool -> do
-        let ctx = EdnaContext testConfig connPool
-        callback ctx
+      runEdna testConfig $ do
+        ctx <- ask
+        liftIO $ callback ctx
+
+-- | Drop existing DB, initialize it and then run given 'Edna' action.
+runWithInit :: EdnaContext -> Edna a -> IO a
+runWithInit ctx action = runRIO ctx $ schemaInit *> action
 
 ednaTestMode :: EdnaContext -> PropertyT Edna a -> PropertyT IO ()
-ednaTestMode ctx = void . hoist (\action -> runRIO ctx $ schemaInit *> action)
+ednaTestMode ctx = void . hoist (runWithInit ctx)

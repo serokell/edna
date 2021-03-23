@@ -6,36 +6,26 @@ to Servant errors.
 
 module Edna.Web.Error
   ( ToServerError (..)
-  , EdnaServerError (..)
+  , defaultToServerError
   ) where
 
 import Universum
 
-import Fmt (Buildable(..), pretty, (+|), (|+))
+import Fmt (Buildable, pretty)
 import Servant (ServerError(..), err400)
 
-import Edna.ExperimentReader.Error (ExperimentParsingError(..))
-
--- Exception thrown by handler
-data EdnaServerError
-  = XlsxParingError ExperimentParsingError
-  | NoExperimentFileError
-  | TooManyExperimentFilesError
-  deriving stock (Show, Generic)
-
-instance Exception EdnaServerError where
-  displayException = pretty
-
--- | Class of exceptions which can be transformed to @ServerError@
+-- | Class of exceptions which can be transformed to 'ServerError'.
+-- Default implementation transforms to 400 HTTP code which is a good
+-- default but sometimes you may want something else.
 class Exception e => ToServerError e where
-    toServerError :: e -> ServerError
+  toServerError :: e -> ServerError
 
-instance Buildable EdnaServerError where
-  build (XlsxParingError err) = "Xlsx parsing error: "+| err |+""
-  build NoExperimentFileError = "Experiment file not attached"
-  build TooManyExperimentFilesError = "More than one experiment file attached"
+  default toServerError :: Buildable e => e -> ServerError
+  toServerError = defaultToServerError
 
-instance ToServerError EdnaServerError where
-  toServerError err = err400 { errBody = prettyErr }
-    where
-      prettyErr = encodeUtf8 @Text $ pretty err
+-- | Default implementation of 'toServerError' that returns HTTP code 400
+-- (bad request).
+defaultToServerError :: Buildable e => e -> ServerError
+defaultToServerError err = err400 { errBody = prettyErr }
+  where
+    prettyErr = encodeUtf8 @Text $ pretty err
