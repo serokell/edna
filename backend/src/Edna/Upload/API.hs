@@ -1,8 +1,7 @@
 -- | Upload-related part of API definition along with implementation.
 
 module Edna.Upload.API
-  ( FileUploadReq (..)
-  , FileUploadEndpoints (..)
+  ( FileUploadEndpoints (..)
   , FileUploadAPI
   , fileUploadEndpoints
 
@@ -13,9 +12,9 @@ module Edna.Upload.API
 
 import Universum
 
-import Data.Aeson.TH (deriveJSON, deriveToJSON)
+import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
-import Servant.API (JSON, Post, ReqBody, Summary, (:>))
+import Servant.API (Capture, JSON, Post, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (FileData(..), Mem, MultipartData(..), MultipartForm)
 import Servant.Server.Generic (AsServerT, genericServerT)
@@ -27,21 +26,6 @@ import Edna.Upload.Error (UploadApiError(..))
 import Edna.Upload.Service (parseFile, uploadFile)
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
 import Edna.Web.Types
-
--- | Input data submitted along with uploaded file.
-data FileUploadReq = FileUploadReq
-  { furProject :: SqlId Project
-  -- ^ ID of the project the file belongs to.
-  , furTestMethodology :: SqlId TestMethodology
-  -- ^ ID of the test methodology used throughout the file.
-  , furDescription :: Text
-  -- ^ Description of the file.
-  } deriving stock (Generic, Show)
-
-deriveJSON ednaAesonWebOptions ''FileUploadReq
-
-instance ToSchema FileUploadReq where
-  declareNamedSchema = gDeclareNamedSchema
 
 -- | Endpoints necessary to implement file uploading.
 data FileUploadEndpoints route = FileUploadEndpoints
@@ -58,7 +42,9 @@ data FileUploadEndpoints route = FileUploadEndpoints
     fueUploadFile :: route
       :- "upload"
       :> Summary "Upload the file with some methodology and project"
-      :> ReqBody '[JSON] FileUploadReq
+      :> Capture "projectId" (SqlId Project)
+      :> Capture "methodologyId" (SqlId TestMethodology)
+      :> Capture "description" Text
       :> MultipartForm Mem (MultipartData Mem)
       :> Post '[JSON] FileSummary
   } deriving stock (Generic)
@@ -68,9 +54,9 @@ type FileUploadAPI = ToServant FileUploadEndpoints AsApi
 fileUploadEndpoints :: ToServant FileUploadEndpoints (AsServerT Edna)
 fileUploadEndpoints = genericServerT FileUploadEndpoints
   { fueParseFile = expectOneFile >=> parseFile . snd
-  , fueUploadFile = \FileUploadReq {..} multipart -> do
+  , fueUploadFile = \projectId testMethodologyId description multipart -> do
       (name, contents) <- expectOneFile multipart
-      uploadFile furProject furTestMethodology furDescription
+      uploadFile projectId testMethodologyId description
         name contents
   }
 

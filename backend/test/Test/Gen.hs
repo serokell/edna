@@ -13,7 +13,6 @@ module Test.Gen
   , genWithId
   , genWithExtra
   , genStubSortBy
-  , genFileUploadReq
   , genNameAndId
   , genFileSummaryItem
   , genProject
@@ -49,7 +48,7 @@ import Test.QuickCheck.Hedgehog (hedgehog)
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
-import Edna.Upload.API (ExperimentalMeasurement(..), FileUploadReq(..))
+import Edna.Upload.API (ExperimentalMeasurement(..))
 import Edna.Web.Types
 
 ----------------
@@ -90,9 +89,6 @@ genURI = do
       , uriRegName = "www.leningrad.spb.ru"
       , uriPort = ":42"
       }
-
-genFileUploadReq :: MonadGen m => m FileUploadReq
-genFileUploadReq = FileUploadReq <$> genSqlId <*> genSqlId <*> genDescription
 
 genNameAndId :: MonadGen m => m (NameAndId x)
 genNameAndId = NameAndId <$> genName <*> Gen.maybe genSqlId
@@ -227,9 +223,6 @@ instance Arbitrary StubSortBy where
 
 instance Arbitrary URI where
   arbitrary = hedgehog genURI
-
-instance Arbitrary FileUploadReq where
-  arbitrary = hedgehog genFileUploadReq
 
 deriving newtype instance Arbitrary FileSummary
 
