@@ -1,7 +1,14 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
+-- https://github.com/serokell/universum/issues/208
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Edna.ExperimentReader.Types
-  ( Parameter (..)
+  ( Measurement (..)
+  , TargetMeasurements (..)
+  , FileMetadata (..)
+  , FileContents (..)
+
+  , Parameter (..)
   , PlateUnit (..)
   , ParameterType (..)
   , Signal (..)
@@ -11,10 +18,63 @@ module Edna.ExperimentReader.Types
 
 import Universum
 
+import Data.Aeson (FromJSON, ToJSON)
+import qualified Data.HashMap.Strict as HM
 import qualified GHC.Show as S
 
 import Codec.Xlsx (CellValue(..))
 import Fmt (Buildable(..), pretty, (+|), (|+))
+
+----------------
+-- ExperimentReader API types
+----------------
+
+-- | A single experimental measurement from an experiment data file.
+data Measurement = Measurement
+  { mConcentration :: Double
+  -- ^ Concentration for which the signal is measured.
+  , mSignal :: Double
+  -- ^ Something that is measured.
+  , mIsOutlier :: Bool
+  -- ^ Whether this measurement was explicitly marked as outlier.
+  } deriving stock (Show, Eq)
+
+-- | All measurements for one target.
+-- Keys are compound names, corresponding values are measurements for
+-- this compound.
+newtype TargetMeasurements = TargetMeasurements
+  { unTargetMeasurements :: HashMap Text [Measurement]
+  } deriving stock (Show, Eq)
+    deriving newtype (Container)
+
+instance Semigroup TargetMeasurements where
+  TargetMeasurements tm1 <> TargetMeasurements tm2 =
+    TargetMeasurements $ HM.unionWith mappend tm1 tm2
+
+instance Monoid TargetMeasurements where
+  mempty = TargetMeasurements mempty
+
+-- | Metadata stored in an experiment data file.
+-- It has some structure, but currently we don't interpret it in any way and
+-- just read as a list of strings.
+newtype FileMetadata = FileMetadata
+  { unFileMetadata :: [Text]
+  } deriving stock (Show, Eq)
+    deriving newtype (ToJSON, FromJSON)
+
+-- | All data that we read from a single experiment data file.
+data FileContents = FileContents
+  { fcMeasurements :: HashMap Text TargetMeasurements
+  -- ^ All measumerents in a file.
+  -- Keys are target names, corresponding values are measurements for
+  -- this target.
+  , fcMetadata :: FileMetadata
+  -- ^ Metadata stored in the file.
+  } deriving stock (Show, Eq)
+
+----------------
+-- Internal types
+----------------
 
 newtype PointYX = PointYX (Int, Int)
   deriving stock (Show, Eq)
@@ -28,8 +88,8 @@ data Parameter = Parameter
   } deriving stock Show
 
 data PlateUnit = PlateUnit
-  { tuTargets :: [Parameter]
-  , tuCompounds :: [Parameter]
+  { puTargets :: [Parameter]
+  , puCompounds :: [Parameter]
   }
 
 data Signal = Signal

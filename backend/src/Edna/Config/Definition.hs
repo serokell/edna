@@ -14,14 +14,14 @@ module Edna.Config.Definition
   , acListenAddr
   , acServeDocs
 
-  , DbInitiation (..)
+  , DbInit (..)
   , dbiMode
   , dbiInitScript
 
   , DbConfig (..)
   , dbConnString
-  , dbMaxConnection
-  , dbInitiation
+  , dbMaxConnections
+  , dbInitialisation
   ) where
 
 import Universum
@@ -37,15 +37,15 @@ data ApiConfig = ApiConfig
   , _acServeDocs :: Bool
   } deriving stock (Generic, Show)
 
-data DbInitiation = DbInitiation
+data DbInit = DbInit
   { _dbiMode :: DatabaseInitOption
   , _dbiInitScript :: FilePath
   } deriving stock (Generic, Show)
 
 data DbConfig = DbConfig
   { _dbConnString :: ConnString
-  , _dbMaxConnection :: Int
-  , _dbInitiation :: Maybe DbInitiation
+  , _dbMaxConnections :: Int
+  , _dbInitialisation :: Maybe DbInit
   } deriving stock (Generic, Show)
 
 data EdnaConfig = EdnaConfig
@@ -61,8 +61,8 @@ defaultEdnaConfig = EdnaConfig
     }
   , _ecDb = DbConfig
     { _dbConnString = ConnString "host=/run/postgresql dbname=edna"
-    , _dbMaxConnection = 200
-    , _dbInitiation = Nothing
+    , _dbMaxConnections = 200
+    , _dbInitialisation = Nothing
     }
   }
 
@@ -71,11 +71,11 @@ defaultEdnaConfig = EdnaConfig
 ---------------------------------------------------------------------------
 
 deriveJSON ednaAesonConfigOptions ''ApiConfig
-deriveJSON ednaAesonConfigOptions ''DbInitiation
+deriveJSON ednaAesonConfigOptions ''DbInit
 deriveJSON ednaAesonConfigOptions ''DbConfig
 deriveJSON ednaAesonConfigOptions ''EdnaConfig
 
 makeLenses ''ApiConfig
-makeLenses ''DbInitiation
+makeLenses ''DbInit
 makeLenses ''DbConfig
 makeLenses ''EdnaConfig

@@ -15,6 +15,7 @@ import Edna.Web.Server (edna)
 
 main :: IO ()
 main = withUtf8 $ do
+  hPutStrLn @Text stderr "Edna server is started"
   configPath <- execParser $
     info (helper <*> configPathParser) $
     fullDesc <> progDesc "Edna API server."

@@ -3,6 +3,10 @@
     nixpkgs.url = "github:serokell/nixpkgs";
     haskell-nix.url = "github:input-output-hk/haskell.nix";
     flake-utils.url = "github:numtide/flake-utils";
+    serokell-nix.url = "github:serokell/serokell.nix";
+
+    deploy-rs.url = "github:serokell/deploy-rs";
+    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
 
     hackage = {
       url = "github:input-output-hk/hackage.nix";
@@ -20,59 +24,104 @@
     };
   };
 
-  outputs = { self, nixpkgs, haskell-nix, hackage, stackage, nix-npm-buildpackage, flake-utils }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+  outputs = { self, nixpkgs, haskell-nix, serokell-nix, deploy-rs, hackage, stackage, nix-npm-buildpackage, flake-utils }:
+  nixpkgs.lib.recursiveUpdate
+  (let
+    system = "x86_64-linux";
+    inherit (nixpkgs.lib) mapAttrs;
+    inherit (nixpkgs.legacyPackages.${system}) linkFarm;
+  in {
+    # Do not roll back profile closure deployment
+    deploy.magicRollback = false;
+
+    deploy.nodes.castor =
       let
-        inherit (nixpkgs.lib) foldl' composeExtensions;
-
-        pkgs = nixpkgs.legacyPackages.${system}.extend
-          (foldl' composeExtensions (_: _: { }) [
-            nix-npm-buildpackage.overlay
-            haskell-nix.overlay
-          ]);
-
-        backend = pkgs.callPackage ./backend { };
-        frontend = pkgs.callPackage ./frontend { };
-        frontendCheck = checkPhase:
-          frontend.package.overrideAttrs (_: {
-            doBuild = false;
-            doCheck = true;
-            inherit checkPhase;
-          });
+        profile = with self.packages.${system};
+          linkFarm "edna-deploy-profile" [
+            { name = "backend.tar.gz";
+              path = docker-backend; }
+            { name = "frontend.tar.gz";
+              path = docker-frontend; }
+        ];
       in {
-        defaultPackage = self.packages.${system}.backend-server;
-        packages = {
-          backend-lib = backend.library;
-          backend-server = backend.server;
-          frontend = frontend.package;
+        hostname = "castor.gemini.serokell.team";
+        sshOpts = [ "-p" "17788" ];
+        profiles.edna-docker = {
+          sshUser = "deploy";
+          path = deploy-rs.lib.${system}.activate.custom profile
+            ''
+              sudo systemctl restart docker-backend
+              sudo systemctl restart docker-frontend
+            '';
         };
+      };
 
-        checks = {
-          backend-test = backend.test;
-          frontend-tscompile = frontendCheck "yarn run tscompile";
-          frontend-tslint = frontendCheck "yarn run tslint";
-          frontend-stylelint = frontendCheck "yarn run stylelint";
-        };
+    checks = mapAttrs (_: lib: lib.deployChecks self.deploy) deploy-rs.lib;
+  })
 
-        # nixpkgs has an older version of stack2cabal which doesn't build
-        # with new libraries, use a newer version
-        packages.stack2cabal = (pkgs.haskellPackages.callHackageDirect {
-          pkg = "stack2cabal";
-          ver = "1.0.11";
-          sha256 = "00vn1sjrsgagqhdzswh9jg0cgzdgwadnh02i2fcif9kr5h0khfw9";
-        } { }).overrideAttrs (o: {
-          src = pkgs.fetchFromGitHub {
-            owner = "hasufell";
-            repo = "stack2cabal";
-            rev = "afa113beb77569ff21f03fade6ce39edc109598d";
-            sha256 = "1zwg1xkqxn5b9mmqafg87rmgln47zsmpgdkly165xdzg38smhmng";
-          };
-          version = "1.0.12";
+  (flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+    let
+      inherit (serokell-nix.lib) pkgsWith;
+
+      pkgs = pkgsWith nixpkgs.legacyPackages.${system} [
+        nix-npm-buildpackage.overlay
+        haskell-nix.overlay
+        serokell-nix.overlay
+      ];
+
+      backend = pkgs.callPackage ./backend { };
+      docker = pkgs.callPackage ./docker.nix {
+        backend = backend.server;
+        inherit frontend;
+      };
+
+      frontend = pkgs.callPackage ./frontend { };
+      frontendCheck = checkPhase:
+        frontend.overrideAttrs (_: {
+          doBuild = false;
+          doCheck = true;
+          inherit checkPhase;
         });
 
-        devShell = pkgs.mkShell {
-          inputsFrom = [ self.packages.${system}.backend-lib ];
-          buildInputs = with pkgs.haskellPackages; [ cabal-install hpack hlint self.packages.${system}.stack2cabal ];
+    in {
+      defaultPackage = self.packages.${system}.backend-server;
+      packages = {
+        backend-lib = backend.library;
+        backend-server = backend.server;
+        docker-backend = docker.backend-image;
+        docker-frontend = docker.frontend-image;
+        frontend = frontend;
+      };
+
+      checks = {
+        backend-test = backend.test;
+        frontend-stylelint = frontendCheck "yarn run stylelint";
+        frontend-tscompile = frontendCheck "yarn run tscompile";
+        frontend-tslint = frontendCheck "yarn run tslint";
+      };
+
+      # nixpkgs has an older version of stack2cabal which doesn't build
+      # with new libraries, use a newer version
+      packages.stack2cabal = (pkgs.haskellPackages.callHackageDirect {
+        pkg = "stack2cabal";
+        ver = "1.0.11";
+        sha256 = "00vn1sjrsgagqhdzswh9jg0cgzdgwadnh02i2fcif9kr5h0khfw9";
+      } { }).overrideAttrs (o: {
+        src = pkgs.fetchFromGitHub {
+          owner = "hasufell";
+          repo = "stack2cabal";
+          rev = "afa113beb77569ff21f03fade6ce39edc109598d";
+          sha256 = "1zwg1xkqxn5b9mmqafg87rmgln47zsmpgdkly165xdzg38smhmng";
         };
+        version = "1.0.12";
       });
+
+      devShell = pkgs.mkShell {
+        inputsFrom = [ self.packages.${system}.backend-lib ];
+        buildInputs = with pkgs.haskellPackages; [
+          cabal-install hpack hlint self.packages.${system}.stack2cabal
+          deploy-rs.defaultPackage.${system}
+        ];
+      };
+    }));
 }

@@ -11,7 +11,7 @@ import Data.Pool (Pool, createPool, destroyAllResources)
 import Data.Time.Clock (nominalDay)
 import Database.Beam.Postgres (Connection, close, connectPostgreSQL)
 
-import Edna.Config.Definition (EdnaConfig, dbConnString, dbMaxConnection, ecDb)
+import Edna.Config.Definition (EdnaConfig, dbConnString, dbMaxConnections, ecDb)
 import Edna.Util (ConnString(..))
 
 -- | Database connection pool. One @Connection@ can not be used simultaneously
@@ -24,7 +24,7 @@ newtype ConnPool = ConnPool
 withPostgresConn :: (MonadIO m, MonadMask m) => EdnaConfig -> (ConnPool -> m a) -> m a
 withPostgresConn config action = do
   let connString = config ^. ecDb . dbConnString
-  let maxConnsNum = config ^. ecDb . dbMaxConnection
+  let maxConnsNum = config ^. ecDb . dbMaxConnections
   bracket (createConnPool connString maxConnsNum) destroyConnPool action
 
 -- | Creates a @ConnPool@ with PostgreSQL connections which use given

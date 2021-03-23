@@ -10,12 +10,13 @@ module Edna.Web.Server
 import Universum
 
 import qualified Network.Wai.Handler.Warp as Warp
+import RIO (runRIO)
 import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 
 import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
-import Edna.DB.Schema (schemaInit)
-import Edna.Setup (Edna)
+import Edna.DB.Initialisation (schemaInit)
+import Edna.Setup (Edna, EdnaContext)
 import Edna.Util (NetworkAddress(..))
 import Edna.Web.API (EdnaAPI, ednaAPI)
 import Edna.Web.Error (toServerError)
@@ -35,15 +36,17 @@ serveWeb addr app = do
   liftIO $ Warp.runSettings (addrSettings addr) app
   return $ error "Server terminated early"
 
--- | Makes the @Server@ for Edna API, given the natural
--- transformation from the working monad to @Handler@.
-ednaServer :: Server EdnaAPI
-ednaServer = hoistServer ednaAPI translateExceptions ednaHandlers
+-- | Makes the @Server@ for Edna API, given 'EdnaContext'.
+ednaServer :: EdnaContext -> Server EdnaAPI
+ednaServer ctx = hoistServer ednaAPI (ednaToHandler ctx) ednaHandlers
 
--- | Translate exceptions to http responses with corresponding statuses
-translateExceptions :: Handler a -> Handler a
-translateExceptions action =
-  action
+-- | Run 'Edna' action inside 'Handler' monad.
+--
+-- * Translate exceptions to http responses with corresponding statuses.
+-- * Provide 'EdnaContext'.
+ednaToHandler :: EdnaContext -> Edna a -> Handler a
+ednaToHandler ctx action =
+  runRIO ctx action
   `catch` throwServant
   where
     throwServant = throwError . toServerError @EdnaServerError
@@ -54,7 +57,8 @@ edna = do
   schemaInit
   listenAddr <- fromConfig $ ecApi . acListenAddr
   withDocs <- fromConfig $ ecApi . acServeDocs
-  serveWeb listenAddr $
+  server <- ednaServer <$> ask
+  serveWeb listenAddr
     if withDocs then
-      serve ednaAPIWithDocs (withSwaggerUI ednaAPI ednaApiSwagger ednaServer)
-    else serve ednaAPI ednaServer
+      serve ednaAPIWithDocs (withSwaggerUI ednaAPI ednaApiSwagger server)
+    else serve ednaAPI server
