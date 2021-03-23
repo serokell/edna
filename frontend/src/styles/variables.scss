@@ -7,6 +7,12 @@ $elem-padding: 10 * $px;
 $container-side-padding: 20 * $px;
 $container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
 
+$color-green: #3a8370;
+$color-light-green: #f6faf8;
+$color-titles-gray: #afb6b6;
+$color-disabled-green: #c4dad5;
+$color-black: #191c1c;
+
 :root {
   --error-msg: #fb6340;
 }

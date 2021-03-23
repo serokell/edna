@@ -1,0 +1,83 @@
+@import "src/styles/variables";
+
+.ednaTable {
+  $border-color: #dfe3e3;
+  $head-vertical-padding: 20 * $px;
+  $head-line-height: 17 * $px;
+  $cell-indent: 20 * $px;
+  border-spacing: 0;
+
+  &__columnHead {
+    position: sticky;
+    top: 0;
+    padding: $head-vertical-padding 0 $head-vertical-padding $cell-indent;
+
+    font-size: 14 * $px;
+    font-weight: 400;
+    line-height: $head-line-height;
+
+    color: #9ba5a1;
+    text-align: left;
+    background-color: white;
+    border-bottom: $px solid $border-color;
+
+    &:last-child {
+      border-right: 0;
+    }
+  }
+
+  &__headRightBorder {
+    $height: 20 * $px;
+    position: absolute;
+    top: (2 * $head-vertical-padding + $head-line-height - $height) / 2;
+    right: 0;
+    width: $px;
+    height: $height;
+    background-color: #eaeaea;
+  }
+
+  &__row {
+    &_withHover {
+      &:hover {
+        background-color: $color-light-green;
+      }
+    }
+  }
+
+  &__cell {
+    padding: (16 * $px) 0 (16 * $px) $cell-indent;
+    border-bottom: $px solid $border-color;
+  }
+
+  &__cell {
+    &_odd {
+      background-color: $color-light-green;
+      border: 0;
+
+      &:first-child {
+        border-bottom-left-radius: 8 * $px;
+      }
+
+      &:last-child {
+        border-bottom-right-radius: 8 * $px;
+      }
+    }
+
+    &_even {
+      border: 0;
+
+      &:first-child {
+        border-bottom-left-radius: 8 * $px;
+      }
+
+      &:last-child {
+        border-bottom-right-radius: 8 * $px;
+      }
+    }
+
+    &_small {
+      padding-top: 11 * $px;
+      padding-bottom: 11 * $px;
+    }
+  }
+}
