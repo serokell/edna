@@ -15,7 +15,7 @@ import Universum
 
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (ToSchema(..))
-import Servant.API (Get, JSON, Post, ReqBody, Summary, (:>))
+import Servant.API (JSON, Post, ReqBody, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (FileData(..), Mem, MultipartData(..), MultipartForm)
 import Servant.Server.Generic (AsServerT, genericServerT)
@@ -46,11 +46,13 @@ instance ToSchema FileUploadReq where
 -- | Endpoints necessary to implement file uploading.
 data FileUploadEndpoints route = FileUploadEndpoints
   { -- | Parse the file and return its summary for preview.
+    -- It doesn't change any state, but it's POST because GET can't
+    -- receive multipart.
     fueParseFile :: route
       :- "parse"
       :> Summary "Parse the file and return its summary for preview"
       :> MultipartForm Mem (MultipartData Mem)
-      :> Get '[JSON] FileSummary
+      :> Post '[JSON] FileSummary
 
   , -- | Upload the file with some methodology and project.
     fueUploadFile :: route
