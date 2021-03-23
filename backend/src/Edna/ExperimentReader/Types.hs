@@ -1,6 +1,6 @@
 module Edna.ExperimentReader.Types
   ( Parameter (..)
-  , TabletUnit (..)
+  , PlateUnit (..)
   , ParameterType (..)
   , Signal (..)
   , CellType (..)
@@ -24,7 +24,7 @@ data Parameter = Parameter
   , pIndexes :: (Int, Int)
   } deriving stock Show
 
-data TabletUnit = TabletUnit
+data PlateUnit = PlateUnit
   { tuTargets :: [Parameter]
   , tuCompounds :: [Parameter]
   }

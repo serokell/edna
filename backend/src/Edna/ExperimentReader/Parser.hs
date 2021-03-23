@@ -19,7 +19,7 @@ import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))
 import Edna.ExperimentReader.Types
-  (CellType(..), Parameter(..), ParameterType(..), PointYX(..), Signal(..), TabletUnit(..))
+  (CellType(..), Parameter(..), ParameterType(..), PointYX(..), Signal(..), PlateUnit(..))
 import Edna.Web.Types (ExperimentalMeasurement(..))
 
 type ParserType a = Either ExperimentParsingError a
@@ -84,40 +84,40 @@ parseExperimentXls content = do
 
 processWorkSheet :: Worksheet -> ParserType [ExperimentalMeasurement]
 processWorkSheet workSheet = do
-  -- Check that tablet exists and start from the top left corner of the table
-  unless (cellSatisfy workSheet "<>" $ PointYX (1, 1)) $ Left TabletStartNotFound
+  -- Check that plate exists and start from the top left corner of the table
+  unless (cellSatisfy workSheet "<>" $ PointYX (1, 1)) $ Left PlateStartNotFound
 
-  -- Compute height and width of the sheet (width also equals to tabletWidth)
-  let (shtHeight, tabletWidth) =
+  -- Compute height and width of the sheet (width also equals to plateWidth)
+  let (shtHeight, plateWidth) =
         foldl' (\(y, x) (y', x') -> (max y y', max x x')) (1, 1) $ M.keys $ workSheet ^. wsCells
 
-  -- Compute tablet height finding the second tablet starting point
-  tabletHeight <- case [c | c <- [2..shtHeight], cellSatisfy workSheet "<>" $ PointYX (c, 1)] of
+  -- Compute plate height finding the second plate starting point
+  plateHeight <- case [c | c <- [2..shtHeight], cellSatisfy workSheet "<>" $ PointYX (c, 1)] of
     [c] -> Right $ c - 1
-    _ -> Left NoConcentrationTablet
+    _ -> Left NoConcentrationPlate
 
-  -- Get list of indexes list of tablet units where unit is a part of the tablet separated by
+  -- Get list of indexes list of plate units where unit is a part of the plate separated by
   -- empty cell (in the column of these cells are compound names)
   -- Also convert list of lists to the list of NonEmpty
-  let tabletUnitsIndexes = foldr (\u us -> case u of {[] -> us; (x : xs) -> (x :| xs) : us}) [] $
-        wordsBy (\c -> cellSatisfy workSheet "" (PointYX (1, c))) [2..tabletWidth]
+  let plateUnitsIndexes = foldr (\u us -> case u of {[] -> us; (x : xs) -> (x :| xs) : us}) [] $
+        wordsBy (\c -> cellSatisfy workSheet "" (PointYX (1, c))) [2..plateWidth]
 
   -- For each unit find targets and compounds (their names and indexes range)
-  tabletUnits <- forM tabletUnitsIndexes $ \unit -> do
+  plateUnits <- forM plateUnitsIndexes $ \unit -> do
     tuTargets <- paramsSplit workSheet Target 2 unit
     -- Compound size always equals to 3, so it is needed to set it after split
     tuCompounds <- map (\p@(pIndexes -> (s, _)) -> p {pIndexes = (s, s + 2)}) <$>
-      paramsSplit workSheet Compound (head unit - 1) (3 :| [4..tabletHeight])
-    pure TabletUnit{..}
+      paramsSplit workSheet Compound (head unit - 1) (3 :| [4..plateHeight])
+    pure PlateUnit{..}
 
   -- For each unit, for each target and compound find corresponding values
   sequenceA $ filter (either (/= EmptyCell) (const True)) $ do
-    TabletUnit {..} <- tabletUnits
+    PlateUnit {..} <- plateUnits
     target <- tuTargets
     compound <- tuCompounds
     x <- [fst $ pIndexes target .. snd $ pIndexes target]
     y <- [fst $ pIndexes compound .. snd $ pIndexes compound]
     pure $ do
       Signal{..} <- specificCellAt workSheet (PointYX (y, x)) CSignal
-      concentration <- specificCellAt workSheet (PointYX (y + tabletHeight - 1, x)) CDouble
+      concentration <- specificCellAt workSheet (PointYX (y + plateHeight - 1, x)) CDouble
       pure $ ExperimentalMeasurement (pName compound) (pName target) concentration sValue sOutlier
