@@ -15,3 +15,6 @@ db:
     # * "enable-with-drop" will run drop script before init
     mode: "enable"
     init-script: "./sql/init.sql"
+
+# Other possible values: 'Prod' and 'Nothing'.
+logging: Dev

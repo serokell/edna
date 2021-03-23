@@ -9,12 +9,16 @@ module Edna.Web.Server
 
 import Universum
 
+import Data.Default (def)
+import Network.Wai (Middleware)
 import qualified Network.Wai.Handler.Warp as Warp
+import Network.Wai.Middleware.RequestLogger
+  (Destination(..), IPAddrSource(..), OutputFormat(..), RequestLoggerSettings(..), mkRequestLogger)
 import RIO (runRIO)
 import Servant
   (Application, Handler, NoContent(..), Server, hoistServer, serve, throwError, (:<|>)(..))
 
-import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
+import Edna.Config.Definition (LoggingConfig(..), acListenAddr, acServeDocs, ecApi, ecLogging)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
 import Edna.ExperimentReader.Error (ExperimentParsingError)
@@ -35,10 +39,23 @@ addrSettings NetworkAddress {..} = Warp.defaultSettings
 
 -- | Helper for running a Warp server on a given listen port in
 -- arbitrary @MonadIO@.
-serveWeb :: MonadIO m => NetworkAddress -> Application -> m a
-serveWeb addr app = do
-  liftIO $ Warp.runSettings (addrSettings addr) app
+serveWeb :: MonadIO m => NetworkAddress -> LoggingConfig -> Application -> m a
+serveWeb addr loggingConfig app = liftIO $ do
+  middleware <- fromMaybe id <$> loggingMiddleware
+  Warp.runSettings (addrSettings addr) $ middleware app
   return $ error "Server terminated early"
+  where
+    -- This function essentially chooses between @logStdout@ and @logStdoutDev@
+    -- based on @loggingConfig@. It may also return @Nothing@ if logging is
+    -- disabled.
+    loggingMiddleware :: IO (Maybe Middleware)
+    loggingMiddleware = runMaybeT $ do
+      settings <- case loggingConfig of
+        LogDev -> pure def
+        LogProd -> pure $ def { outputFormat = Apache FromSocket }
+        LogNothing -> empty
+
+      lift $ mkRequestLogger $ settings { destination = Handle stderr }
 
 -- | Makes the @Server@ for Edna API, given 'EdnaContext'.
 ednaServer :: EdnaContext -> Server EdnaAPI
@@ -67,8 +84,9 @@ edna = do
   schemaInit
   listenAddr <- fromConfig $ ecApi . acListenAddr
   withDocs <- fromConfig $ ecApi . acServeDocs
+  loggingConfig <- fromConfig ecLogging
   server <- ednaServer <$> ask
-  serveWeb listenAddr
+  serveWeb listenAddr loggingConfig
     if withDocs then
       serve ednaAPIWithDocs (withSwaggerUI ednaAPI ednaApiSwagger server)
     else serve ednaAPI server
