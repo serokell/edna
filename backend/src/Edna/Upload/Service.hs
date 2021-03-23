@@ -20,6 +20,7 @@ import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Query
   (QExpr, all_, default_, guard_, insert, insertExpressions, insertValues, lookup_, select, val_,
   (==.))
+import Fmt ((+|), (|+))
 import Lens.Micro.Platform (at, (?~))
 
 import Edna.DB.Integration
@@ -28,6 +29,7 @@ import Edna.DB.Schema
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Library.DB.Schema as LDB
+import Edna.Logging (logDebug, logMessage)
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
 import Edna.Util as U (IdType(..), SqlId(..))
@@ -94,13 +96,16 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
   description fileName fileBytes fc = do
     let projId = LDB.ProjectId $ fromIntegral proj
     let methodId = TestMethodologyId $ fromIntegral method
+    logDebug $ "Checking whether project ID " +| proj |+ " exists"
     runSelectReturningOne' (lookup_ (esProject ednaSchema) projId)
       `whenNothingM_`
       throwM (UEUnknownProject projSqlId)
+    logDebug $ "Checking whether test methodology ID " +| method |+ " exists"
     runSelectReturningOne' (lookup_ (esTestMethodology ednaSchema) methodId)
       `whenNothingM_`
       throwM (UEUnknownTestMethodology methodSqlId)
 
+    logMessage "A new file is being added to the database along with its data"
     transact $ insertAll proj method
   where
     insertAll :: HasCallStack => Word32 -> Word32 -> Edna FileSummary

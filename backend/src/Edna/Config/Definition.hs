@@ -60,7 +60,7 @@ data LoggingConfig =
   -- ^ Production logging mode: log less than in development mode.
   | LogNothing
   -- ^ No logging.
-  deriving stock (Generic, Show)
+  deriving stock (Generic, Show, Eq)
 
 loggingConfigAesonOptions :: Aeson.Options
 loggingConfigAesonOptions = Aeson.defaultOptions
