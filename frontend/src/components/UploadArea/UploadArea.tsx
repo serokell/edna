@@ -5,7 +5,6 @@ import UploadSvg from "../../assets/svg/upload-svg.svg";
 import { FormikCompatible } from "../FormField/FormField";
 import Api from "../../api/api";
 import { excelFileAtom } from "../../store/atoms";
-import { delay } from "../../utils/utils";
 
 type UploadingAreaProps = FormikCompatible<File>;
 
@@ -30,16 +29,13 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
 
             setParsedFile({ state: "uploading", progress: 0 });
             try {
-              // TODO remove it
-              setParsedFile({ state: "uploading", progress: 30 });
-              await delay(1000);
-
-              const parsed = await Api.parseExcelFile(file, percent => {
-                if (percent === 100) setParsedFile({ state: "verifying" });
-                // TODO uncomment it
-                // else setParsedFile({ state: "uploading", progress: percent });
+              const experimentsForChart = await Api.oldParseExcelFile(file, () => {});
+              const targets = await Api.parseExcelFile(file, () => {});
+              setParsedFile({
+                state: "parsed",
+                targets,
+                experiments: experimentsForChart,
               });
-              setParsedFile({ state: "parsed", targets: parsed[0], experiments: parsed[1] });
             } catch (er) {
               setParsedFile({ state: "failed-to-parse", reason: er.message });
             }

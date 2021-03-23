@@ -9,7 +9,7 @@ import {
   genSeq,
   groupCompounds,
   MeasurementDto,
-  ParsedTargetDto,
+  ParsedExcelDto,
   ProjectDto,
   TargetDto,
 } from "./types";
@@ -33,10 +33,16 @@ interface CreateProjectArgs {
 }
 
 interface EdnaApiInterface {
+  // TODO will be removed in future
+  oldParseExcelFile: (
+    excelFile: Blob,
+    onUploadProgress: (percent: number) => void
+  ) => Promise<Experiment[]>;
+
   parseExcelFile: (
     excelFile: Blob,
     onUploadProgress: (percent: number) => void
-  ) => Promise<[ParsedTargetDto[], Experiment[]]>;
+  ) => Promise<ParsedExcelDto[]>;
 
   uploadExperiments(form: UploadExperimentsArgs): Promise<unknown>;
   fetchProjects: () => Promise<ProjectDto[]>;
@@ -59,10 +65,10 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
       return genSeq(10, genRandomTarget);
     },
 
-    parseExcelFile: async (
+    oldParseExcelFile: async (
       excelFile: Blob,
       onUploadProgress: (percent: number) => void
-    ): Promise<[ParsedTargetDto[], Experiment[]]> => {
+    ): Promise<Experiment[]> => {
       const formData = new FormData();
       formData.append("file", excelFile);
       return axios
@@ -78,22 +84,32 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         .then((response: AxiosResponse<MeasurementDto[]>) => {
           // TODO remove this mock transformation
           const byCompound = groupCompounds(response.data);
-          return [
-            [
-              {
-                target: "hujarget",
-                isNew: true,
-                compounds: Object.entries(byCompound).map(x => x[0]),
-              },
-            ],
-
-            Object.entries(byCompound).map(([cmpId, measurements]) => ({
-              target: "hujarget",
-              compoundId: cmpId,
-              measurements,
-            })),
-          ];
+          return Object.entries(byCompound).map(([cmpId, measurements]) => ({
+            target: "target",
+            compoundId: cmpId,
+            measurements,
+          }));
         });
+    },
+
+    parseExcelFile: async (
+      excelFile: Blob,
+      onUploadProgress: (percent: number) => void
+    ): Promise<ParsedExcelDto[]> => {
+      const formData = new FormData();
+      formData.append("file", excelFile);
+
+      return axios
+        .post("/file/parse", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress(progressEvent) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onUploadProgress(percentCompleted);
+          },
+        })
+        .then((response: AxiosResponse<ParsedExcelDto[]>) => response.data);
     },
 
     uploadExperiments: async (form: UploadExperimentsArgs) => {

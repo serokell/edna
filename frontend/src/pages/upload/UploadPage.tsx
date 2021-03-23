@@ -125,7 +125,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           </FormField>
 
           <FormField<string>
-            required
             name="description"
             label="Description"
             className="uploadingForm__description"

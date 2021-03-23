@@ -1,6 +1,6 @@
 // Types used for global storage is here
 
-import { MeasurementDto, ParsedTargetDto } from "../api/types";
+import { MeasurementDto, ParsedExcelDto } from "../api/types";
 
 export interface Methodology {
   methodologyId: number;
@@ -18,14 +18,14 @@ export type FileUploadState =
   | undefined
   | { state: "uploading"; progress: number }
   | { state: "verifying" }
-  | { state: "parsed"; targets: ParsedTargetDto[]; experiments: Experiment[] }
+  | { state: "parsed"; targets: ParsedExcelDto[]; experiments: Experiment[] }
   | { state: "failed-to-parse"; reason: string }
   | { state: "added" }
   | { state: "failed-to-add"; reason: string };
 
 export function isParsed(
   st: FileUploadState
-): st is { state: "parsed"; targets: ParsedTargetDto[]; experiments: Experiment[] } {
+): st is { state: "parsed"; targets: ParsedExcelDto[]; experiments: Experiment[] } {
   return !!st && st.state === "parsed";
 }
 

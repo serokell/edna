@@ -8,10 +8,19 @@ export interface MeasurementDto {
   outlier: boolean;
 }
 
-export type ParsedTargetDto = {
-  isNew: boolean;
-  target: string;
-  compounds: string[];
+type ParsedCompoundDto = {
+  id?: number;
+  name: string;
+};
+
+type ParsedTargetDto = {
+  id?: number;
+  name: string;
+};
+
+export type ParsedExcelDto = {
+  target: ParsedTargetDto;
+  compounds: ParsedCompoundDto[];
 };
 
 export type CompoundsMap = { [compoundId: string]: MeasurementDto[] };

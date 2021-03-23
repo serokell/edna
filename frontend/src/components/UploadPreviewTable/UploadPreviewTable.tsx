@@ -2,12 +2,12 @@ import React from "react";
 import "./UploadPreviewTable.scss";
 import cx from "classnames";
 import { Button } from "../Button/Button";
-import { ParsedTargetDto } from "../../api/types";
+import { ParsedExcelDto } from "../../api/types";
 import { Table } from "../Table/Table";
 
 interface UploadTableProps {
   className?: string;
-  targets: ParsedTargetDto[];
+  targets: ParsedExcelDto[];
 }
 
 interface PreviewRow {
@@ -39,8 +39,8 @@ export function UploadPreviewTable({ className, targets }: UploadTableProps): Re
   targets.forEach(ex =>
     ex.compounds.forEach(compound => {
       data.push({
-        compound,
-        target: `${ex.target} ${ex.isNew ? "*" : ""}`,
+        compound: `${compound.name} ${compound.id ? "" : "*"}`,
+        target: `${ex.target.name} ${ex.target.id ? "" : "*"}`,
         actions: (
           <div className="uploadPreviewTable__actions">
             <Button type="link" disabled>
