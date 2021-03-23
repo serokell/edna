@@ -1,6 +1,6 @@
 // Basic state should be here
 import { atom, selector } from "recoil";
-import { FileUploadState, Methodology, Project } from "./types";
+import { FileUploadState, Methodology, ModalDialogState, Project } from "./types";
 import Api from "../api/api";
 
 export const projectsAtom = atom<Project[]>({
@@ -21,5 +21,10 @@ export const methodologiesAtom = atom<Methodology[]>({
 
 export const excelFileAtom = atom<FileUploadState>({
   key: "ExcelFileToUpload",
+  default: undefined,
+});
+
+export const modalDialogAtom = atom<ModalDialogState>({
+  key: "ModalDialogState",
   default: undefined,
 });

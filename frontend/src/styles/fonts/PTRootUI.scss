@@ -1,0 +1,47 @@
+@font-face {
+  font-family: "PT Root UI";
+  font-style: normal;
+  font-weight: 500;
+  src: url("~/assets/fonts/PTRootUI/PTRootUI-Medium.eot");
+  src: local("PT Root UI Medium"), local("PTRootUI-Medium"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Medium.eot?#iefix") format("embedded-opentype"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Medium.woff2") format("woff2"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Medium.woff") format("woff"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PT Root UI";
+  font-style: normal;
+  font-weight: 300;
+  src: url("~/assets/fonts/PTRootUI/PTRootUI-Light.eot");
+  src: local("PT Root UI Light"), local("PTRootUI-Light"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Light.eot?#iefix") format("embedded-opentype"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Light.woff2") format("woff2"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Light.woff") format("woff"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PT Root UI";
+  font-style: normal;
+  font-weight: normal;
+  src: url("~/assets/fonts/PTRootUI/PTRootUI-Regular.eot");
+  src: local("PT Root UI"), local("PTRootUI-Regular"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Regular.eot?#iefix") format("embedded-opentype"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Regular.woff2") format("woff2"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Regular.woff") format("woff"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PT Root UI";
+  font-style: normal;
+  font-weight: bold;
+  src: url("~/assets/fonts/PTRootUI/PTRootUI-Bold.eot");
+  src: local("PT Root UI Bold"), local("PTRootUI-Bold"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Bold.eot?#iefix") format("embedded-opentype"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Bold.woff2") format("woff2"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Bold.woff") format("woff"),
+    url("~/assets/fonts/PTRootUI/PTRootUI-Bold.ttf") format("truetype");
+}

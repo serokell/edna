@@ -33,3 +33,5 @@ export function isParsed(
 ): st is { state: "parsed"; targets: ParsedTargetDto[]; experiments: Experiment[] } {
   return !!st && st.state === "parsed";
 }
+
+export type ModalDialogState = undefined | "create-methodology" | "create-project";

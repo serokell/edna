@@ -6,9 +6,8 @@ import "../../components/Spinner/Spinner.scss";
 import MeasurementsCharts from "./MeasurementsCharts";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
-import { methodologiesAtom, excelFileAtom, projectsAtom } from "../../store/atoms";
+import { excelFileAtom, methodologiesAtom, projectsAtom } from "../../store/atoms";
 import CreatableSelect from "../../components/CreatableSelect";
-import { createMethodologyUpdater, createProjectUpdater } from "../../store/updaters";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
 import { isParsed, Methodology, Project } from "../../store/types";
@@ -17,10 +16,10 @@ import { UploadPreviewTable } from "../../components/UploadPreviewTable/UploadPr
 import { Button } from "../../components/Button/Button";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { UploadForm, uploadFormToApi } from "./uploadForm";
+import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
+import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
 
 export const UploadPage: FunctionComponent = (): ReactElement => {
-  const createProject = createProjectUpdater();
-  const createMethodology = createMethodologyUpdater();
   const projectsLoadable = useRecoilValueLoadable(projectsAtom);
   const methodologiesLoadable = useRecoilValueLoadable(methodologiesAtom);
   const [excelFile, setExcelFile] = useRecoilState(excelFileAtom);
@@ -60,7 +59,12 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
         }}
       >
         <Form className="uploadingForm">
-          <div className="uploadingForm__uploadTitle">Uploading file</div>
+          <div className="uploadingForm__uploadTitle">Upload file</div>
+
+          <div className="uploadingForm__uploadAddButtons">
+            <CreateMethodologyButton />
+            <CreateProjectButton />
+          </div>
 
           <FormField<File>
             name="file"
@@ -84,6 +88,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           )}
 
           <FormField<Maybe<Project>>
+            required
             name="project"
             label="Project"
             className="uploadingForm__project"
@@ -94,16 +99,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                 placeholder="Select a project"
                 placeholderNo="No projects"
                 toOption={proj => ({ value: `${proj.projectId}`, label: proj.name })}
-                optionCreator={async newProjName => {
-                  try {
-                    return await createProject(newProjName);
-                    // TODO show success notification
-                  } catch (e) {
-                    // TODO show failed notification
-                    console.error(e);
-                    return undefined;
-                  }
-                }}
                 tabIndex="2"
                 {...field}
               />
@@ -111,6 +106,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           </FormField>
 
           <FormField<Maybe<Methodology>>
+            required
             name="methodology"
             label="Methodology"
             className="uploadingForm__methodology"
@@ -122,16 +118,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                 placeholder="Select a methodology"
                 placeholderNo="No methodologies"
                 toOption={meth => ({ value: `${meth.methodologyId}`, label: meth.name })}
-                optionCreator={async newMethName => {
-                  try {
-                    return await createMethodology(newMethName);
-                    // TODO show success notification
-                  } catch (e) {
-                    // TODO show failed notification
-                    console.error(e);
-                    return undefined;
-                  }
-                }}
                 tabIndex="3"
               />
             )}
@@ -153,7 +139,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             <Button
               type="outlined"
-              className="uploadingForm__anotherBtn"
               tabIndex={5}
               onClick={() => {
                 setExcelFile(undefined);

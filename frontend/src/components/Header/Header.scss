@@ -2,11 +2,10 @@
 @import "src/styles/variables";
 
 .ednaHeader {
-  $menuitem-border: 0.3125rem;
   width: 100%;
-  height: 84 * $px;
-  background-color: #efefef;
-  box-shadow: 0 4 * $px 4 * $px 0 rgba(181, 181, 181, 0.25);
+  height: 93 * $px;
+  background: white;
+  box-shadow: (3*$px) (3*$px) (6*$px) rgba(#dfe2e3, 0.5);
 
   &__container {
     display: flex;
@@ -21,7 +20,20 @@
 
   &__brand {
     margin-right: auto;
-    font-size: 35 * $px;
+
+    font-size: 31 * $px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 43 * $px;
+    color: $color-green;
+    text-align: left;
+    letter-spacing: -0.065rem;
+  }
+
+  &__ednaLogo {
+    position: relative;
+    top: -8*$px;
+    margin-right: 7 * $px;
   }
 
   &__menu {
@@ -42,22 +54,21 @@
     padding-left: $wrapper-padding;
 
     font-size: 18 * $px;
-    color: black;
+    color: $color-gray;
     text-decoration: none;
     text-transform: capitalize;
-    border-bottom: $menuitem-border solid transparent;
 
     & + & {
       margin-left: $wrapper-left-margin;
     }
 
     &_active {
-      border-bottom: $menuitem-border solid #c4c4c4;
+      color: $color-black;
     }
 
     &:hover {
+      color: $color-black;
       cursor: pointer;
-      border-bottom: $menuitem-border solid #c4c4c4;
     }
   }
 }

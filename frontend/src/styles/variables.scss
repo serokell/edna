@@ -1,6 +1,6 @@
 $px: 0.0625rem;
 
-$border-radius: 9 * $px;
+$border-radius: 8 * $px;
 $input-border-color: #e1e1e1;
 $input-border-outlined: #2684ff;
 $elem-padding: 10 * $px;
@@ -12,7 +12,9 @@ $color-light-green: #f6faf8;
 $color-titles-gray: #afb6b6;
 $color-disabled-green: #c4dad5;
 $color-black: #191c1c;
+$color-gray: #9ba5a1;
+$color-help-red: #ea2243;
 
 :root {
-  --error-msg: #fb6340;
+  --error-msg: #ea2243;
 }

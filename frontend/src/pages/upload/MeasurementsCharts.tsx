@@ -17,7 +17,6 @@ export default function MeasurementsCharts({
         <thead>
           <tr>
             <th>Compound</th>
-            <th>Target</th>
             <th>Concentration</th>
             <th>Signal</th>
             <th>Outlier</th>

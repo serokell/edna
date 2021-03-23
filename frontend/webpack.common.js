@@ -14,7 +14,8 @@ module.exports = {
     // Add hash to make filename different depending on file content
     // to enforce browsers to reload changes in production.
     filename: "[name].[contenthash].js",
-    path: path.resolve(__dirname, "dist")
+    path: path.resolve(__dirname, "dist"),
+    publicPath: "/"
   },
 
   resolve: {
@@ -22,11 +23,16 @@ module.exports = {
       "~": path.resolve(__dirname, "src/")
     },
     // Add `.ts` and `.tsx` as a resolvable extension.
-    extensions: [".ts", ".tsx", ".js"]
+    extensions: [".ts", ".tsx", ".js", ".css"]
   },
 
   module: {
     rules: [
+      {
+        test: /\.(eot|ttf|woff|woff2)$/,
+        use: 'file-loader',
+      },
+
       // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
       {
         test: /\.tsx?$/,
@@ -38,9 +44,10 @@ module.exports = {
         use: [
           {
             loader: MiniCssExtractPlugin.loader,
-            options: {}
           },
-          "css-loader",
+          {
+            loader: "css-loader",
+          },
           "postcss-loader",
           "sass-loader"
         ]
