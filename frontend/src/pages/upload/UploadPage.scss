@@ -3,7 +3,7 @@
 
 .uploadingForm {
   display: grid;
-  grid-template-rows: repeat(6, minmax(1fr, 150 * $px));
+  grid-template-rows: repeat(5, minmax(1fr, 150 * $px));
   grid-template-columns: 1fr 1fr;
   column-gap: 28 * $px;
 
@@ -58,14 +58,15 @@
   }
 
   &__descriptionTextArea {
-    min-height: 38 * $px;
-    resize: vertical;
+    height: 116 * $px;
+    overflow-y: scroll;
+    resize: none;
   }
 
   &__label {
     grid-row: 5/6;
-    grid-column: 2/3;
-    margin-top: 40 * $px;
+    grid-column: 1/2;
+    margin-top: 16 * $px;
     font-size: 12 * $px;
     line-height: 14 * $px;
   }
@@ -73,7 +74,7 @@
   &__buttons {
     display: flex;
 
-    grid-row: 6/7;
+    grid-row: 5/6;
     grid-column: 2/3;
     margin-top: 16 * $px;
     margin-right: auto;

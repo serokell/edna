@@ -124,6 +124,21 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
             )}
           </FormField>
 
+          <FormField<string>
+            required
+            name="description"
+            label="Description"
+            className="uploadingForm__description"
+          >
+            {field => (
+              <textarea
+                className="ednaTextarea uploadingForm__descriptionTextArea"
+                value={field.value}
+                onChange={e => field.onChange(e.target.value)}
+              />
+            )}
+          </FormField>
+
           {isParsed(excelFile) && (
             <div className="uploadingForm__label">* marked will be created</div>
           )}
