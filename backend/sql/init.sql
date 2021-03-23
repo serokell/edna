@@ -135,18 +135,18 @@ create table if not exists analysis_method
     parameters         json   null
 );
 
--- Subexperiment is an experiment with disabled points.
--- An experiment is a subexperiment of itself with 0 disabled points.
--- We define analysis for subexperiments.
--- For each subexperiment we store information about applied analysis method
+-- Sub-experiment is an experiment with disabled points.
+-- An experiment is a sub-experiment of itself with 0 disabled points.
+-- We define analysis for sub-experiments.
+-- For each sub-experiment we store information about applied analysis method
 -- and analysis outcome (result).
 -- If we use multiple analysis methods for one set of data, there will be
--- multiple subexperiments.
--- Additionally, we specify whether a subexperiment is suspicious
+-- multiple sub-experiments.
+-- Additionally, we specify whether a sub-experiment is suspicious
 -- (something looks wrong in its data).
-create table if not exists subexperiment
+create table if not exists sub_experiment
 (
-    subexperiment_id   serial not null primary key,
+    sub_experiment_id   serial not null primary key,
     analysis_method_id int    not null,
     experiment_id      int    not null,
     is_suspicious      bool   not null,
@@ -168,12 +168,12 @@ create table if not exists subexperiment
 
 create table if not exists removed_measurements
 (
-    subexperiment_id    int not null,
+    sub_experiment_id    int not null,
     measurement_id      int not null,
-    primary key (subexperiment_id, measurement_id),
+    primary key (sub_experiment_id, measurement_id),
 
     constraint belongs_to_subexperiment
-        foreign key (subexperiment_id) references subexperiment (subexperiment_id)
+        foreign key (sub_experiment_id) references sub_experiment (sub_experiment_id)
             on delete no action
             on update no action,
 

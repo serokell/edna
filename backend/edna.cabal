@@ -34,6 +34,7 @@ library
       Edna.Config.Definition
       Edna.Config.Utils
       Edna.DB.Connection
+      Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
       Edna.Setup
@@ -45,6 +46,8 @@ library
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
       Edna.Web.Types
+      Edna.Upload.API
+      Edna.Upload.Service
       Edna.Util
   other-modules:
       Paths_edna
@@ -77,6 +80,7 @@ library
     swagger2,
     text,
     time,
+    unordered-containers,
     warp,
     xlsx
 
@@ -98,10 +102,13 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Test.DBSpec
+      Test.DB.DBSpec
+      Test.DB.Gen
       Test.Gen
       Test.ParserSpec
       Test.Setup
+      Test.SMT.SMTSpec
+      Test.SMT.State
       Test.SwaggerSpec
       Paths_edna
   hs-source-dirs:
@@ -127,15 +134,22 @@ test-suite edna-test
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:
-      bytestring
+      beam-core
+    , beam-postgres
+    , bytestring
     , containers
     , edna
     , filepath
     , hedgehog
     , hedgehog-quickcheck
     , hspec
+    , hspec-hedgehog
     , microlens
+    , microlens-platform
+    , mmorph
     , network-uri
+    , text
+    , time
     , QuickCheck
     , rio
     , servant-swagger
