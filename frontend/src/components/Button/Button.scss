@@ -1,5 +1,10 @@
 @import "src/styles/variables";
 
+@mixin btn-typography() {
+  font-size: 14 * $px;
+  line-height: 18 * $px;
+}
+
 .primaryButton {
   height: 3rem;
   padding: (16 * $px) (26 * $px);
@@ -15,11 +20,12 @@
 
   &:disabled {
     color: #f6f6f6;
+    pointer-events: none;
     background-color: #c4c4c4;
   }
 
   &:active,
-  &:hover:not(:disabled) {
+  &:hover {
     color: #eae8e8;
     background-color: #979797;
   }
@@ -40,33 +46,48 @@
 
   &:disabled {
     color: #c4c4c4;
+    pointer-events: none;
   }
 
   &:active,
-  &:hover:not(:disabled) {
+  &:hover {
     background-color: #d6d6d6;
   }
 }
 
 .secondaryButton {
-  padding: (8 * $px) (16 * $px);
-  color: #303030;
-  background-color: #f2f2f2;
-  border-color: #c4c4c4;
-  border-radius: 8 * $px;
+  @include btn-typography();
+
+  padding: (9 * $px) (20 * $px);
+  color: $color-green;
+  background-color: $color-disabled-green;
+  border: 0;
+  border-radius: 50 * $px;
 
   &:focus {
     outline: none;
   }
 
-  &:hover,
-  &:active:not(:disabled) {
-    background-color: #cbcbcb;
+  &:hover {
+    background-color: #9ac3b9;
+  }
+
+  &:active {
+    color: white;
+    background-color: $color-green;
+  }
+
+  &:disabled {
+    color: $color-green;
+    pointer-events: none;
+    background: $color-light-green;
   }
 }
 
 .linkButton {
-  padding: (4 * $px) (16 * $px);
+  @include btn-typography();
+
+  padding: (3 * $px) (18 * $px);
   color: white;
   background-color: #8e8e8e;
   border: 0;
@@ -78,11 +99,12 @@
 
   &:disabled {
     color: #7d7d7d;
+    pointer-events: none;
     background-color: #cbcbcb;
   }
 
   &:active,
-  &:hover:not(:disabled) {
+  &:hover {
     background-color: #545454;
   }
 }

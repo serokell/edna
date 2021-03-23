@@ -1,0 +1,27 @@
+@import "src/styles/variables";
+
+.libraryPage {
+  &__addBtn {
+    margin-left: auto;
+  }
+}
+
+.entityTabs {
+  display: flex;
+  margin-bottom: 64 * $px;
+
+  &__tab {
+    margin-right: 86 * $px;
+    font-size: 25 * $px;
+    font-weight: 400;
+    color: $color-titles-gray;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &_active {
+      color: $color-black;
+    }
+  }
+}
