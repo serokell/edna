@@ -5,6 +5,7 @@ module Edna.Util
   , SqlId (..)
   , IdType (..)
   , TargetId
+  , CompoundId
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   , schemaOptions
@@ -163,6 +164,7 @@ instance ToParamSchema (SqlId t) where
   toParamSchema = gToParamSchema
 
 -- | Kind used for phantom parameter in 'SqlId'.
-data IdType = TargetId
+data IdType = TargetId | CompoundId
 
 type TargetId = SqlId 'TargetId
+type CompoundId = SqlId 'CompoundId

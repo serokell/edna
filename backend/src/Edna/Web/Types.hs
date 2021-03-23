@@ -10,7 +10,6 @@ module Edna.Web.Types
   , Project (..)
   , ProjectExtra (..)
   , TestMethodology (..)
-  , Compound (..)
 
   -- * Re-exported for convenience
   , URI (..)
@@ -84,7 +83,7 @@ data NameAndId what = NameAndId
 data FileSummaryItem = FileSummaryItem
   { fsiTarget :: NameAndId 'TargetId
   -- ^ A target from the file. If it's a new target, its ID is unknown.
-  , fsiCompounds :: [NameAndId Compound]
+  , fsiCompounds :: [NameAndId 'CompoundId]
   -- ^ All compounds interacting with this target.
   } deriving stock (Generic, Show, Eq, Ord)
 
@@ -113,18 +112,6 @@ data TestMethodology = TestMethodology
   , tmConfluence :: URI
   } deriving stock (Generic, Show, Eq)
 
--- | Compounds are not submitted directly by users, so for now
--- there is only one representation for frontend.
--- MDe links are trivial to generate, so we offload this task to frontend.
-data Compound = Compound
-  { cName :: Text
-  -- ^ Name of the compound, it may be changed to be a number later.
-  , cChemSoft :: Maybe URI
-  -- ^ Link to ChemSoft.
-  , cAdditionDate :: Word64
-  -- ^ UNIX timestamp when this compound was added to the system.
-  } deriving stock (Generic, Show)
-
 ----------------
 -- JSON
 ----------------
@@ -136,7 +123,6 @@ deriveToJSON ednaAesonWebOptions ''FileSummaryItem
 deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
 deriveJSON ednaAesonWebOptions ''TestMethodology
-deriveJSON ednaAesonWebOptions ''Compound
 
 deriving newtype instance ToJSON FileSummary
 
@@ -167,9 +153,6 @@ instance ToSchema ProjectExtra where
 -- We define @ToSchema URI@ elsewhere to have less modules
 -- with orphans.
 instance ToSchema URI => ToSchema TestMethodology where
-  declareNamedSchema = gDeclareNamedSchema
-
-instance ToSchema URI => ToSchema Compound where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToParamSchema StubSortBy where

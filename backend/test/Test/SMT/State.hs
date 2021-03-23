@@ -24,8 +24,8 @@ import Hedgehog (Concrete, Test)
 import Lens.Micro.Platform (makeLenses)
 
 import Edna.ExperimentReader.Types (FileContents)
-import Edna.Util (SqlId, TargetId)
-import Edna.Web.Types (Compound, Project, TestMethodology)
+import Edna.Util (CompoundId, SqlId, TargetId)
+import Edna.Web.Types (Project, TestMethodology)
 
 -- It's currently incomplete (just like everything in this file),
 -- more data will be added later.
@@ -34,9 +34,9 @@ data EdnaState (v :: Type -> Type) = EdnaState
   -- ^ Names and IDs of all targets added so far.
   , _esTargetByName :: HashMap Text TargetId
   -- ^ A way to quickly find target ID by its name.
-  , _esCompoundToName :: HashMap (SqlId Compound) Text
+  , _esCompoundToName :: HashMap CompoundId Text
   -- ^ Names and IDs of all compounds added so far.
-  , _esCompoundByName :: HashMap Text (SqlId Compound)
+  , _esCompoundByName :: HashMap Text CompoundId
   -- ^ A way to quickly find compound ID by its name.
   , _esProjects :: HashMap (SqlId Project) ProjectState
   -- ^ All projects added so far.

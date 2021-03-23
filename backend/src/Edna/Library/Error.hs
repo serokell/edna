@@ -1,23 +1,28 @@
--- | Errors that can happen inside Target functionality.
+-- | Errors that can happen inside Library functionality.
 
 module Edna.Library.Error
-  ( TargetError (..)
+  ( LibraryError (..)
   ) where
 
 import Universum
 
 import Fmt (Buildable(..), pretty)
 
-import Edna.Util (TargetId)
+import Edna.Util (CompoundId, TargetId)
 import Edna.Web.Error (ToServerError(..))
 
-data TargetError = TETargetNotFound TargetId
+data LibraryError
+  = LETargetNotFound TargetId
+  | LECompoundNotFound CompoundId
+  | LEInvalidURI Text
   deriving stock (Show, Eq)
   deriving anyclass (ToServerError)
 
-instance Buildable TargetError where
+instance Buildable LibraryError where
   build = \case
-    TETargetNotFound i -> "Target not found: " <> build i
+    LETargetNotFound i -> "Target not found: " <> build i
+    LECompoundNotFound i -> "Compound not found: " <> build i
+    LEInvalidURI u -> "Invlalid URI: " <> build u
 
-instance Exception TargetError where
+instance Exception LibraryError where
   displayException = pretty

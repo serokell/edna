@@ -27,11 +27,11 @@ import Edna.DB.Integration
 import Edna.DB.Schema as DB
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
-import Edna.Library.DB.Schema (TargetT(..))
+import Edna.Library.DB.Schema (CompoundT(..), TargetT(..))
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
 import Edna.Util (IdType(..), SqlId(..))
-import Edna.Web.Types hiding (cName)
+import Edna.Web.Types
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
 -- Uses database to determine which targets are new.
@@ -46,7 +46,7 @@ parseFile content =
 parseFile' :: FileContents -> Edna FileSummary
 parseFile' = measurementsToSummary . fcMeasurements
 
-compoundNameToId :: Text -> Edna (Maybe (SqlId Compound))
+compoundNameToId :: Text -> Edna (Maybe (SqlId 'CompoundId))
 compoundNameToId compoundName =
   fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
     compound <- all_ (esCompound ednaSchema)

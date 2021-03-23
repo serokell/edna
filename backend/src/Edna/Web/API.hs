@@ -9,7 +9,6 @@ module Edna.Web.API
   -- * Subtypes
   , ProjectEndpoints (..)
   , MethodologyEndpoints (..)
-  , CompoundEndpoints (..)
   ) where
 
 import Universum
@@ -20,7 +19,7 @@ import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
 import qualified Edna.Upload.API as Upload
 
-import Edna.Library.Web.API (TargetAPI)
+import Edna.Library.Web.API (TargetAPI, CompoundAPI)
 import Edna.Util (SqlId(..))
 import Edna.Web.Types
 
@@ -129,33 +128,3 @@ data MethodologyEndpoints route = MethodologyEndpoints
   } deriving stock (Generic)
 
 type MethodologyAPI = ToServant MethodologyEndpoints AsApi
-
--- | Endpoints related to compounds.
-data CompoundEndpoints route = CompoundEndpoints
-  { -- | Edit ChemSoft link for the compound with given ID
-    ceEditChemSoft :: route
-      :- "compound"
-      :> "chemsoft"
-      :> Summary "Update ChemSoft link of a compound"
-      :> Capture "compoundId" (SqlId Compound)
-      :> ReqBody '[JSON] URI
-      :> Put '[JSON] (WithId Compound Compound)
-
-  , -- | Get known compounds with optional pagination and sorting
-    ceGetCompounds :: route
-      :- "compounds"
-      :> Summary "Get known compounds"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId Compound Compound]
-
-  , -- | Get compound data by ID
-    ceGetCompound :: route
-      :- "compound"
-      :> Summary "Get compound data by ID"
-      :> Capture "compoundId" (SqlId Compound)
-      :> Get '[JSON] (WithId Compound Compound)
-  } deriving stock (Generic)
-
-type CompoundAPI = ToServant CompoundEndpoints AsApi

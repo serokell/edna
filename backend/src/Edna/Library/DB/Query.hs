@@ -1,6 +1,9 @@
 module Edna.Library.DB.Query
   ( getTargetById
   , getTargets
+  , getCompoundById
+  , getCompounds
+  , editCompoundChemSoft
   ) where
 
 import Universum
@@ -10,12 +13,13 @@ import qualified Data.List as L
 import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (pgNubBy_)
 import Database.Beam.Query
-  (all_, asc_, cast_, filter_, int, just_, leftJoin_, orderBy_, select, val_, (==.))
+  (all_, asc_, cast_, filter_, guard_, int, just_, leftJoin_, orderBy_, select, update, val_,
+  (<-.), (==.))
 
-import Edna.DB.Integration (runSelectReturningList')
+import Edna.DB.Integration (runSelectReturningList', runSelectReturningOne', runUpdate')
 import Edna.DB.Schema
   (EdnaSchema(..), ExperimentFileT(..), ExperimentT(..), ProjectRec, ProjectT(..), ednaSchema)
-import Edna.Library.DB.Schema (TargetRec, TargetT(..))
+import Edna.Library.DB.Schema (CompoundRec, CompoundT(..), TargetRec, TargetT(..))
 import Edna.Library.Web.Types (TargetResp(..))
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..), TargetId)
@@ -66,3 +70,17 @@ targetsWithProjects targetSqlId = runSelectReturningList' $ select $
       Just (SqlId targetId) -> \(t, _) ->
         tTargetId t ==. val_ (SqlSerial targetId)
       Nothing -> \_ -> val_ True
+
+getCompoundById :: SqlId 'CompoundId -> Edna (Maybe CompoundRec)
+getCompoundById (SqlId compoundId) = runSelectReturningOne' $ select $ do
+  compounds <- all_ $ esCompound ednaSchema
+  guard_ (cCompoundId compounds ==. val_ (SqlSerial compoundId))
+  pure compounds
+
+getCompounds :: Edna [CompoundRec]
+getCompounds = runSelectReturningList' $ select $ all_ $ esCompound ednaSchema
+
+editCompoundChemSoft :: SqlId 'CompoundId -> Text -> Edna ()
+editCompoundChemSoft (SqlId compoundId) link = runUpdate' $ update (esCompound ednaSchema)
+  (\c -> cChemsoftLink c <-. val_ (Just link))
+  (\c -> cCompoundId c ==. val_ (SqlSerial compoundId))

@@ -13,7 +13,7 @@ import qualified Edna.Upload.API as Upload
 
 import Edna.Setup (Edna)
 import Edna.Web.API
-  (CompoundEndpoints(..), EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..))
+  (EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..))
 
 type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 
@@ -24,7 +24,7 @@ ednaHandlers = genericServerT EdnaEndpoints
   , eeFileUploadEndpoints = Upload.fileUploadEndpoints
   , eeProjectEndpoints = projectEndpoints
   , eeMethodologyEndpoints = methodologyEndpoints
-  , eeCompoundEndpoints = compoundEndpoints
+  , eeCompoundEndpoints = Library.compoundEndpoints
   , eeTargetEndpoints = Library.targetEndpoints
   }
   where
@@ -41,10 +41,4 @@ ednaHandlers = genericServerT EdnaEndpoints
       , meDeleteMethodology = \_ -> throwM err501
       , meGetMethodologies = \_ _ _ -> throwM err501
       , meGetMethodology = \_ -> throwM err501
-      }
-
-    compoundEndpoints = genericServerT CompoundEndpoints
-      { ceEditChemSoft = \_ _ -> throwM err501
-      , ceGetCompounds = \_ _ _ -> throwM err501
-      , ceGetCompound = \_ -> throwM err501
       }

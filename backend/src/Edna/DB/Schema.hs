@@ -7,9 +7,6 @@ module Edna.DB.Schema
   , TestMethodologyT (..)
   , TestMethodologyRec
 
-  , CompoundT (..)
-  , CompoundRec
-
   , ExperimentFileT (..)
   , ExperimentFileRec
 
@@ -46,7 +43,7 @@ import Database.Beam.Schema
   (Beamable, C, Database, DatabaseSettings, Table(..), TableEntity, defaultDbSettings)
 
 import Edna.ExperimentReader.Types (FileMetadata)
-import Edna.Library.DB.Schema (TargetT)
+import Edna.Library.DB.Schema (TargetT, CompoundT (..))
 
 --------------------------
 -- Project
@@ -100,32 +97,6 @@ instance Table TestMethodologyT where
 
 deriving stock instance Show (PrimaryKey TestMethodologyT Identity)
 deriving stock instance Eq (PrimaryKey TestMethodologyT Identity)
-
---------------------------
--- Compound
---------------------------
-
-data CompoundT f = CompoundRec
-  { cCompoundId :: C f (SqlSerial Word32)
-  , cName :: C f Text
-  , cCreationDate :: C f LocalTime
-  , cChemsoftLink :: C (Nullable f) Text
-  } deriving stock Generic
-    deriving anyclass Beamable
-
-type CompoundRec = CompoundT Identity
-
-deriving stock instance Show CompoundRec
-deriving stock instance Eq CompoundRec
-
-instance Table CompoundT where
-  data PrimaryKey CompoundT f = CompoundId (C f (SqlSerial Word32))
-    deriving stock (Generic)
-    deriving anyclass Beamable
-  primaryKey = CompoundId . cCompoundId
-
-deriving stock instance Show (PrimaryKey CompoundT Identity)
-deriving stock instance Eq (PrimaryKey CompoundT Identity)
 
 --------------------------
 -- Experiment File

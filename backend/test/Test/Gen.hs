@@ -18,7 +18,7 @@ module Test.Gen
   , genProject
   , genProjectExtra
   , genTestMethodology
-  , genCompound
+  , genCompoundResp
   , genTargetResp
   , genName
   , genURI
@@ -48,7 +48,7 @@ import Test.QuickCheck.Hedgehog (hedgehog)
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
-import Edna.Library.Web.Types (TargetResp(..))
+import Edna.Library.Web.Types (CompoundResp(..), TargetResp(..))
 import Edna.Upload.API (ExperimentalMeasurement(..))
 import Edna.Util (SqlId(..))
 import Edna.Web.Types
@@ -117,12 +117,12 @@ genTestMethodology = do
   tmConfluence <- genURI
   return TestMethodology {..}
 
-genCompound :: MonadGen m => m Compound
-genCompound = do
-  cName <- genName
-  cChemSoft <- Gen.maybe genURI
-  cAdditionDate <- Gen.integral (Range.constant 0 1000)
-  return Compound {..}
+genCompoundResp :: MonadGen m => m CompoundResp
+genCompoundResp = do
+  crName <- genName
+  crChemSoft <- Gen.maybe genURI
+  crAdditionDate <- genLocalTime
+  return CompoundResp {..}
 
 genTargetResp :: MonadGen m => m TargetResp
 genTargetResp = do
@@ -243,8 +243,8 @@ instance Arbitrary ProjectExtra where
 instance Arbitrary TestMethodology where
   arbitrary = hedgehog genTestMethodology
 
-instance Arbitrary Compound where
-  arbitrary = hedgehog genCompound
+instance Arbitrary CompoundResp where
+  arbitrary = hedgehog genCompoundResp
 
 instance Arbitrary TargetResp where
   arbitrary = hedgehog genTargetResp
