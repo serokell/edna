@@ -13,6 +13,7 @@ module Edna.Web.Swagger
   , module Exports
 
   -- Edna specific
+  , EdnaAPIWithDocs
   , ednaApiSwagger
   , ednaAPIWithDocs
   ) where
@@ -27,7 +28,7 @@ import Data.Swagger.Lens as Exports
 import Lens.Micro ((?~))
 import Lens.Micro.Platform (zoom, (.=), (?=))
 import Network.URI (URI)
-import Servant ((:<|>)(..), Server)
+import Servant (Server, (:<|>)(..))
 import Servant.API ((:>))
 import Servant.Multipart (MultipartData(..), MultipartForm)
 import Servant.Swagger (HasSwagger(..))

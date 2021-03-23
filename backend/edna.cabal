@@ -70,6 +70,7 @@ library
     beam-postgres,
     bytestring,
     containers,
+    data-default,
     fmt,
     microlens,
     microlens-platform,
@@ -91,6 +92,8 @@ library
     text,
     time,
     unordered-containers,
+    wai,
+    wai-extra,
     warp,
     xlsx
 
