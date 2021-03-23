@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Edna.ExperimentReader.Types
   ( Parameter (..)
   , PlateUnit (..)
@@ -19,9 +21,10 @@ newtype PointYX = PointYX (Int, Int)
 
 data ParameterType = Target | Compound
 
+-- | Compound or target info
 data Parameter = Parameter
-  { pName :: Text
-  , pIndexes :: (Int, Int)
+  { pName :: Text -- ^ Parameter definition
+  , pIndexes :: (Int, Int) -- ^ Range of parameter indexes on its axis
   } deriving stock Show
 
 data PlateUnit = PlateUnit
