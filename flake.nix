@@ -30,21 +30,17 @@
     system = "x86_64-linux";
     inherit (nixpkgs.lib) mapAttrs;
     inherit (nixpkgs.legacyPackages.${system}) linkFarm;
-  in {
-    # Do not roll back profile closure deployment
-    deploy.magicRollback = false;
-
-    deploy.nodes.castor =
+    mkEdnaNode = hostName:
       let
         profile = with self.packages.${system};
           linkFarm "edna-deploy-profile" [
             { name = "backend.tar.gz";
-              path = docker-backend; }
+            path = docker-backend; }
             { name = "frontend.tar.gz";
-              path = docker-frontend; }
-        ];
+            path = docker-frontend; }
+          ];
       in {
-        hostname = "castor.gemini.serokell.team";
+        hostname = "${hostName}.gemini.serokell.team";
         sshOpts = [ "-p" "17788" ];
         profiles.edna-docker = {
           sshUser = "deploy";
@@ -55,6 +51,12 @@
             '';
         };
       };
+  in {
+    # Do not roll back profile closure deployment
+    deploy.magicRollback = false;
+
+    deploy.nodes.castor = mkEdnaNode "castor";
+    deploy.nodes.jishui = mkEdnaNode "jishui";
 
     checks = mapAttrs (_: lib: lib.deployChecks self.deploy) deploy-rs.lib;
   })
@@ -121,6 +123,7 @@
         buildInputs = with pkgs.haskellPackages; [
           cabal-install hpack hlint self.packages.${system}.stack2cabal
           deploy-rs.defaultPackage.${system}
+          pkgs.skopeo
         ];
       };
     }));

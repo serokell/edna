@@ -9,8 +9,8 @@ module Edna.Web.API
 
 import Universum
 
-import Servant.API ((:>), JSON, Post, Summary)
-import Servant.API.Generic ((:-), AsApi, ToServant)
+import Servant.API (GetNoContent, JSON, Post, Summary, (:<|>), (:>))
+import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
 import qualified Edna.Upload.API as Upload
@@ -36,6 +36,8 @@ data EdnaEndpoints route = EdnaEndpoints
 -- | API type specification.
 type EdnaAPI =
   "api" :> ToServant EdnaEndpoints AsApi
+  :<|>
+  "health" :> Summary "Check the health of this server" :> GetNoContent
 
 ednaAPI :: Proxy EdnaAPI
 ednaAPI = Proxy
