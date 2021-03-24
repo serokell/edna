@@ -123,6 +123,7 @@
         buildInputs = with pkgs.haskellPackages; [
           cabal-install hpack hlint self.packages.${system}.stack2cabal
           deploy-rs.defaultPackage.${system}
+          pkgs.skopeo
         ];
       };
     }));
