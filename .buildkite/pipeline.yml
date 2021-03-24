@@ -42,3 +42,7 @@ steps:
     commands:
       - nix-shell --run 'deploy .#castor'
     branches: "master"
+  - label: Deploy demo
+    commands:
+      - nix-shell --run 'deploy .#jishui'
+    branches: "demo"
