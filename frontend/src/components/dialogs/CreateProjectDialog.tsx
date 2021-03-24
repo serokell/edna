@@ -2,21 +2,31 @@ import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { Form, Formik } from "formik";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
-import { modalDialogAtom } from "../../store/atoms";
+import { modalDialogAtom, projectsAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
 import "./CreateDialog.scss";
 import Api from "../../api/api";
 import "../RoundSpinner.scss";
 import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
+import { CreateProjectArgsApi } from "../../api/EdnaApi";
+import { replaceEmptyWithUndefined } from "../../utils/utils";
 
 interface CreateProjectForm {
   name: string;
   description: string;
 }
 
+function toApiArgs(form: CreateProjectForm): CreateProjectArgsApi {
+  return {
+    name: form.name,
+    description: replaceEmptyWithUndefined(form.description.trim()),
+  };
+}
+
 export function CreateProjectDialog(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
+  const setProjects = useSetRecoilState(projectsAtom);
   const [formState, setFormState] = useState<FormState>();
 
   return (
@@ -36,7 +46,9 @@ export function CreateProjectDialog(): React.ReactElement {
         onSubmit={async form => {
           setFormState({ kind: "submitting" });
           try {
-            await Api.createProject(form);
+            const newProject = await Api.createProject(toApiArgs(form));
+            setModalDialog(undefined);
+            setProjects(projects => projects.concat([newProject]));
             // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });

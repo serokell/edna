@@ -1,8 +1,8 @@
 // Basic state should be here
 import { atom, selector } from "recoil";
-import { FileUploadState, Methodology, ModalDialogState } from "./types";
+import { FileUploadState, ModalDialogState } from "./types";
 import Api from "../api/api";
-import { CompoundDto, ProjectDto, TargetDto } from "../api/types";
+import { CompoundDto, MethodologyDto, ProjectDto, TargetDto } from "../api/types";
 
 export const projectsAtom = atom<ProjectDto[]>({
   key: "Projects",
@@ -28,7 +28,7 @@ export const compoundsAtom = atom<CompoundDto[]>({
   }),
 });
 
-export const methodologiesAtom = atom<Methodology[]>({
+export const methodologiesAtom = atom<MethodologyDto[]>({
   key: "Methodologies",
   default: selector({
     key: "Methodologies/Default",

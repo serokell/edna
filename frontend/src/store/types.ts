@@ -2,12 +2,6 @@
 
 import { MeasurementDto, ParsedExcelDto } from "../api/types";
 
-export interface Methodology {
-  methodologyId: number;
-  name: string;
-  description?: string;
-}
-
 export interface Experiment {
   target: string;
   compoundId: string;
