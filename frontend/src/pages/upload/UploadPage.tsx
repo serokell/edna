@@ -6,7 +6,7 @@ import "../../components/Spinner/Spinner.scss";
 import MeasurementsCharts from "./MeasurementsCharts";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
-import { excelFileAtom, methodologiesAtom, projectsAtom } from "../../store/atoms";
+import { excelFileAtom } from "../../store/atoms";
 import CreatableSelect from "../../components/CreatableSelect";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
@@ -19,11 +19,20 @@ import { UploadForm, uploadFormToApi } from "./uploadForm";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
 import { MethodologyDto, ProjectDto } from "../../api/types";
+import { methodologiesQuery, projectsQuery } from "../../store/selectors";
+import {
+  useCompoundsRefresher,
+  useProjectRefresher,
+  useTargetsRefresher,
+} from "../../store/updaters";
 
 export const UploadPage: FunctionComponent = (): ReactElement => {
-  const projectsLoadable = useRecoilValueLoadable(projectsAtom);
-  const methodologiesLoadable = useRecoilValueLoadable(methodologiesAtom);
+  const projectsLoadable = useRecoilValueLoadable(projectsQuery);
+  const methodologiesLoadable = useRecoilValueLoadable(methodologiesQuery);
   const [excelFile, setExcelFile] = useRecoilState(excelFileAtom);
+  const projectsRefresher = useProjectRefresher();
+  const targetsRefresher = useTargetsRefresher();
+  const compoundsRefresher = useCompoundsRefresher();
 
   return (
     <PageLayout>
@@ -53,6 +62,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
             if (apiType && excelFile?.state === "parsed") {
               await Api.uploadExperiments(apiType);
               setExcelFile({ state: "added", targets: excelFile.targets });
+              projectsRefresher();
+              targetsRefresher();
+              compoundsRefresher();
             }
           } catch (ex) {
             setExcelFile({ state: "failed-to-add", reason: ex.message });

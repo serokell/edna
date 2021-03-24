@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { Form, Formik } from "formik";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
-import { methodologiesAtom, modalDialogAtom } from "../../store/atoms";
+import { modalDialogAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
 import "./CreateDialog.scss";
@@ -10,6 +10,7 @@ import Api from "../../api/api";
 import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
 import { CreateMethodologyArgsApi } from "../../api/EdnaApi";
 import { replaceEmptyWithUndefined } from "../../utils/utils";
+import { useMethodologiesRefresher } from "../../store/updaters";
 
 interface CreateMethodologyForm {
   name: string;
@@ -27,7 +28,7 @@ function toApiArgs(form: CreateMethodologyForm): CreateMethodologyArgsApi {
 
 export function CreateMethodologyDialog(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const setMethodology = useSetRecoilState(methodologiesAtom);
+  const refreshMethodologies = useMethodologiesRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
@@ -48,9 +49,9 @@ export function CreateMethodologyDialog(): React.ReactElement {
         onSubmit={async form => {
           setFormState({ kind: "submitting" });
           try {
-            const newMethodology = await Api.createMethodology(toApiArgs(form));
+            await Api.createMethodology(toApiArgs(form));
             setModalDialog(undefined);
-            setMethodology(meths => meths.concat([newMethodology]));
+            refreshMethodologies();
             // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });

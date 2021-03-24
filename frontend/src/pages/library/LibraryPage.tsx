@@ -3,7 +3,6 @@ import { useRecoilValue } from "recoil";
 import cx from "classnames";
 import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
-import { compoundsAtom, methodologiesAtom, projectsAtom, targetsAtom } from "../../store/atoms";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
@@ -13,6 +12,12 @@ import { formatDateTimeDto } from "../../utils/utils";
 import DotsSvg from "../../assets/svg/dots.svg";
 import { MethodologyPlate } from "../../components/MethodologyPlate/MethodologyPlate";
 import { ErrorPlaceholder } from "../../components/Error/ErrorPlaceholder";
+import {
+  compoundsQuery,
+  methodologiesQuery,
+  projectsQuery,
+  targetsQuery,
+} from "../../store/selectors";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -88,7 +93,7 @@ const extraFormatter = (compounds: string[]) => {
 };
 
 function ProjectsSuspendable() {
-  const projects = useRecoilValue(projectsAtom);
+  const projects = useRecoilValue(projectsQuery);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -124,7 +129,7 @@ function ProjectsSuspendable() {
 }
 
 function CompoundsSuspendable() {
-  const projects = useRecoilValue(compoundsAtom);
+  const projects = useRecoilValue(compoundsQuery);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -151,7 +156,7 @@ function CompoundsSuspendable() {
 }
 
 function TargetsSuspendable() {
-  const projects = useRecoilValue(targetsAtom);
+  const projects = useRecoilValue(targetsQuery);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -181,7 +186,7 @@ function TargetsSuspendable() {
 }
 
 function MethodsSuspendable() {
-  const methodologies = useRecoilValue(methodologiesAtom);
+  const methodologies = useRecoilValue(methodologiesQuery);
   return (
     <>
       {methodologies.map(m => (
