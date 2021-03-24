@@ -3,15 +3,21 @@ import { useRecoilValue } from "recoil";
 import cx from "classnames";
 import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
-import { compoundsAtom, methodologiesAtom, projectsAtom, targetsAtom } from "../../store/atoms";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
 import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
-import { formatTimestamp } from "../../utils/utils";
+import { formatDateTimeDto } from "../../utils/utils";
 import DotsSvg from "../../assets/svg/dots.svg";
 import { MethodologyPlate } from "../../components/MethodologyPlate/MethodologyPlate";
+import { ErrorPlaceholder } from "../../components/Error/ErrorPlaceholder";
+import {
+  compoundsQuery,
+  methodologiesQuery,
+  projectsQuery,
+  targetsQuery,
+} from "../../store/selectors";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -25,7 +31,12 @@ export const LibraryPage: FunctionComponent = () => {
           return <></>;
         }}
         render={entity => {
-          return <SuspenseSpinner>{suspendables[entity]()}</SuspenseSpinner>;
+          return (
+            // TODO work out it's better
+            <ErrorPlaceholder>
+              <SuspenseSpinner>{suspendables[entity]()}</SuspenseSpinner>
+            </ErrorPlaceholder>
+          );
         }}
       />
     </PageLayout>
@@ -82,7 +93,7 @@ const extraFormatter = (compounds: string[]) => {
 };
 
 function ProjectsSuspendable() {
-  const projects = useRecoilValue(projectsAtom);
+  const projects = useRecoilValue(projectsQuery);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -92,16 +103,16 @@ function ProjectsSuspendable() {
       {
         Header: "Compounds",
         accessor: (p: ProjectDto) => (
-          <span className="project__compounds">{extraFormatter(p.extra.compoundNames)}</span>
+          <span className="project__compounds">{extraFormatter(p.item.compoundNames)}</span>
         ),
       },
       {
         Header: "Creation date",
-        accessor: (p: ProjectDto) => formatTimestamp(p.extra.creationDate),
+        accessor: (p: ProjectDto) => formatDateTimeDto(p.item.creationDate),
       },
       {
         Header: "Last update",
-        accessor: (p: ProjectDto) => formatTimestamp(p.extra.lastUpdate),
+        accessor: (p: ProjectDto) => formatDateTimeDto(p.item.lastUpdate),
       },
       {
         id: "actions",
@@ -118,7 +129,7 @@ function ProjectsSuspendable() {
 }
 
 function CompoundsSuspendable() {
-  const projects = useRecoilValue(compoundsAtom);
+  const projects = useRecoilValue(compoundsQuery);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -145,7 +156,7 @@ function CompoundsSuspendable() {
 }
 
 function TargetsSuspendable() {
-  const projects = useRecoilValue(targetsAtom);
+  const projects = useRecoilValue(targetsQuery);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -157,8 +168,8 @@ function TargetsSuspendable() {
         accessor: (t: TargetDto) => extraFormatter(t.item.projects),
       },
       {
-        Header: "Creation date",
-        accessor: (t: TargetDto) => formatTimestamp(t.creationDate),
+        Header: "Addition date",
+        accessor: (t: TargetDto) => formatDateTimeDto(t.item.additionDate),
       },
       {
         id: "actions",
@@ -175,11 +186,11 @@ function TargetsSuspendable() {
 }
 
 function MethodsSuspendable() {
-  const methodologies = useRecoilValue(methodologiesAtom);
+  const methodologies = useRecoilValue(methodologiesQuery);
   return (
     <>
       {methodologies.map(m => (
-        <MethodologyPlate key={m.name} title={m.name} description={m?.description} />
+        <MethodologyPlate key={m.item.name} title={m.item.name} description={m.item?.description} />
       ))}
     </>
   );

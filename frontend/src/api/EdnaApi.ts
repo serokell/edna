@@ -1,68 +1,70 @@
 // The module might be removed if we start using open api client generator
 import { AxiosInstance, AxiosResponse } from "axios";
-import { Experiment, Methodology } from "../store/types";
-import { delay } from "../utils/utils";
+import { Experiment } from "../store/types";
 import {
   CompoundDto,
-  genRandomProject,
-  genRandomTarget,
-  genSeq,
   groupCompounds,
   MeasurementDto,
-  ParsedTargetDto,
+  MethodologyDto,
+  ParsedExcelDto,
   ProjectDto,
   TargetDto,
 } from "./types";
+import { Maybe } from "../utils/utils";
 
-export interface UploadExperimentsArgs {
+export interface UploadExperimentsArgsApi {
   file: File;
   projectId: number;
   methodologyId: number;
-  description: string;
+  description: Maybe<string>;
 }
 
-interface CreateMethodologyArgs {
+export interface CreateMethodologyArgsApi {
   name: string;
-  description: string;
-  confluence: string;
+  description: Maybe<string>;
+  confluence: Maybe<string>;
 }
 
-interface CreateProjectArgs {
+export interface CreateProjectArgsApi {
   name: string;
-  description: string;
+  description: Maybe<string>;
 }
 
 interface EdnaApiInterface {
+  // TODO will be removed in future
+  oldParseExcelFile: (
+    excelFile: Blob,
+    onUploadProgress: (percent: number) => void
+  ) => Promise<Experiment[]>;
+
   parseExcelFile: (
     excelFile: Blob,
     onUploadProgress: (percent: number) => void
-  ) => Promise<[ParsedTargetDto[], Experiment[]]>;
+  ) => Promise<ParsedExcelDto[]>;
 
-  uploadExperiments(form: UploadExperimentsArgs): Promise<unknown>;
+  uploadExperiments(form: UploadExperimentsArgsApi): Promise<unknown>;
   fetchProjects: () => Promise<ProjectDto[]>;
-  createProject: (args: CreateProjectArgs) => Promise<ProjectDto>;
+  createProject: (args: CreateProjectArgsApi) => Promise<ProjectDto>;
   fetchTargets: () => Promise<TargetDto[]>;
   fetchCompounds: () => Promise<CompoundDto[]>;
-  fetchMethodologies: () => Promise<Methodology[]>;
-  createMethodology: (args: CreateMethodologyArgs) => Promise<Methodology>;
+  fetchMethodologies: () => Promise<MethodologyDto[]>;
+  createMethodology: (args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
   return {
     fetchCompounds: async (): Promise<CompoundDto[]> => {
-      await delay(1000);
-      return genSeq(10, genRandomTarget);
+      return axios.get("/compounds").then(proj => proj.data);
     },
 
     fetchTargets: async (): Promise<TargetDto[]> => {
-      await delay(1000);
-      return genSeq(10, genRandomTarget);
+      return axios.get("/targets").then(proj => proj.data);
     },
 
-    parseExcelFile: async (
+    oldParseExcelFile: async (
       excelFile: Blob,
       onUploadProgress: (percent: number) => void
-    ): Promise<[ParsedTargetDto[], Experiment[]]> => {
+    ): Promise<Experiment[]> => {
       const formData = new FormData();
       formData.append("file", excelFile);
       return axios
@@ -78,125 +80,75 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         .then((response: AxiosResponse<MeasurementDto[]>) => {
           // TODO remove this mock transformation
           const byCompound = groupCompounds(response.data);
-          return [
-            [
-              {
-                target: "hujarget",
-                isNew: true,
-                compounds: Object.entries(byCompound).map(x => x[0]),
-              },
-            ],
-
-            Object.entries(byCompound).map(([cmpId, measurements]) => ({
-              target: "hujarget",
-              compoundId: cmpId,
-              measurements,
-            })),
-          ];
+          return Object.entries(byCompound).map(([cmpId, measurements]) => ({
+            target: "target",
+            compoundId: cmpId,
+            measurements,
+          }));
         });
     },
 
-    uploadExperiments: async (form: UploadExperimentsArgs) => {
-      return axios.post("/addExperiments", form, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    parseExcelFile: async (
+      excelFile: Blob,
+      onUploadProgress: (percent: number) => void
+    ): Promise<ParsedExcelDto[]> => {
+      const formData = new FormData();
+      formData.append("file", excelFile);
+
+      return axios
+        .post("/file/parse", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress(progressEvent) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onUploadProgress(percentCompleted);
+          },
+        })
+        .then((response: AxiosResponse<ParsedExcelDto[]>) => response.data);
     },
 
-    createProject: async (args: CreateProjectArgs) => {
-      // TODO send a request to backend, show some notifications on result
-      // delay up to 3 seconds
-      await delay(Math.random() * 2000);
-      // eslint-disable-next-line @typescript-eslint/ban-types
+    uploadExperiments: async (form: UploadExperimentsArgsApi) => {
+      const formData = new FormData();
+      formData.append("file", form.file);
+
+      return axios.post(
+        `/file/upload/${form.projectId}/${form.methodologyId}${
+          form.description ? `?description=${form.description}` : ""
+        }`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+    },
+
+    createProject: async (args: CreateProjectArgsApi) => {
       return axios
         .post("/project", args)
-        .then(() => {
-          return genRandomProject();
-        })
+        .then(resp => resp.data)
         .catch(error => {
           throw new Error(error.response.data);
         });
     },
 
     fetchProjects: async () => {
-      // TODO remove delay. For network emulation purposes
-      // await delay(1000);
-      const randomProjs: ProjectDto[] = genSeq(10, genRandomProject);
-      return randomProjs.concat([
-        {
-          id: 1,
-          item: {
-            name: "Project 1",
-            description: "Supa pupa project 1",
-          },
-          extra: {
-            creationDate: 1000000000,
-            lastUpdate: 1000000000,
-            compoundNames: ["Nl", "H", "Li"],
-          },
-        },
-
-        {
-          id: 2,
-          item: {
-            name: "Project 2",
-            description: "Supa pupa project 2",
-          },
-          extra: {
-            creationDate: 2000000000,
-            lastUpdate: 2000000000,
-            compoundNames: ["Am", "Ke", "U", "F"],
-          },
-        },
-
-        {
-          id: 3,
-          item: {
-            name: "Project 3",
-            description:
-              "There is a long long description of the project kjdsjdssldjsghfj she jksgh",
-          },
-          extra: {
-            creationDate: 3000000000,
-            lastUpdate: 3000000000,
-            compoundNames: ["Am", "Ke", "U", "F"],
-          },
-        },
-      ]);
+      return axios.get("/projects").then(proj => proj.data);
     },
 
-    createMethodology: async (args: CreateMethodologyArgs) => {
-      // TODO parse response from backend
-      // delay up to 3 seconds
-      await delay(Math.random() * 2000);
-      // eslint-disable-next-line @typescript-eslint/ban-types
+    createMethodology: async (args: CreateMethodologyArgsApi) => {
       return axios
         .post("/methodology", args)
-        .then(() => {
-          const methId = Math.floor(Math.random() * 1000000000);
-          return { methodologyId: methId, name: args.name };
-        })
+        .then(resp => resp.data)
         .catch(error => {
           throw new Error(error.response.data);
         });
     },
 
     fetchMethodologies: async () => {
-      // TODO remove delay. For network emulation purposes
-      await delay(2000);
-      return [
-        {
-          methodologyId: 1,
-          name: "Meth 1",
-          description: "Cool cool methodology 1",
-        },
-        {
-          methodologyId: 2,
-          name: "Meth 2",
-          description: "Cool cool methodology 2",
-        },
-      ];
+      return axios.get("/methodologies").then(proj => proj.data);
     },
   };
 }

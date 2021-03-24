@@ -2,12 +2,13 @@ import React from "react";
 import "./UploadPreviewTable.scss";
 import cx from "classnames";
 import { Button } from "../Button/Button";
-import { ParsedTargetDto } from "../../api/types";
+import { ParsedExcelDto } from "../../api/types";
 import { Table } from "../Table/Table";
 
 interface UploadTableProps {
   className?: string;
-  targets: ParsedTargetDto[];
+  targets: ParsedExcelDto[];
+  viewEnabled: boolean;
 }
 
 interface PreviewRow {
@@ -16,7 +17,11 @@ interface PreviewRow {
   actions: React.ReactNode;
 }
 
-export function UploadPreviewTable({ className, targets }: UploadTableProps): React.ReactElement {
+export function UploadPreviewTable({
+  className,
+  targets,
+  viewEnabled,
+}: UploadTableProps): React.ReactElement {
   const previewColumns = React.useMemo(
     () => [
       {
@@ -39,11 +44,11 @@ export function UploadPreviewTable({ className, targets }: UploadTableProps): Re
   targets.forEach(ex =>
     ex.compounds.forEach(compound => {
       data.push({
-        compound,
-        target: `${ex.target} ${ex.isNew ? "*" : ""}`,
+        compound: `${compound.name} ${compound.id ? "" : "*"}`,
+        target: `${ex.target.name} ${ex.target.id ? "" : "*"}`,
         actions: (
           <div className="uploadPreviewTable__actions">
-            <Button type="link" disabled>
+            <Button type="link" disabled={!viewEnabled}>
               View
             </Button>
           </div>
@@ -53,13 +58,13 @@ export function UploadPreviewTable({ className, targets }: UploadTableProps): Re
   );
 
   return (
-    <div className="uploadPreviewTableContainer">
+    <div className={cx(["uploadPreviewTableContainer", className])}>
       <Table
         mode="alternate"
         small
         data={data}
         columns={previewColumns}
-        className={cx(["uploadPreviewTable", className])}
+        className="uploadPreviewTable"
       />
     </div>
   );

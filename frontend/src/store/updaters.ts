@@ -3,23 +3,30 @@
 // an updater in a React component, to receive necessary hooks.
 
 import { RecoilState, useSetRecoilState } from "recoil";
-import { methodologiesAtom, projectsAtom } from "./atoms";
-import Api from "../api/api";
+import {
+  compoundsReqIdAtom,
+  methodologiesRequestIdAtom,
+  projectsRequestIdAtom,
+  targetsRequestIdAtom,
+} from "./atoms";
 
-function appenderUpdater<T, Creator extends (...args: any) => Promise<T>>(
-  listState: RecoilState<T[]>,
-  apiAction: Creator
-) {
-  return () => {
-    const setter = useSetRecoilState(listState);
-    return async (...args: Parameters<Creator>) => {
-      const newObj = await apiAction(args);
-      setter(objs => objs.concat([newObj]));
-      return newObj;
-    };
-  };
+function useQueryRefresher(reqId: RecoilState<number>): () => void {
+  const setReqId = useSetRecoilState(reqId);
+  return () => setReqId(req => req + 1);
 }
 
-export const createProjectUpdater = appenderUpdater(projectsAtom, Api.createProject);
+export function useProjectRefresher(): () => void {
+  return useQueryRefresher(projectsRequestIdAtom);
+}
 
-export const createMethodologyUpdater = appenderUpdater(methodologiesAtom, Api.createMethodology);
+export function useCompoundsRefresher(): () => void {
+  return useQueryRefresher(compoundsReqIdAtom);
+}
+
+export function useTargetsRefresher(): () => void {
+  return useQueryRefresher(targetsRequestIdAtom);
+}
+
+export function useMethodologiesRefresher(): () => void {
+  return useQueryRefresher(methodologiesRequestIdAtom);
+}

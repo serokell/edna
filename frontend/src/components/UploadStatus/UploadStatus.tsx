@@ -22,6 +22,8 @@ export function UploadStatus(): React.ReactElement {
             ? "Failed to parse"
             : uploadState.state === "failed-to-add"
             ? "Failed to add"
+            : uploadState.state === "added"
+            ? "Added"
             : ""}
         </span>
         {uploadState.state === "parsed" && <SuccCheckmark />}

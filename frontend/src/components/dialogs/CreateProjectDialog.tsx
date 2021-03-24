@@ -9,14 +9,25 @@ import "./CreateDialog.scss";
 import Api from "../../api/api";
 import "../RoundSpinner.scss";
 import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
+import { CreateProjectArgsApi } from "../../api/EdnaApi";
+import { replaceEmptyWithUndefined } from "../../utils/utils";
+import { useProjectRefresher } from "../../store/updaters";
 
 interface CreateProjectForm {
   name: string;
   description: string;
 }
 
+function toApiArgs(form: CreateProjectForm): CreateProjectArgsApi {
+  return {
+    name: form.name,
+    description: replaceEmptyWithUndefined(form.description.trim()),
+  };
+}
+
 export function CreateProjectDialog(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
+  const refreshProjects = useProjectRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
@@ -36,7 +47,9 @@ export function CreateProjectDialog(): React.ReactElement {
         onSubmit={async form => {
           setFormState({ kind: "submitting" });
           try {
-            await Api.createProject(form);
+            await Api.createProject(toApiArgs(form));
+            setModalDialog(undefined);
+            refreshProjects();
             // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
