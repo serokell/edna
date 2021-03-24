@@ -51,6 +51,7 @@ library
       Edna.Upload.Error
       Edna.Upload.Service
       Edna.Util
+      Edna.Util.URI
   other-modules:
       Paths_edna
       Edna.Web.Error
