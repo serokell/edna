@@ -127,7 +127,7 @@ genTargetResp :: MonadGen m => m TargetResp
 genTargetResp = do
   trName <- genName
   trProjects <- Gen.list (Range.linear 0 5) genName
-  trCreationDate <- genLocalTime
+  trAdditionDate <- genLocalTime
   return TargetResp {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents

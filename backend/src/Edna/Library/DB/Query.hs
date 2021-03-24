@@ -45,7 +45,7 @@ targetToDomain :: TargetId -> TargetRec -> [Maybe ProjectRec] -> WithId 'TargetI
 targetToDomain targetSqlId TargetRec{..} projects = WithId targetSqlId $ TargetResp
   { trName = tName
   , trProjects = mapMaybe (fmap pName) projects
-  , trCreationDate = tCreationDate
+  , trAdditionDate = tAdditionDate
   }
 
 getTargetById :: TargetId -> Edna (Maybe (WithId 'TargetId TargetResp))

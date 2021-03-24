@@ -48,13 +48,13 @@ genTestMethodologyRec testMethodologyId = do
 genTargetRec :: Gen.MonadGen m => Word32 -> m TargetRec
 genTargetRec targetId = do
   tName <- genName
-  tCreationDate <- genLocalTime
+  tAdditionDate <- genLocalTime
   pure TargetRec {tTargetId = SqlSerial targetId, ..}
 
 genCompoundRec :: Gen.MonadGen m => Word32 -> m CompoundRec
 genCompoundRec compoundId = do
   cName <- genName
-  cCreationDate <- genLocalTime
+  cAdditionDate <- genLocalTime
   cChemsoftLink <- show <<$>> Gen.maybe genURI
   pure CompoundRec {cCompoundId = SqlSerial compoundId, ..}
 

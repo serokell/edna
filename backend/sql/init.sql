@@ -27,14 +27,14 @@ create table if not exists target
 (
     target_id       serial      not null primary key,
     name            text        not null unique,
-    creation_date   timestamp   not null default now()
+    addition_date   timestamp   not null default now()
 );
 
 create table if not exists compound
 (
     compound_id     serial          not null primary key,
     name            text            not null unique,
-    creation_date   timestamp       not null default now(),
+    addition_date   timestamp       not null default now(),
     chemsoft_link   varchar(1000)   null
 );
 

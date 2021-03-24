@@ -53,7 +53,7 @@ compoundToResp CompoundRec{..} = do
   pure $ WithId (SqlId $ unSerial cCompoundId) $ CompoundResp
     { crName = cName
     , crChemSoft = url
-    , crAdditionDate = cCreationDate
+    , crAdditionDate = cAdditionDate
     }
 
 getCompound :: SqlId 'CompoundId -> Edna (WithId 'CompoundId CompoundResp)

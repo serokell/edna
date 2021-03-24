@@ -62,8 +62,8 @@ data TargetResp = TargetResp
   -- ^ Name of the target.
   , trProjects :: [Text]
   -- ^ Names of all projects where this target is involved.
-  , trCreationDate :: LocalTime
-  -- ^ Timestamp when the target was created (by uploading a file).
+  , trAdditionDate :: LocalTime
+  -- ^ Timestamp when this target was added to the system (by uploading a file).
   } deriving stock (Generic, Show)
 
 deriveJSON ednaAesonWebOptions ''TargetResp

@@ -80,7 +80,7 @@ deriving stock instance Eq (PrimaryKey TestMethodologyT Identity)
 data TargetT f = TargetRec
   { tTargetId :: C f (SqlSerial Word32)
   , tName :: C f Text
-  , tCreationDate :: C f LocalTime
+  , tAdditionDate :: C f LocalTime
   } deriving stock Generic
     deriving anyclass Beamable
 
@@ -105,7 +105,7 @@ deriving stock instance Eq (PrimaryKey TargetT Identity)
 data CompoundT f = CompoundRec
   { cCompoundId :: C f (SqlSerial Word32)
   , cName :: C f Text
-  , cCreationDate :: C f LocalTime
+  , cAdditionDate :: C f LocalTime
   , cChemsoftLink :: C (Nullable f) Text
   } deriving stock Generic
     deriving anyclass Beamable
