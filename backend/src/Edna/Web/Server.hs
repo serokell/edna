@@ -11,7 +11,8 @@ import Universum
 
 import qualified Network.Wai.Handler.Warp as Warp
 import RIO (runRIO)
-import Servant (Application, Handler, Server, hoistServer, serve, throwError)
+import Servant
+  (Application, Handler, NoContent(..), Server, hoistServer, serve, throwError, (:<|>)(..))
 
 import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
@@ -41,7 +42,8 @@ serveWeb addr app = do
 
 -- | Makes the @Server@ for Edna API, given 'EdnaContext'.
 ednaServer :: EdnaContext -> Server EdnaAPI
-ednaServer ctx = hoistServer ednaAPI (ednaToHandler ctx) ednaHandlers
+ednaServer ctx =
+  hoistServer ednaAPI (ednaToHandler ctx) (ednaHandlers :<|> pure NoContent)
 
 -- | Run 'Edna' action inside 'Handler' monad.
 --
