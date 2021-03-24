@@ -28,7 +28,7 @@ export default function CreatableSelect<T>({
   return (
     <Select<SelectOption>
       {...props}
-      value={value ? toOption(value) : undefined}
+      value={value ? toOption(value) : null}
       onChange={x => {
         const opt =
           optionsLoadable.state === "hasValue" && optionsLoadable.contents

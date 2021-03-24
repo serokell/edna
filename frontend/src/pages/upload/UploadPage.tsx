@@ -25,7 +25,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const methodologiesLoadable = useRecoilValueLoadable(methodologiesAtom);
   const [excelFile, setExcelFile] = useRecoilState(excelFileAtom);
 
-  // TODO reset form field on click Add another
   return (
     <PageLayout>
       <Formik<UploadForm>
@@ -60,111 +59,114 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           }
         }}
       >
-        <Form className="uploadingForm">
-          <div className="uploadingForm__uploadTitle">Upload file</div>
+        {({ resetForm }) => (
+          <Form className="uploadingForm">
+            <div className="uploadingForm__uploadTitle">Upload file</div>
 
-          <div className="uploadingForm__uploadAddButtons">
-            <CreateMethodologyButton />
-            <CreateProjectButton />
-          </div>
+            <div className="uploadingForm__uploadAddButtons">
+              <CreateMethodologyButton />
+              <CreateProjectButton />
+            </div>
 
-          <FormField<File>
-            name="file"
-            label="File"
-            className={
-              isDefined(excelFile)
-                ? "uploadingForm__uploadArea_hidden"
-                : "uploadingForm__uploadArea"
-            }
-          >
-            {field => <UploadArea {...field} />}
-          </FormField>
-
-          {isDefined(excelFile) && <UploadStatus />}
-
-          {(excelFile?.state === "parsed" || excelFile?.state === "added") && (
-            <UploadPreviewTable
-              viewEnabled={excelFile.state === "added"}
-              className="uploadingForm__previewTable"
-              targets={excelFile.targets}
-            />
-          )}
-
-          <FormField<Maybe<ProjectDto>>
-            required
-            name="project"
-            label="Project"
-            className="uploadingForm__project"
-          >
-            {field => (
-              <CreatableSelect
-                optionsLoadable={projectsLoadable}
-                placeholder="Select a project"
-                placeholderNo="No projects"
-                toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
-                tabIndex="2"
-                {...field}
-              />
-            )}
-          </FormField>
-
-          <FormField<Maybe<MethodologyDto>>
-            required
-            name="methodology"
-            label="Methodology"
-            className="uploadingForm__methodology"
-          >
-            {field => (
-              <CreatableSelect
-                {...field}
-                optionsLoadable={methodologiesLoadable}
-                placeholder="Select a methodology"
-                placeholderNo="No methodologies"
-                toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
-                tabIndex="3"
-              />
-            )}
-          </FormField>
-
-          <FormField<string>
-            name="description"
-            label="Description"
-            className="uploadingForm__description"
-          >
-            {field => (
-              <textarea
-                className="ednaTextarea uploadingForm__descriptionTextArea"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          {isParsed(excelFile) && (
-            <div className="uploadingForm__label">* marked will be created</div>
-          )}
-
-          <div className="uploadingForm__buttons">
-            <Button
-              disabled={!isParsed(excelFile)}
-              type="submit"
-              className="uploadingForm__submitBtn"
-              tabIndex={4}
+            <FormField<File>
+              name="file"
+              label="File"
+              className={
+                isDefined(excelFile)
+                  ? "uploadingForm__uploadArea_hidden"
+                  : "uploadingForm__uploadArea"
+              }
             >
-              Add experiments
-            </Button>
+              {field => <UploadArea {...field} />}
+            </FormField>
 
-            <Button
-              type="outlined"
-              tabIndex={5}
-              onClick={() => {
-                setExcelFile(undefined);
-              }}
+            {isDefined(excelFile) && <UploadStatus />}
+
+            {(excelFile?.state === "parsed" || excelFile?.state === "added") && (
+              <UploadPreviewTable
+                viewEnabled={excelFile.state === "added"}
+                className="uploadingForm__previewTable"
+                targets={excelFile.targets}
+              />
+            )}
+
+            <FormField<Maybe<ProjectDto>>
+              required
+              name="project"
+              label="Project"
+              className="uploadingForm__project"
             >
-              Upload another one
-            </Button>
-          </div>
-        </Form>
+              {field => (
+                <CreatableSelect
+                  optionsLoadable={projectsLoadable}
+                  placeholder="Select a project"
+                  placeholderNo="No projects"
+                  toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
+                  tabIndex="2"
+                  {...field}
+                />
+              )}
+            </FormField>
+
+            <FormField<Maybe<MethodologyDto>>
+              required
+              name="methodology"
+              label="Methodology"
+              className="uploadingForm__methodology"
+            >
+              {field => (
+                <CreatableSelect
+                  {...field}
+                  optionsLoadable={methodologiesLoadable}
+                  placeholder="Select a methodology"
+                  placeholderNo="No methodologies"
+                  toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
+                  tabIndex="3"
+                />
+              )}
+            </FormField>
+
+            <FormField<string>
+              name="description"
+              label="Description"
+              className="uploadingForm__description"
+            >
+              {field => (
+                <textarea
+                  className="ednaTextarea uploadingForm__descriptionTextArea"
+                  value={field.value}
+                  onChange={e => field.onChange(e.target.value)}
+                />
+              )}
+            </FormField>
+
+            {isParsed(excelFile) && (
+              <div className="uploadingForm__label">* marked will be created</div>
+            )}
+
+            <div className="uploadingForm__buttons">
+              <Button
+                disabled={!isParsed(excelFile)}
+                type="submit"
+                className="uploadingForm__submitBtn"
+                tabIndex={4}
+              >
+                Add experiments
+              </Button>
+
+              <Button
+                type="outlined"
+                tabIndex={5}
+                onClick={() => {
+                  setExcelFile(undefined);
+                  resetForm();
+                }}
+              >
+                Upload another one
+              </Button>
+            </div>
+          </Form>
+        )}
       </Formik>
 
       <div className="uploadResult">
