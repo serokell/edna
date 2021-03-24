@@ -20,10 +20,12 @@ import Database.Beam.Postgres (PgJSON(..))
 import Hedgehog.Range (constant)
 
 import Edna.DB.Schema
-  (AnalysisMethodRec, AnalysisMethodT(..), CompoundRec, CompoundT(..), ExperimentFileRec,
-  ExperimentFileT(..), ExperimentRec, ExperimentT(..), MeasurementRec, MeasurementT(..), ProjectRec,
-  ProjectT(..), RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec,
-  SubExperimentT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
+  (AnalysisMethodRec, AnalysisMethodT(..), ExperimentFileRec, ExperimentFileT(..), ExperimentRec,
+  ExperimentT(..), MeasurementRec, MeasurementT(..), RemovedMeasurementsRec,
+  RemovedMeasurementsT(..), SubExperimentRec, SubExperimentT(..))
+import Edna.Library.DB.Schema
+  (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
+  TestMethodologyT(..))
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
   genURI)
@@ -46,13 +48,13 @@ genTestMethodologyRec testMethodologyId = do
 genTargetRec :: Gen.MonadGen m => Word32 -> m TargetRec
 genTargetRec targetId = do
   tName <- genName
-  tCreationDate <- genLocalTime
+  tAdditionDate <- genLocalTime
   pure TargetRec {tTargetId = SqlSerial targetId, ..}
 
 genCompoundRec :: Gen.MonadGen m => Word32 -> m CompoundRec
 genCompoundRec compoundId = do
   cName <- genName
-  cCreationDate <- genLocalTime
+  cAdditionDate <- genLocalTime
   cChemsoftLink <- show <<$>> Gen.maybe genURI
   pure CompoundRec {cCompoundId = SqlSerial compoundId, ..}
 

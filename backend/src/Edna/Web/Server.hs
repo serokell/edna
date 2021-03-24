@@ -17,6 +17,7 @@ import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
 import Edna.ExperimentReader.Error (ExperimentParsingError)
+import Edna.Library.Error (LibraryError)
 import Edna.Setup (Edna, EdnaContext)
 import Edna.Upload.Error (UploadApiError, UploadError)
 import Edna.Util (NetworkAddress(..))
@@ -52,6 +53,7 @@ ednaToHandler ctx action =
   `catch` throwPurely @ExperimentParsingError
   `catch` throwPurely @UploadError
   `catch` throwPurely @UploadApiError
+  `catch` throwPurely @LibraryError
   `catch` throwError   -- catch 'ServantError'
   where
     throwPurely :: ToServerError e => e -> Handler a

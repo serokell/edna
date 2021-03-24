@@ -11,15 +11,14 @@ module Test.Gen
     -- * Hedgehog
     genSqlId
   , genWithId
-  , genWithExtra
   , genStubSortBy
   , genNameAndId
   , genFileSummaryItem
-  , genProject
-  , genProjectExtra
-  , genTestMethodology
-  , genCompound
-  , genTarget
+  , genProjectReq
+  , genProjectResp
+  , genMethodologyReqResp
+  , genCompoundResp
+  , genTargetResp
   , genName
   , genURI
   , genDescription
@@ -48,7 +47,10 @@ import Test.QuickCheck.Hedgehog (hedgehog)
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
+import Edna.Library.Web.Types
+  (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
 import Edna.Upload.API (ExperimentalMeasurement(..))
+import Edna.Util (SqlId(..))
 import Edna.Web.Types
 
 ----------------
@@ -58,11 +60,8 @@ import Edna.Web.Types
 genSqlId :: MonadGen m => m (SqlId t)
 genSqlId = SqlId <$> Gen.integral (Range.constant 0 100)
 
-genWithId :: MonadGen m => m t -> m (WithId t)
+genWithId :: MonadGen m => m t -> m (WithId k t)
 genWithId genT = WithId <$> genSqlId <*> genT
-
-genWithExtra :: MonadGen m => m t -> m e -> m (WithExtra t e)
-genWithExtra genT genE = WithExtra <$> genSqlId <*> genT <*> genE
 
 genStubSortBy :: MonadGen m => m StubSortBy
 genStubSortBy = Gen.element [SortByName, SortBySomething]
@@ -98,36 +97,38 @@ genFileSummaryItem = do
   compounds <- Gen.list (Range.linear 0 10) genNameAndId
   FileSummaryItem <$> genNameAndId <*> pure compounds
 
-genProject :: MonadGen m => m Project
-genProject = Project <$> genName <*> genDescription
+genProjectReq :: MonadGen m => m ProjectReq
+genProjectReq = ProjectReq <$> genName <*> Gen.maybe genDescription
 
-genProjectExtra :: MonadGen m => m ProjectExtra
-genProjectExtra = do
-  peCreationDate <- Gen.integral (Range.constant 0 1000)
-  peLastUpdate <- Gen.integral (Range.constant 1000 10000)
-  peCompoundNames <- Gen.list (Range.linear 0 10) genName
-  return ProjectExtra {..}
+genProjectResp :: MonadGen m => m ProjectResp
+genProjectResp = do
+  prName <- genName
+  prDescription <- Gen.maybe genDescription
+  prCreationDate <- genLocalTime
+  prLastUpdate <- genLocalTime
+  prCompoundNames <- Gen.list (Range.linear 0 10) genName
+  return ProjectResp {..}
 
-genTestMethodology :: MonadGen m => m TestMethodology
-genTestMethodology = do
-  tmName <- genName
-  tmDescription <- genDescription
-  tmConfluence <- genURI
-  return TestMethodology {..}
+genMethodologyReqResp :: MonadGen m => m MethodologyReqResp
+genMethodologyReqResp = do
+  mrpName <- genName
+  mrpDescription <- Gen.maybe genDescription
+  mrpConfluence <- Gen.maybe genURI
+  return MethodologyReqResp {..}
 
-genCompound :: MonadGen m => m Compound
-genCompound = do
-  cName <- genName
-  cChemSoft <- Gen.maybe genURI
-  cAdditionDate <- Gen.integral (Range.constant 0 1000)
-  return Compound {..}
+genCompoundResp :: MonadGen m => m CompoundResp
+genCompoundResp = do
+  crName <- genName
+  crChemSoft <- Gen.maybe genURI
+  crAdditionDate <- genLocalTime
+  return CompoundResp {..}
 
-genTarget :: MonadGen m => m Target
-genTarget = do
-  tName <- genName
-  tProjects <- Gen.list (Range.linear 0 5) genName
-  tCreationDate <- Gen.integral (Range.constant 0 1000)
-  return Target {..}
+genTargetResp :: MonadGen m => m TargetResp
+genTargetResp = do
+  trName <- genName
+  trProjects <- Gen.list (Range.linear 0 5) genName
+  trAdditionDate <- genLocalTime
+  return TargetResp {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
 genFileContents genTargetName genCompoundName = do
@@ -212,11 +213,8 @@ instance Arbitrary ExperimentalMeasurement where
 
 deriving newtype instance Arbitrary (SqlId t)
 
-instance Arbitrary t => Arbitrary (WithId t) where
+instance Arbitrary t => Arbitrary (WithId k t) where
   arbitrary = hedgehog $ genWithId HQC.arbitrary
-
-instance (Arbitrary t, Arbitrary e) => Arbitrary (WithExtra t e) where
-  arbitrary = hedgehog $ genWithExtra HQC.arbitrary HQC.arbitrary
 
 instance Arbitrary StubSortBy where
   arbitrary = hedgehog genStubSortBy
@@ -232,17 +230,17 @@ instance Arbitrary (NameAndId t) where
 instance Arbitrary FileSummaryItem where
   arbitrary = hedgehog genFileSummaryItem
 
-instance Arbitrary Project where
-  arbitrary = hedgehog genProject
+instance Arbitrary ProjectReq where
+  arbitrary = hedgehog genProjectReq
 
-instance Arbitrary ProjectExtra where
-  arbitrary = hedgehog genProjectExtra
+instance Arbitrary ProjectResp where
+  arbitrary = hedgehog genProjectResp
 
-instance Arbitrary TestMethodology where
-  arbitrary = hedgehog genTestMethodology
+instance Arbitrary MethodologyReqResp where
+  arbitrary = hedgehog genMethodologyReqResp
 
-instance Arbitrary Compound where
-  arbitrary = hedgehog genCompound
+instance Arbitrary CompoundResp where
+  arbitrary = hedgehog genCompoundResp
 
-instance Arbitrary Target where
-  arbitrary = hedgehog genTarget
+instance Arbitrary TargetResp where
+  arbitrary = hedgehog genTargetResp

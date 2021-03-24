@@ -7,8 +7,8 @@ create table if not exists project
     project_id    serial    not null primary key,
     name          text      not null unique,
     description   text      null,
-    creation_date timestamp not null,
-    last_update   timestamp not null
+    creation_date timestamp not null default now (),
+    last_update   timestamp not null default now ()
 );
 
 -- Describes how signals were measured and what they denote (their semantics).
@@ -27,14 +27,14 @@ create table if not exists target
 (
     target_id       serial      not null primary key,
     name            text        not null unique,
-    creation_date   timestamp   not null default now()
+    addition_date   timestamp   not null default now()
 );
 
 create table if not exists compound
 (
     compound_id     serial          not null primary key,
     name            text            not null unique,
-    creation_date   timestamp       not null default now(),
+    addition_date   timestamp       not null default now(),
     chemsoft_link   varchar(1000)   null
 );
 

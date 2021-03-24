@@ -2,11 +2,20 @@ module Edna.Util
   ( NetworkAddress (..)
   , ConnString (..)
   , DatabaseInitOption (..)
+  , SqlId (..)
+  , IdType (..)
+  , TargetId
+  , CompoundId
+  , MethodologyId
+  , ProjectId
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   , schemaOptions
   , gDeclareNamedSchema
   , gToParamSchema
+  , justOrThrow
+  , nothingOrThrow
+  , ensureOrThrow
   ) where
 
 import Universum
@@ -14,6 +23,7 @@ import Universum
 import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), withText)
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Casing as AC
+import Data.Swagger (ToParamSchema, ToSchema)
 import qualified Data.Swagger as S
 import Data.Swagger.Declare (Declare)
 import Data.Swagger.Internal (ParamSchema)
@@ -23,6 +33,7 @@ import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
 import Data.Swagger.SchemaOptions (SchemaOptions, fromAesonOptions)
 import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified GHC.Generics as G
+import Servant (FromHttpApiData(..))
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Read (Read(..), read)
 import qualified Text.Show
@@ -126,3 +137,46 @@ gToParamSchema
        )
     => Proxy a -> ParamSchema t
 gToParamSchema = genericToParamSchema schemaOptions
+
+----------------
+-- Util
+----------------
+
+justOrThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m a
+justOrThrow e = maybe (throwM e) pure
+
+nothingOrThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m ()
+nothingOrThrow e = maybe (pure ()) (\_ -> throwM e)
+
+ensureOrThrow :: (MonadThrow  m, Exception e) => e -> Bool -> m ()
+ensureOrThrow e b
+  | b = pure ()
+  | otherwise = throwM e
+
+----------------
+-- SqlId
+----------------
+
+-- | A simple wrapper over 'Word32'. At the data layer, we identify all entities
+-- with numeric IDs and this data type corresponds to such an ID.
+-- It has a phantom parameter type of a custom 'IdType' kind.
+-- This parameter helps us statically distinguish IDs of different entities
+-- (such as target, compound, etc.).
+newtype SqlId (t :: IdType) = SqlId
+  { unSqlId :: Word32
+  } deriving stock (Generic, Show, Eq, Ord)
+    deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema, Hashable)
+
+instance Buildable (SqlId t) where
+  build (SqlId n) = "ID#" <> build n
+
+instance ToParamSchema (SqlId t) where
+  toParamSchema = gToParamSchema
+
+-- | Kind used for phantom parameter in 'SqlId'.
+data IdType = TargetId | CompoundId | MethodologyId | ProjectId
+
+type TargetId = SqlId 'TargetId
+type CompoundId = SqlId 'CompoundId
+type MethodologyId = SqlId 'MethodologyId
+type ProjectId = SqlId 'ProjectId
