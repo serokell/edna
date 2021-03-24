@@ -5,9 +5,7 @@
   flex-direction: column;
   max-width: $container-max-width;
 
-  padding-top: 62 * $px;
-  padding-right: $container-side-padding;
-  padding-left: $container-side-padding;
+  padding: (62 * $px) $container-side-padding;
   margin-right: auto;
   margin-left: auto;
 }

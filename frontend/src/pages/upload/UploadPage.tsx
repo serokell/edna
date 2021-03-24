@@ -10,7 +10,7 @@ import { excelFileAtom, methodologiesAtom, projectsAtom } from "../../store/atom
 import CreatableSelect from "../../components/CreatableSelect";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
-import { isParsed, Methodology, Project } from "../../store/types";
+import { isParsed, Methodology } from "../../store/types";
 import { UploadStatus } from "../../components/UploadStatus/UploadStatus";
 import { UploadPreviewTable } from "../../components/UploadPreviewTable/UploadPreviewTable";
 import { Button } from "../../components/Button/Button";
@@ -18,6 +18,7 @@ import PageLayout from "../../components/PageLayout/PageLayout";
 import { UploadForm, uploadFormToApi } from "./uploadForm";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
+import { ProjectDto } from "../../api/types";
 
 export const UploadPage: FunctionComponent = (): ReactElement => {
   const projectsLoadable = useRecoilValueLoadable(projectsAtom);
@@ -87,7 +88,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
             />
           )}
 
-          <FormField<Maybe<Project>>
+          <FormField<Maybe<ProjectDto>>
             required
             name="project"
             label="Project"
@@ -98,7 +99,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                 optionsLoadable={projectsLoadable}
                 placeholder="Select a project"
                 placeholderNo="No projects"
-                toOption={proj => ({ value: `${proj.projectId}`, label: proj.name })}
+                toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
                 tabIndex="2"
                 {...field}
               />

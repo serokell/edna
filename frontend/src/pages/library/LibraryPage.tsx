@@ -3,11 +3,15 @@ import { useRecoilValue } from "recoil";
 import cx from "classnames";
 import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
-import { methodologiesAtom, projectsAtom } from "../../store/atoms";
+import { compoundsAtom, methodologiesAtom, projectsAtom, targetsAtom } from "../../store/atoms";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
+import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
+import { formatTimestamp } from "../../utils/utils";
+import DotsSvg from "../../assets/svg/dots.svg";
+import { MethodologyPlate } from "../../components/MethodologyPlate/MethodologyPlate";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -21,21 +25,7 @@ export const LibraryPage: FunctionComponent = () => {
           return <></>;
         }}
         render={entity => {
-          if (entity === "project") {
-            return (
-              <SuspenseSpinner>
-                <ProjectsSuspendable />
-              </SuspenseSpinner>
-            );
-          }
-          if (entity === "methodology") {
-            return (
-              <SuspenseSpinner>
-                <MethodsSuspendable />
-              </SuspenseSpinner>
-            );
-          }
-          return <>Not implemented yet</>;
+          return <SuspenseSpinner>{suspendables[entity]()}</SuspenseSpinner>;
         }}
       />
     </PageLayout>
@@ -47,6 +37,13 @@ const entities = {
   compound: "Compounds",
   target: "Targets",
   methodology: "Methodologies",
+};
+
+const suspendables = {
+  project: () => <ProjectsSuspendable />,
+  compound: () => <CompoundsSuspendable />,
+  target: () => <TargetsSuspendable />,
+  methodology: () => <MethodsSuspendable />,
 };
 
 type EntityType = keyof typeof entities;
@@ -79,17 +76,97 @@ function EntitiesTab({ render, renderAddButton }: EntitiesTabProps) {
   );
 }
 
+const extraFormatter = (compounds: string[]) => {
+  if (compounds.length <= 4) return compounds.join(", ");
+  return `${compounds.slice(0, 4).join(", ")} and ${compounds.length - 4} more`;
+};
+
 function ProjectsSuspendable() {
   const projects = useRecoilValue(projectsAtom);
   const projectColumns = React.useMemo(
     () => [
       {
         Header: "Project",
-        accessor: "name" as const, // accessor is the "key" in the data
+        accessor: (p: ProjectDto) => p.item.name,
       },
       {
-        Header: "Description",
-        accessor: "description" as const,
+        Header: "Compounds",
+        accessor: (p: ProjectDto) => (
+          <span className="project__compounds">{extraFormatter(p.extra.compoundNames)}</span>
+        ),
+      },
+      {
+        Header: "Creation date",
+        accessor: (p: ProjectDto) => formatTimestamp(p.extra.creationDate),
+      },
+      {
+        Header: "Last update",
+        accessor: (p: ProjectDto) => formatTimestamp(p.extra.lastUpdate),
+      },
+      {
+        id: "actions",
+        accessor: () => (
+          <div className="contextActions">
+            <DotsSvg />
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+  return <Table mode="bordered" data={projects} columns={projectColumns} />;
+}
+
+function CompoundsSuspendable() {
+  const projects = useRecoilValue(compoundsAtom);
+  const projectColumns = React.useMemo(
+    () => [
+      {
+        Header: "Compounds",
+        accessor: (c: CompoundDto) => c.item.name,
+      },
+      {
+        Header: "MDe link",
+        // TODO form MDe link
+        accessor: (c: CompoundDto) => <a href={c.item.name}>mde.io</a>,
+      },
+      {
+        id: "actions",
+        accessor: () => (
+          <div className="contextActions">
+            <DotsSvg />
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+  return <Table mode="bordered" data={projects} columns={projectColumns} />;
+}
+
+function TargetsSuspendable() {
+  const projects = useRecoilValue(targetsAtom);
+  const projectColumns = React.useMemo(
+    () => [
+      {
+        Header: "Target",
+        accessor: (t: TargetDto) => t.item.name,
+      },
+      {
+        Header: "Projects",
+        accessor: (t: TargetDto) => extraFormatter(t.item.projects),
+      },
+      {
+        Header: "Creation date",
+        accessor: (t: TargetDto) => formatTimestamp(t.creationDate),
+      },
+      {
+        id: "actions",
+        accessor: () => (
+          <div className="contextActions">
+            <DotsSvg />
+          </div>
+        ),
       },
     ],
     []
@@ -99,14 +176,11 @@ function ProjectsSuspendable() {
 
 function MethodsSuspendable() {
   const methodologies = useRecoilValue(methodologiesAtom);
-  const methodologiesColumns = React.useMemo(
-    () => [
-      {
-        Header: "Methodology",
-        accessor: "name" as const, // accessor is the "key" in the data
-      },
-    ],
-    []
+  return (
+    <>
+      {methodologies.map(m => (
+        <MethodologyPlate key={m.name} title={m.name} description={m?.description} />
+      ))}
+    </>
   );
-  return <Table mode="bordered" data={methodologies} columns={methodologiesColumns} />;
 }

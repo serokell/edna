@@ -15,6 +15,14 @@
   letter-spacing: 0;
 }
 
+@mixin headline2() {
+  font-size: 18 * $px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 23 * $px;
+  text-align: left;
+  letter-spacing: 0;
+}
 
 @mixin paragraph-p2() {
   font-size: 12 * $px;

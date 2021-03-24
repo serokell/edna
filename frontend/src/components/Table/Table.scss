@@ -5,6 +5,7 @@
   $head-vertical-padding: 20 * $px;
   $head-line-height: 17 * $px;
   $cell-indent: 20 * $px;
+  width: 100%;
   border-spacing: 0;
 
   &__columnHead {
@@ -13,10 +14,10 @@
     padding: $head-vertical-padding 0 $head-vertical-padding $cell-indent;
 
     font-size: 14 * $px;
-    font-weight: 400;
+    font-weight: 500;
     line-height: $head-line-height;
 
-    color: #9ba5a1;
+    color: $color-black;
     text-align: left;
     background-color: white;
     border-bottom: $px solid $border-color;
