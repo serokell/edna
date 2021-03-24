@@ -16,6 +16,9 @@ renderURI = show
 
 -- | Parse 'URI' from the format we use to communicate with outer world.
 --
--- TODO: is 'URI.parseURI' the right function? There are other parsing functions.
+-- Currently parsing logic is very permissive and accepts absolute and relative
+-- URIs with optional fragment identifier.
+-- So even empty URI is permitted.
+-- We can make it stricter later if we want.
 parseURI :: Text -> Maybe URI
-parseURI = URI.parseURI . toString
+parseURI = URI.parseURIReference . toString
