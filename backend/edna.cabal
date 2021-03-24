@@ -120,6 +120,7 @@ test-suite edna-test
       Test.SMT.State
       Test.SwaggerSpec
       Test.UploadSpec
+      Test.Util.URISpec
       Paths_edna
   hs-source-dirs:
       test
@@ -144,7 +145,8 @@ test-suite edna-test
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:
-      beam-core
+      aeson
+    , beam-core
     , beam-postgres
     , bytestring
     , containers
