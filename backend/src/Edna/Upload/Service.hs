@@ -27,7 +27,7 @@ import Edna.DB.Integration
 import Edna.DB.Schema
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
-import Edna.Library.DB.Schema
+import Edna.Library.DB.Schema as LDB
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
 import Edna.Util as U (IdType(..), SqlId(..))
@@ -81,18 +81,18 @@ measurementsToSummary =
 
 -- | Parse an experiment data file and save it to DB.
 uploadFile ::
-  SqlId Project -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
+  SqlId 'U.ProjectId -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
   Edna FileSummary
 uploadFile proj methodology description fileName content = do
   uploadFile' proj methodology description fileName content =<<
     either throwM pure (parseExperimentXls content)
 
 uploadFile' ::
-  SqlId Project -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
+  SqlId 'U.ProjectId -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
   FileContents -> Edna FileSummary
 uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
   description fileName fileBytes fc = do
-    let projId = ProjectId $ fromIntegral proj
+    let projId = LDB.ProjectId $ fromIntegral proj
     let methodId = TestMethodologyId $ fromIntegral method
     runSelectReturningOne' (lookup_ (esProject ednaSchema) projId)
       `whenNothingM_`

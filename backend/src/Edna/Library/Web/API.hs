@@ -1,7 +1,11 @@
 -- | Library-related part of API definition along with implementation.
 
 module Edna.Library.Web.API
-  ( TargetEndpoints (..)
+  ( ProjectEndpoints (..)
+  , ProjectAPI
+  , projectEndpoints
+
+  , TargetEndpoints (..)
   , TargetAPI
   , targetEndpoints
 
@@ -22,12 +26,62 @@ import Servant.API.Generic ((:-), AsApi, ToServant)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Library.Service
-  (addMethodology, deleteMethodology, editChemSoft, getCompound, getCompounds, getMethodologies,
-  getMethodology, getTarget, getTargets, updateMethodology)
-import Edna.Library.Web.Types (CompoundResp, MethodologyReqResp, TargetResp)
+  (addMethodology, addProject, deleteMethodology, editChemSoft, getCompound, getCompounds,
+  getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
+  updateMethodology, updateProject)
+import Edna.Library.Web.Types
+  (CompoundResp, MethodologyReqResp, ProjectReq, ProjectResp, TargetResp)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..))
 import Edna.Web.Types (StubSortBy, URI, WithId)
+
+-- TODO: pagination and sorting are just stubs for now (everywhere).
+-- Most likely we will use @servant-util@ to implement them,
+-- but let's do it later.
+
+-- | Endpoints related to projects.
+data ProjectEndpoints route = ProjectEndpoints
+  { -- | Add a new project.
+    peAddProject :: route
+      :- "project"
+      :> Summary "Add a new project"
+      :> ReqBody '[JSON] ProjectReq
+      :> Post '[JSON] (WithId 'ProjectId ProjectResp)
+
+  , -- | Update an existing project.
+    peEditProject :: route
+      :- "project"
+      :> Summary "Update an existing project"
+      :> Capture "projectId" (SqlId 'ProjectId)
+      :> ReqBody '[JSON] ProjectReq
+      :> Put '[JSON] (WithId 'ProjectId ProjectResp)
+
+  , -- | Get known projects with optional pagination and sorting
+    peGetProjects :: route
+      :- "projects"
+      :> Summary "Get known projects"
+      :> QueryParam "page" Word
+      :> QueryParam "size" Word
+      :> QueryParam "sortby" StubSortBy
+      :> Get '[JSON] [WithId 'ProjectId ProjectResp]
+
+  , -- | Get project data by ID
+    peGetProject :: route
+      :- "project"
+      :> Summary "Get project data by ID"
+      :> Capture "projectId" (SqlId 'ProjectId)
+      :> Get '[JSON] (WithId 'ProjectId ProjectResp)
+  } deriving stock (Generic)
+
+type ProjectAPI = ToServant ProjectEndpoints AsApi
+
+projectEndpoints :: ToServant ProjectEndpoints (AsServerT Edna)
+projectEndpoints = genericServerT ProjectEndpoints
+  { peAddProject = addProject
+  , peEditProject = updateProject
+  , peGetProjects = getProjects
+  , peGetProject = getProject
+  }
 
 -- | Endpoints related to methodologies.
 data MethodologyEndpoints route = MethodologyEndpoints

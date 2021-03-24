@@ -42,7 +42,7 @@ data FileUploadEndpoints route = FileUploadEndpoints
     fueUploadFile :: route
       :- "upload"
       :> Summary "Upload the file with some methodology and project"
-      :> Capture "projectId" (SqlId Project)
+      :> Capture "projectId" (SqlId 'ProjectId)
       :> Capture "methodologyId" (SqlId 'MethodologyId)
       :> Capture "description" Text
       :> MultipartForm Mem (MultipartData Mem)

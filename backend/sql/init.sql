@@ -7,8 +7,8 @@ create table if not exists project
     project_id    serial    not null primary key,
     name          text      not null unique,
     description   text      null,
-    creation_date timestamp not null,
-    last_update   timestamp not null
+    creation_date timestamp not null default now (),
+    last_update   timestamp not null default now ()
 );
 
 -- Describes how signals were measured and what they denote (their semantics).

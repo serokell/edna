@@ -12,6 +12,10 @@ module Edna.Library.Service
   , deleteMethodology
   , addMethodology
   , updateMethodology
+  , getProject
+  , getProjects
+  , addProject
+  , updateProject
   ) where
 
 import Universum
@@ -21,9 +25,11 @@ import qualified Edna.Library.DB.Query as Q
 import Database.Beam.Backend (SqlSerial(..))
 import Servant.API (NoContent(..))
 
-import Edna.Library.DB.Schema (CompoundRec, CompoundT(..), TestMethodologyRec, TestMethodologyT(..))
+import Edna.Library.DB.Schema
+  (CompoundRec, CompoundT(..), ProjectT(..), TestMethodologyRec, TestMethodologyT(..))
 import Edna.Library.Error (LibraryError(..))
-import Edna.Library.Web.Types (CompoundResp(..), MethodologyReqResp(..), TargetResp)
+import Edna.Library.Web.Types
+  (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp, TargetResp)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, nothingOrThrow)
 import Edna.Util.URI (parseURI, renderURI)
@@ -110,3 +116,28 @@ updateMethodology mId@(SqlId methodologyId) tm@MethodologyReqResp{..} = do
 deleteMethodology :: SqlId 'MethodologyId -> Edna NoContent
 deleteMethodology methodologySqlId =
   Q.deleteMethodology methodologySqlId >> pure NoContent
+
+getProject :: SqlId 'ProjectId -> Edna (WithId 'ProjectId ProjectResp)
+getProject projectSqlId =
+  Q.getProjectWithCompoundsById projectSqlId >>= justOrThrow (LEProjectNotFound projectSqlId)
+
+getProjects :: Maybe Word -> Maybe Word -> Maybe StubSortBy -> Edna [WithId 'ProjectId ProjectResp]
+getProjects _ _ _ = Q.getProjectsWithCompounds
+
+addProject :: ProjectReq -> Edna (WithId 'ProjectId ProjectResp)
+addProject p@ProjectReq{..} = do
+  Q.getProjectByName prqName >>= nothingOrThrow (LEProjectNameExists prqName)
+  ProjectRec{..} <- Q.insertProject p
+  getProject $ SqlId $ unSerial pProjectId
+
+updateProject
+  :: SqlId 'ProjectId
+  -> ProjectReq
+  -> Edna (WithId 'ProjectId ProjectResp)
+updateProject pId@(SqlId projectId) p@ProjectReq{..} = do
+  existingProject <- Q.getProjectByName prqName
+  case existingProject of
+    Just pRec -> ensureOrThrow (LEProjectNameExists prqName) $
+      pProjectId pRec == SqlSerial projectId
+    Nothing -> pure ()
+  Q.updateProject pId p >> getProject pId

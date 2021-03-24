@@ -15,8 +15,8 @@ module Test.Gen
   , genStubSortBy
   , genNameAndId
   , genFileSummaryItem
-  , genProject
-  , genProjectExtra
+  , genProjectReq
+  , genProjectResp
   , genMethodologyReqResp
   , genCompoundResp
   , genTargetResp
@@ -48,7 +48,8 @@ import Test.QuickCheck.Hedgehog (hedgehog)
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
-import Edna.Library.Web.Types (CompoundResp(..), MethodologyReqResp(..), TargetResp(..))
+import Edna.Library.Web.Types
+  (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
 import Edna.Upload.API (ExperimentalMeasurement(..))
 import Edna.Util (SqlId(..))
 import Edna.Web.Types
@@ -100,15 +101,17 @@ genFileSummaryItem = do
   compounds <- Gen.list (Range.linear 0 10) genNameAndId
   FileSummaryItem <$> genNameAndId <*> pure compounds
 
-genProject :: MonadGen m => m Project
-genProject = Project <$> genName <*> genDescription
+genProjectReq :: MonadGen m => m ProjectReq
+genProjectReq = ProjectReq <$> genName <*> Gen.maybe genDescription
 
-genProjectExtra :: MonadGen m => m ProjectExtra
-genProjectExtra = do
-  peCreationDate <- Gen.integral (Range.constant 0 1000)
-  peLastUpdate <- Gen.integral (Range.constant 1000 10000)
-  peCompoundNames <- Gen.list (Range.linear 0 10) genName
-  return ProjectExtra {..}
+genProjectResp :: MonadGen m => m ProjectResp
+genProjectResp = do
+  prName <- genName
+  prDescription <- Gen.maybe genDescription
+  prCreationDate <- genLocalTime
+  prLastUpdate <- genLocalTime
+  prCompoundNames <- Gen.list (Range.linear 0 10) genName
+  return ProjectResp {..}
 
 genMethodologyReqResp :: MonadGen m => m MethodologyReqResp
 genMethodologyReqResp = do
@@ -234,11 +237,11 @@ instance Arbitrary (NameAndId t) where
 instance Arbitrary FileSummaryItem where
   arbitrary = hedgehog genFileSummaryItem
 
-instance Arbitrary Project where
-  arbitrary = hedgehog genProject
+instance Arbitrary ProjectReq where
+  arbitrary = hedgehog genProjectReq
 
-instance Arbitrary ProjectExtra where
-  arbitrary = hedgehog genProjectExtra
+instance Arbitrary ProjectResp where
+  arbitrary = hedgehog genProjectResp
 
 instance Arbitrary MethodologyReqResp where
   arbitrary = hedgehog genMethodologyReqResp

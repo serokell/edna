@@ -10,6 +10,12 @@ module Edna.Library.DB.Query
   , deleteMethodology
   , insertMethodology
   , updateMethodology
+  , getProjectById
+  , getProjectByName
+  , getProjectWithCompoundsById
+  , getProjectsWithCompounds
+  , insertProject
+  , updateProject
   ) where
 
 import Universum
@@ -24,11 +30,12 @@ import Database.Beam.Query
 
 import Edna.DB.Integration
   (runDelete', runInsertReturningOne', runSelectReturningList', runSelectReturningOne', runUpdate')
-import Edna.DB.Schema
-  (EdnaSchema(..), ExperimentFileT(..), ExperimentT(..), ProjectRec, ProjectT(..), ednaSchema)
+import Edna.DB.Schema (EdnaSchema(..), ExperimentFileT(..), ExperimentT(..), ednaSchema)
 import Edna.Library.DB.Schema as LDB
-  (CompoundRec, CompoundT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
-import Edna.Library.Web.Types (MethodologyReqResp(..), TargetResp(..))
+  (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
+  TestMethodologyT(..))
+import Edna.Library.Web.Types
+  (MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..), TargetId)
 import Edna.Util.URI (renderURI)
@@ -133,3 +140,87 @@ deleteMethodology :: SqlId 'MethodologyId -> Edna ()
 deleteMethodology (SqlId methodologyId) =
   runDelete' $ delete (esTestMethodology ednaSchema) $
   \m -> tmTestMethodologyId m ==. val_ (SqlSerial methodologyId)
+
+projectToDomain
+  :: SqlId 'ProjectId
+  -> ProjectRec
+  -> [Maybe CompoundRec]
+  -> WithId 'ProjectId ProjectResp
+projectToDomain projectSqlId ProjectRec{..} compounds = WithId projectSqlId $ ProjectResp
+  { prName = pName
+  , prDescription = pDescription
+  , prCreationDate = pCreationDate
+  , prLastUpdate = pLastUpdate
+  , prCompoundNames = mapMaybe (fmap cName) compounds
+  }
+
+getProjectById :: SqlId 'ProjectId -> Edna (Maybe ProjectRec)
+getProjectById (SqlId projectId) = runSelectReturningOne' $ select $ do
+  projects <- all_ $ esProject ednaSchema
+  guard_ (pProjectId projects ==. val_ (SqlSerial projectId))
+  pure projects
+
+getProjectByName :: Text -> Edna (Maybe ProjectRec)
+getProjectByName name = runSelectReturningOne' $ select $ do
+  projects <- all_ $ esProject ednaSchema
+  guard_ (pName projects ==. val_ name)
+  pure projects
+
+getProjectWithCompoundsById :: SqlId 'ProjectId -> Edna (Maybe (WithId 'ProjectId ProjectResp))
+getProjectWithCompoundsById projectSqlId = do
+  projectWithCompounds <- projectsWithCompounds $ Just projectSqlId
+  case projectWithCompounds of
+    [] -> pure Nothing
+    xs@((project, _) : _) -> pure $ Just $ projectToDomain projectSqlId project $ map snd xs
+
+getProjectsWithCompounds :: Edna [WithId 'ProjectId ProjectResp]
+getProjectsWithCompounds = do
+  projects <- projectsWithCompounds Nothing
+  let groupedProjects = L.groupBy
+        (\(p1, _) (p2, _) -> pProjectId p1 == pProjectId p2) projects
+  pure $ foldr getProject [] groupedProjects
+  where
+    getProject project projects = case project of
+      xs@((p, _) : _) ->
+        projectToDomain (SqlId $ unSerial $ pProjectId p) p (map snd xs) : projects
+      _ -> projects
+
+projectsWithCompounds :: Maybe (SqlId 'ProjectId) -> Edna [(ProjectRec, Maybe CompoundRec)]
+projectsWithCompounds projectSqlId = runSelectReturningList' $ select $
+  orderBy_ (\(t, _) -> asc_ $ pProjectId t) $
+  pgNubBy_ (bimap pProjectId cCompoundId) $
+  filter_ specificProject do
+    let EdnaSchema {..} = ednaSchema
+    projects <- all_ esProject
+    files <- leftJoin_ (all_ esExperimentFile) $
+      \f -> efProjectId f ==. cast_ (pProjectId projects) int
+    experiments <- leftJoin_ (all_ esExperiment) $
+      \e -> eExperimentFileId e ==. cast_ (efExperimentFileId files) int
+    compounds <- leftJoin_ (all_ esCompound) $
+      \c -> just_ (cast_ (cCompoundId c) int) ==. eCompoundId experiments
+    pure (projects, compounds)
+  where
+    specificProject = case projectSqlId of
+      Just (SqlId projectId) -> \(t, _) -> pProjectId t ==. val_ (SqlSerial projectId)
+      Nothing -> \_ -> val_ True
+
+insertProject :: ProjectReq -> Edna ProjectRec
+insertProject ProjectReq{..} = runInsertReturningOne' $
+  insert (esProject ednaSchema) $ insertExpressions
+    [ ProjectRec
+      { pProjectId = default_
+      , pName = val_ prqName
+      , pDescription = val_ prqDescription
+      , pCreationDate = default_
+      , pLastUpdate = default_
+      }
+    ]
+
+updateProject :: SqlId 'ProjectId -> ProjectReq -> Edna ()
+updateProject (SqlId projectId) ProjectReq{..} =
+  runUpdate' $ update (esProject ednaSchema)
+    (\p -> mconcat
+      [ LDB.pName p <-. val_ prqName
+      , LDB.pDescription p <-. val_ prqDescription
+      , LDB.pLastUpdate p <-. default_])
+    (\p -> pProjectId p ==. val_ (SqlSerial projectId))

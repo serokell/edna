@@ -2,6 +2,8 @@ module Edna.Library.Web.Types
   ( TargetResp (..)
   , CompoundResp (..)
   , MethodologyReqResp (..)
+  , ProjectReq (..)
+  , ProjectResp (..)
   ) where
 
 import Universum
@@ -13,6 +15,31 @@ import Network.URI.JSON ()
 
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
 import Edna.Web.Types (URI)
+
+-- | Project as submitted by end users.
+data ProjectReq = ProjectReq
+  { prqName :: Text
+  , prqDescription :: Maybe Text
+  } deriving stock (Generic, Show, Eq)
+
+-- | Project as response from server
+data ProjectResp = ProjectResp
+  { prName :: Text
+  , prDescription :: Maybe Text
+  , prCreationDate :: LocalTime
+  , prLastUpdate :: LocalTime
+  , prCompoundNames :: [Text]
+  -- ^ Names of all compounds involved in this project.
+  } deriving stock (Generic, Show)
+
+deriveJSON ednaAesonWebOptions ''ProjectReq
+deriveJSON ednaAesonWebOptions ''ProjectResp
+
+instance ToSchema ProjectReq where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema ProjectResp where
+  declareNamedSchema = gDeclareNamedSchema
 
 -- | Test methodology as submitted by end users.
 data MethodologyReqResp = MethodologyReqResp

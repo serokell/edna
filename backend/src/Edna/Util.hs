@@ -7,6 +7,7 @@ module Edna.Util
   , TargetId
   , CompoundId
   , MethodologyId
+  , ProjectId
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   , schemaOptions
@@ -161,9 +162,7 @@ ensureOrThrow e b
 -- It has a phantom parameter type of a custom 'IdType' kind.
 -- This parameter helps us statically distinguish IDs of different entities
 -- (such as target, compound, etc.).
---
--- TODO: set @(t :: IdType)@ when it becomes possible.
-newtype SqlId t = SqlId
+newtype SqlId (t :: IdType) = SqlId
   { unSqlId :: Word32
   } deriving stock (Generic, Show, Eq, Ord)
     deriving newtype (FromHttpApiData, FromJSON, ToJSON, ToSchema, Hashable)
@@ -175,8 +174,9 @@ instance ToParamSchema (SqlId t) where
   toParamSchema = gToParamSchema
 
 -- | Kind used for phantom parameter in 'SqlId'.
-data IdType = TargetId | CompoundId | MethodologyId
+data IdType = TargetId | CompoundId | MethodologyId | ProjectId
 
 type TargetId = SqlId 'TargetId
 type CompoundId = SqlId 'CompoundId
 type MethodologyId = SqlId 'MethodologyId
+type ProjectId = SqlId 'ProjectId

@@ -7,8 +7,6 @@ module Edna.Web.Types
   , FileSummary (..)
   , NameAndId (..)
   , FileSummaryItem (..)
-  , Project (..)
-  , ProjectExtra (..)
 
   -- * Re-exported for convenience
   , URI (..)
@@ -17,7 +15,7 @@ module Edna.Web.Types
 import Universum
 
 import Data.Aeson (ToJSON)
-import Data.Aeson.TH (deriveJSON, deriveToJSON)
+import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
 import Lens.Micro ((?~))
 import Network.URI (URI(..))
@@ -86,24 +84,6 @@ data FileSummaryItem = FileSummaryItem
   -- ^ All compounds interacting with this target.
   } deriving stock (Generic, Show, Eq, Ord)
 
--- | Project as submitted by end users.
-data Project = Project
-  { pName :: Text
-  , pDescription :: Text
-  } deriving stock (Generic, Show, Eq)
-
--- | Extra data about projects that is not submitted by users, but is stored
--- in DB.
-data ProjectExtra = ProjectExtra
-  { peCreationDate :: Word64
-  -- ^ Unsigned number, UNIX timestamp.
-  -- Can be changed to a more specific type later.
-  -- The same applies to other timestamps.
-  , peLastUpdate :: Word64
-  , peCompoundNames :: [Text]
-  -- ^ Names of all compounds involved in this project.
-  } deriving stock (Generic, Show)
-
 ----------------
 -- JSON
 ----------------
@@ -112,8 +92,6 @@ deriveToJSON ednaAesonWebOptions ''WithId
 deriveToJSON ednaAesonWebOptions ''WithExtra
 deriveToJSON ednaAesonWebOptions ''NameAndId
 deriveToJSON ednaAesonWebOptions ''FileSummaryItem
-deriveJSON ednaAesonWebOptions ''Project
-deriveJSON ednaAesonWebOptions ''ProjectExtra
 
 deriving newtype instance ToJSON FileSummary
 
@@ -134,12 +112,6 @@ instance ToSchema FileSummaryItem where
   declareNamedSchema = gDeclareNamedSchema
 
 deriving newtype instance ToSchema FileSummary
-
-instance ToSchema Project where
-  declareNamedSchema = gDeclareNamedSchema
-
-instance ToSchema ProjectExtra where
-  declareNamedSchema = gDeclareNamedSchema
 
 instance ToParamSchema StubSortBy where
   toParamSchema _ = mempty

@@ -21,10 +21,11 @@ import Hedgehog.Range (constant)
 
 import Edna.DB.Schema
   (AnalysisMethodRec, AnalysisMethodT(..), ExperimentFileRec, ExperimentFileT(..), ExperimentRec,
-  ExperimentT(..), MeasurementRec, MeasurementT(..), ProjectRec, ProjectT(..),
-  RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec, SubExperimentT(..))
+  ExperimentT(..), MeasurementRec, MeasurementT(..), RemovedMeasurementsRec,
+  RemovedMeasurementsT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Library.DB.Schema
-  (CompoundRec, CompoundT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
+  (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
+  TestMethodologyT(..))
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
   genURI)
