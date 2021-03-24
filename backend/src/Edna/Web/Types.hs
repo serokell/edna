@@ -2,7 +2,6 @@
 
 module Edna.Web.Types
   ( WithId (..)
-  , WithExtra (..)
   , StubSortBy (..)
   , FileSummary (..)
   , NameAndId (..)
@@ -32,15 +31,6 @@ import Edna.Util (IdType(..), SqlId(..), ednaAesonWebOptions, gDeclareNamedSchem
 data WithId k t = WithId
   { wiId :: SqlId k
   , wItem :: t
-  } deriving stock (Generic, Show)
-
--- | This data type is used when you want to return something with its ID and
--- some additional data that was not submitted by end users, but is maintained
--- by the application.
-data WithExtra k t e = WithExtra
-  { weId :: SqlId k
-  , weItem :: t
-  , weExtra :: e
   } deriving stock (Generic, Show)
 
 -- | A stub to specify the sorting order, most likely will be replaced with
@@ -89,7 +79,6 @@ data FileSummaryItem = FileSummaryItem
 ----------------
 
 deriveToJSON ednaAesonWebOptions ''WithId
-deriveToJSON ednaAesonWebOptions ''WithExtra
 deriveToJSON ednaAesonWebOptions ''NameAndId
 deriveToJSON ednaAesonWebOptions ''FileSummaryItem
 
@@ -100,9 +89,6 @@ deriving newtype instance ToJSON FileSummary
 ----------------
 
 instance ToSchema t => ToSchema (WithId k t) where
-  declareNamedSchema = gDeclareNamedSchema
-
-instance (ToSchema t, ToSchema e) => ToSchema (WithExtra k t e) where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema (NameAndId t) where
