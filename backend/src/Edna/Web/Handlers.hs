@@ -12,8 +12,7 @@ import qualified Edna.Library.Web.API as Library
 import qualified Edna.Upload.API as Upload
 
 import Edna.Setup (Edna)
-import Edna.Web.API
-  (EdnaEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..))
+import Edna.Web.API (EdnaEndpoints(..), ProjectEndpoints(..))
 
 type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 
@@ -23,7 +22,7 @@ ednaHandlers = genericServerT EdnaEndpoints
   { eeUploadExperiment = Upload.uploadExperiment
   , eeFileUploadEndpoints = Upload.fileUploadEndpoints
   , eeProjectEndpoints = projectEndpoints
-  , eeMethodologyEndpoints = methodologyEndpoints
+  , eeMethodologyEndpoints = Library.methodologyEndpoints
   , eeCompoundEndpoints = Library.compoundEndpoints
   , eeTargetEndpoints = Library.targetEndpoints
   }
@@ -33,12 +32,4 @@ ednaHandlers = genericServerT EdnaEndpoints
       , peEditProject = \_ _ -> throwM err501
       , peGetProjects = \_ _ _ -> throwM err501
       , peGetProject = \_ -> throwM err501
-      }
-
-    methodologyEndpoints = genericServerT MethodologyEndpoints
-      { meAddMethodology = \_ -> throwM err501
-      , meEditMethodology = \_ _ -> throwM err501
-      , meDeleteMethodology = \_ -> throwM err501
-      , meGetMethodologies = \_ _ _ -> throwM err501
-      , meGetMethodology = \_ -> throwM err501
       }

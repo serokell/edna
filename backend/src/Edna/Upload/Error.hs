@@ -9,14 +9,14 @@ import Universum
 
 import Fmt (Buildable(..), pretty)
 
-import Edna.Util (SqlId)
+import Edna.Util (IdType(..), SqlId)
 import Edna.Web.Error (ToServerError(..))
-import Edna.Web.Types (Project, TestMethodology)
+import Edna.Web.Types (Project)
 
 -- | Errors that can happen inside Upload service.
 data UploadError =
     UEUnknownProject (SqlId Project)
-  | UEUnknownTestMethodology (SqlId TestMethodology)
+  | UEUnknownTestMethodology (SqlId 'MethodologyId)
   deriving stock (Show, Eq)
   deriving anyclass (ToServerError)
 

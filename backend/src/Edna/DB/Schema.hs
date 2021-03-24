@@ -4,9 +4,6 @@ module Edna.DB.Schema
   ( ProjectT (..)
   , ProjectRec
 
-  , TestMethodologyT (..)
-  , TestMethodologyRec
-
   , ExperimentFileT (..)
   , ExperimentFileRec
 
@@ -43,7 +40,7 @@ import Database.Beam.Schema
   (Beamable, C, Database, DatabaseSettings, Table(..), TableEntity, defaultDbSettings)
 
 import Edna.ExperimentReader.Types (FileMetadata)
-import Edna.Library.DB.Schema (TargetT, CompoundT (..))
+import Edna.Library.DB.Schema (CompoundT, TargetT, TestMethodologyT)
 
 --------------------------
 -- Project
@@ -71,32 +68,6 @@ instance Table ProjectT where
 
 deriving stock instance Show (PrimaryKey ProjectT Identity)
 deriving stock instance Eq (PrimaryKey ProjectT Identity)
-
---------------------------
--- Test methodology
---------------------------
-
-data TestMethodologyT f = TestMethodologyRec
-  { tmTestMethodologyId :: C f (SqlSerial Word32)
-  , tmName :: C f Text
-  , tmDescription :: C (Nullable f) Text
-  , tmConfluenceLink :: C (Nullable f) Text
-  } deriving stock Generic
-    deriving anyclass Beamable
-
-type TestMethodologyRec = TestMethodologyT Identity
-
-deriving stock instance Show TestMethodologyRec
-deriving stock instance Eq TestMethodologyRec
-
-instance Table TestMethodologyT where
-  data PrimaryKey TestMethodologyT f = TestMethodologyId (C f (SqlSerial Word32))
-    deriving stock (Generic)
-    deriving anyclass Beamable
-  primaryKey = TestMethodologyId . tmTestMethodologyId
-
-deriving stock instance Show (PrimaryKey TestMethodologyT Identity)
-deriving stock instance Eq (PrimaryKey TestMethodologyT Identity)
 
 --------------------------
 -- Experiment File

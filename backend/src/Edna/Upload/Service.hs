@@ -24,13 +24,13 @@ import Lens.Micro.Platform (at, (?~))
 
 import Edna.DB.Integration
   (runInsert', runInsertReturningList', runInsertReturningOne', runSelectReturningOne', transact)
-import Edna.DB.Schema as DB
+import Edna.DB.Schema
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
-import Edna.Library.DB.Schema (CompoundT(..), TargetT(..))
+import Edna.Library.DB.Schema
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
-import Edna.Util (IdType(..), SqlId(..))
+import Edna.Util as U (IdType(..), SqlId(..))
 import Edna.Web.Types
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
@@ -46,14 +46,14 @@ parseFile content =
 parseFile' :: FileContents -> Edna FileSummary
 parseFile' = measurementsToSummary . fcMeasurements
 
-compoundNameToId :: Text -> Edna (Maybe (SqlId 'CompoundId))
+compoundNameToId :: Text -> Edna (Maybe (SqlId 'U.CompoundId))
 compoundNameToId compoundName =
   fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
     compound <- all_ (esCompound ednaSchema)
     guard_ (cName compound ==. val_ compoundName)
     return $ cCompoundId compound
 
-targetNameToId :: Text -> Edna (Maybe (SqlId 'TargetId))
+targetNameToId :: Text -> Edna (Maybe (SqlId 'U.TargetId))
 targetNameToId targetName =
   fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
     target <- all_ (esTarget ednaSchema)
@@ -81,14 +81,14 @@ measurementsToSummary =
 
 -- | Parse an experiment data file and save it to DB.
 uploadFile ::
-  SqlId Project -> SqlId TestMethodology -> Text -> Text -> LByteString ->
+  SqlId Project -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
   Edna FileSummary
 uploadFile proj methodology description fileName content = do
   uploadFile' proj methodology description fileName content =<<
     either throwM pure (parseExperimentXls content)
 
 uploadFile' ::
-  SqlId Project -> SqlId TestMethodology -> Text -> Text -> LByteString ->
+  SqlId Project -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
   FileContents -> Edna FileSummary
 uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
   description fileName fileBytes fc = do

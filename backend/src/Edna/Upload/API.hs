@@ -14,8 +14,8 @@ import Universum
 
 import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
-import Servant.API (Capture, JSON, Post, Summary, (:>))
-import Servant.API.Generic (AsApi, ToServant, (:-))
+import Servant.API ((:>), Capture, JSON, Post, Summary)
+import Servant.API.Generic ((:-), AsApi, ToServant)
 import Servant.Multipart (FileData(..), Mem, MultipartData(..), MultipartForm)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
@@ -24,7 +24,7 @@ import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMea
 import Edna.Setup (Edna)
 import Edna.Upload.Error (UploadApiError(..))
 import Edna.Upload.Service (parseFile, uploadFile)
-import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema, SqlId (..))
+import Edna.Util (IdType(..), SqlId(..), ednaAesonWebOptions, gDeclareNamedSchema)
 import Edna.Web.Types
 
 -- | Endpoints necessary to implement file uploading.
@@ -43,7 +43,7 @@ data FileUploadEndpoints route = FileUploadEndpoints
       :- "upload"
       :> Summary "Upload the file with some methodology and project"
       :> Capture "projectId" (SqlId Project)
-      :> Capture "methodologyId" (SqlId TestMethodology)
+      :> Capture "methodologyId" (SqlId 'MethodologyId)
       :> Capture "description" Text
       :> MultipartForm Mem (MultipartData Mem)
       :> Post '[JSON] FileSummary

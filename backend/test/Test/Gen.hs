@@ -17,7 +17,7 @@ module Test.Gen
   , genFileSummaryItem
   , genProject
   , genProjectExtra
-  , genTestMethodology
+  , genMethodologyReqResp
   , genCompoundResp
   , genTargetResp
   , genName
@@ -48,7 +48,7 @@ import Test.QuickCheck.Hedgehog (hedgehog)
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
-import Edna.Library.Web.Types (CompoundResp(..), TargetResp(..))
+import Edna.Library.Web.Types (CompoundResp(..), MethodologyReqResp(..), TargetResp(..))
 import Edna.Upload.API (ExperimentalMeasurement(..))
 import Edna.Util (SqlId(..))
 import Edna.Web.Types
@@ -110,12 +110,12 @@ genProjectExtra = do
   peCompoundNames <- Gen.list (Range.linear 0 10) genName
   return ProjectExtra {..}
 
-genTestMethodology :: MonadGen m => m TestMethodology
-genTestMethodology = do
-  tmName <- genName
-  tmDescription <- genDescription
-  tmConfluence <- genURI
-  return TestMethodology {..}
+genMethodologyReqResp :: MonadGen m => m MethodologyReqResp
+genMethodologyReqResp = do
+  mrpName <- genName
+  mrpDescription <- Gen.maybe genDescription
+  mrpConfluence <- Gen.maybe genURI
+  return MethodologyReqResp {..}
 
 genCompoundResp :: MonadGen m => m CompoundResp
 genCompoundResp = do
@@ -240,8 +240,8 @@ instance Arbitrary Project where
 instance Arbitrary ProjectExtra where
   arbitrary = hedgehog genProjectExtra
 
-instance Arbitrary TestMethodology where
-  arbitrary = hedgehog genTestMethodology
+instance Arbitrary MethodologyReqResp where
+  arbitrary = hedgehog genMethodologyReqResp
 
 instance Arbitrary CompoundResp where
   arbitrary = hedgehog genCompoundResp

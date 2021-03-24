@@ -6,12 +6,15 @@ module Edna.Util
   , IdType (..)
   , TargetId
   , CompoundId
+  , MethodologyId
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   , schemaOptions
   , gDeclareNamedSchema
   , gToParamSchema
   , justOrThrow
+  , nothingOrThrow
+  , ensureOrThrow
   ) where
 
 import Universum
@@ -141,6 +144,14 @@ gToParamSchema = genericToParamSchema schemaOptions
 justOrThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m a
 justOrThrow e = maybe (throwM e) pure
 
+nothingOrThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m ()
+nothingOrThrow e = maybe (pure ()) (\_ -> throwM e)
+
+ensureOrThrow :: (MonadThrow  m, Exception e) => e -> Bool -> m ()
+ensureOrThrow e b
+  | b = pure ()
+  | otherwise = throwM e
+
 ----------------
 -- SqlId
 ----------------
@@ -164,7 +175,8 @@ instance ToParamSchema (SqlId t) where
   toParamSchema = gToParamSchema
 
 -- | Kind used for phantom parameter in 'SqlId'.
-data IdType = TargetId | CompoundId
+data IdType = TargetId | CompoundId | MethodologyId
 
 type TargetId = SqlId 'TargetId
 type CompoundId = SqlId 'CompoundId
+type MethodologyId = SqlId 'MethodologyId

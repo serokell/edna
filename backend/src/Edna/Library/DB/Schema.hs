@@ -1,16 +1,47 @@
 module Edna.Library.DB.Schema
-  ( TargetRec
+  ( TestMethodologyT (..)
+  , TestMethodologyRec
+
+  , TargetRec
   , TargetT (..)
-  
+
   , CompoundT (..)
   , CompoundRec
+
+  , PrimaryKey (..)
   ) where
 
 import Universum
 
 import Data.Time (LocalTime)
 import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial(..))
-import Database.Beam.Schema (Beamable, C, Table(..), Nullable)
+import Database.Beam.Schema (Beamable, C, Nullable, Table(..))
+
+--------------------------
+-- Test methodology
+--------------------------
+
+data TestMethodologyT f = TestMethodologyRec
+  { tmTestMethodologyId :: C f (SqlSerial Word32)
+  , tmName :: C f Text
+  , tmDescription :: C (Nullable f) Text
+  , tmConfluenceLink :: C (Nullable f) Text
+  } deriving stock Generic
+    deriving anyclass Beamable
+
+type TestMethodologyRec = TestMethodologyT Identity
+
+deriving stock instance Show TestMethodologyRec
+deriving stock instance Eq TestMethodologyRec
+
+instance Table TestMethodologyT where
+  data PrimaryKey TestMethodologyT f = TestMethodologyId (C f (SqlSerial Word32))
+    deriving stock (Generic)
+    deriving anyclass Beamable
+  primaryKey = TestMethodologyId . tmTestMethodologyId
+
+deriving stock instance Show (PrimaryKey TestMethodologyT Identity)
+deriving stock instance Eq (PrimaryKey TestMethodologyT Identity)
 
 --------------------------
 -- Target

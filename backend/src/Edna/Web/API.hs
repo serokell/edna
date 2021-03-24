@@ -8,18 +8,17 @@ module Edna.Web.API
 
   -- * Subtypes
   , ProjectEndpoints (..)
-  , MethodologyEndpoints (..)
   ) where
 
 import Universum
 
-import Servant.API ((:>), Capture, Delete, Get, JSON, Post, Put, QueryParam, ReqBody, Summary)
+import Servant.API ((:>), Capture, Get, JSON, Post, Put, QueryParam, ReqBody, Summary)
 import Servant.API.Generic ((:-), AsApi, ToServant)
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
 import qualified Edna.Upload.API as Upload
 
-import Edna.Library.Web.API (TargetAPI, CompoundAPI)
+import Edna.Library.Web.API (CompoundAPI, MethodologyAPI, TargetAPI)
 import Edna.Util (SqlId(..))
 import Edna.Web.Types
 
@@ -85,46 +84,3 @@ data ProjectEndpoints route = ProjectEndpoints
   } deriving stock (Generic)
 
 type ProjectAPI = ToServant ProjectEndpoints AsApi
-
--- | Endpoints related to methodologies.
-data MethodologyEndpoints route = MethodologyEndpoints
-  { -- | Add a new methodology.
-    meAddMethodology :: route
-      :- "methodology"
-      :> Summary "Add a new methodology"
-      :> ReqBody '[JSON] TestMethodology
-      :> Post '[JSON] (WithId TestMethodology TestMethodology)
-
-  , -- | Update an existing methodology.
-    meEditMethodology :: route
-      :- "methodology"
-      :> Summary "Update an existing methodology"
-      :> Capture "methodologyId" (SqlId TestMethodology)
-      :> ReqBody '[JSON] TestMethodology
-      :> Put '[JSON] (WithId TestMethodology TestMethodology)
-
-  , -- | Delete an existing methodology.
-    meDeleteMethodology :: route
-      :- "methodology"
-      :> Summary "Delete an existing methodology"
-      :> Capture "methodologyId" (SqlId TestMethodology)
-      :> Delete '[JSON] ()
-
-  , -- | Get known methodologies with optional pagination and sorting
-    meGetMethodologies :: route
-      :- "methodologies"
-      :> Summary "Get known methodologies"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId TestMethodology TestMethodology]
-
-  , -- | Get methodology data by ID
-    meGetMethodology :: route
-      :- "methodology"
-      :> Summary "Get methodology data by ID"
-      :> Capture "methodologyId" (SqlId TestMethodology)
-      :> Get '[JSON] (WithId TestMethodology TestMethodology)
-  } deriving stock (Generic)
-
-type MethodologyAPI = ToServant MethodologyEndpoints AsApi

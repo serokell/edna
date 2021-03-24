@@ -8,20 +8,78 @@ module Edna.Library.Web.API
   , CompoundEndpoints (..)
   , CompoundAPI
   , compoundEndpoints
+
+  , MethodologyEndpoints (..)
+  , MethodologyAPI
+  , methodologyEndpoints
   ) where
 
 import Universum
 
 import Servant (ReqBody)
-import Servant.API ((:>), Capture, Get, JSON, Put, QueryParam, Summary)
+import Servant.API ((:>), Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary)
 import Servant.API.Generic ((:-), AsApi, ToServant)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
-import Edna.Library.Service (editChemSoft, getCompound, getCompounds, getTarget, getTargets)
-import Edna.Library.Web.Types (CompoundResp, TargetResp)
+import Edna.Library.Service
+  (addMethodology, deleteMethodology, editChemSoft, getCompound, getCompounds, getMethodologies,
+  getMethodology, getTarget, getTargets, updateMethodology)
+import Edna.Library.Web.Types (CompoundResp, MethodologyReqResp, TargetResp)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..))
 import Edna.Web.Types (StubSortBy, URI, WithId)
+
+-- | Endpoints related to methodologies.
+data MethodologyEndpoints route = MethodologyEndpoints
+  { -- | Add a new methodology.
+    meAddMethodology :: route
+      :- "methodology"
+      :> Summary "Add a new methodology"
+      :> ReqBody '[JSON] MethodologyReqResp
+      :> Post '[JSON] (WithId 'MethodologyId MethodologyReqResp)
+
+  , -- | Update an existing methodology.
+    meEditMethodology :: route
+      :- "methodology"
+      :> Summary "Update an existing methodology"
+      :> Capture "methodologyId" (SqlId 'MethodologyId)
+      :> ReqBody '[JSON] MethodologyReqResp
+      :> Put '[JSON] (WithId 'MethodologyId MethodologyReqResp)
+
+  , -- | Delete an existing methodology.
+    meDeleteMethodology :: route
+      :- "methodology"
+      :> Summary "Delete an existing methodology"
+      :> Capture "methodologyId" (SqlId 'MethodologyId)
+      :> Delete '[JSON] NoContent
+
+  , -- | Get known methodologies with optional pagination and sorting
+    meGetMethodologies :: route
+      :- "methodologies"
+      :> Summary "Get known methodologies"
+      :> QueryParam "page" Word
+      :> QueryParam "size" Word
+      :> QueryParam "sortby" StubSortBy
+      :> Get '[JSON] [WithId 'MethodologyId MethodologyReqResp]
+
+  , -- | Get methodology data by ID
+    meGetMethodology :: route
+      :- "methodology"
+      :> Summary "Get methodology data by ID"
+      :> Capture "methodologyId" (SqlId 'MethodologyId)
+      :> Get '[JSON] (WithId 'MethodologyId MethodologyReqResp)
+  } deriving stock (Generic)
+
+type MethodologyAPI = ToServant MethodologyEndpoints AsApi
+
+methodologyEndpoints :: ToServant MethodologyEndpoints (AsServerT Edna)
+methodologyEndpoints = genericServerT MethodologyEndpoints
+  { meAddMethodology = addMethodology
+  , meEditMethodology = updateMethodology
+  , meDeleteMethodology = deleteMethodology
+  , meGetMethodologies = getMethodologies
+  , meGetMethodology = getMethodology
+  }
 
 -- | Endpoints related to targets.
 data TargetEndpoints route = TargetEndpoints

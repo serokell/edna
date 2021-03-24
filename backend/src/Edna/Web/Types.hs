@@ -9,7 +9,6 @@ module Edna.Web.Types
   , FileSummaryItem (..)
   , Project (..)
   , ProjectExtra (..)
-  , TestMethodology (..)
 
   -- * Re-exported for convenience
   , URI (..)
@@ -105,13 +104,6 @@ data ProjectExtra = ProjectExtra
   -- ^ Names of all compounds involved in this project.
   } deriving stock (Generic, Show)
 
--- | Test methodology as submitted by end users.
-data TestMethodology = TestMethodology
-  { tmName :: Text
-  , tmDescription :: Text
-  , tmConfluence :: URI
-  } deriving stock (Generic, Show, Eq)
-
 ----------------
 -- JSON
 ----------------
@@ -122,7 +114,6 @@ deriveToJSON ednaAesonWebOptions ''NameAndId
 deriveToJSON ednaAesonWebOptions ''FileSummaryItem
 deriveJSON ednaAesonWebOptions ''Project
 deriveJSON ednaAesonWebOptions ''ProjectExtra
-deriveJSON ednaAesonWebOptions ''TestMethodology
 
 deriving newtype instance ToJSON FileSummary
 
@@ -148,11 +139,6 @@ instance ToSchema Project where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema ProjectExtra where
-  declareNamedSchema = gDeclareNamedSchema
-
--- We define @ToSchema URI@ elsewhere to have less modules
--- with orphans.
-instance ToSchema URI => ToSchema TestMethodology where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToParamSchema StubSortBy where

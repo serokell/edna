@@ -1,6 +1,7 @@
 module Edna.Library.Web.Types
   ( TargetResp (..)
   , CompoundResp (..)
+  , MethodologyReqResp (..)
   ) where
 
 import Universum
@@ -12,6 +13,20 @@ import Network.URI.JSON ()
 
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
 import Edna.Web.Types (URI)
+
+-- | Test methodology as submitted by end users.
+data MethodologyReqResp = MethodologyReqResp
+  { mrpName :: Text
+  , mrpDescription :: Maybe Text
+  , mrpConfluence :: Maybe URI
+  } deriving stock (Generic, Show, Eq)
+
+deriveJSON ednaAesonWebOptions ''MethodologyReqResp
+
+-- We define @ToSchema URI@ elsewhere to have less modules
+-- with orphans.
+instance ToSchema URI => ToSchema MethodologyReqResp where
+  declareNamedSchema = gDeclareNamedSchema
 
 -- | Targets are not submitted directly by users, so for now
 -- there is only one representation for frontend.

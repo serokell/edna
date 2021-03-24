@@ -22,9 +22,8 @@ import Edna.ExperimentReader.Types (FileContents(..), TargetMeasurements(..))
 import Edna.Orphans ()
 import Edna.Setup (EdnaContext)
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
-import Edna.Util (SqlId(..))
-import Edna.Web.Types
-  (FileSummary(..), FileSummaryItem(..), NameAndId(..), Project, TestMethodology)
+import Edna.Util (MethodologyId, SqlId(..))
+import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), Project)
 
 import Test.Gen
 import Test.SMT.State
@@ -97,7 +96,7 @@ correctFileSummary oldState _ (ParseFile fileContents) fileSummary =
 
 data UploadFile (v :: Type -> Type) = UploadFile
   { ufProject :: SqlId Project
-  , ufTestMethodology :: SqlId TestMethodology
+  , ufTestMethodology :: MethodologyId
   , ufDescription :: Text
   , ufFileName :: Text
   , ufBytes :: LByteString
