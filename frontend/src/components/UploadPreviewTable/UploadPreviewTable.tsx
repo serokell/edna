@@ -8,6 +8,7 @@ import { Table } from "../Table/Table";
 interface UploadTableProps {
   className?: string;
   targets: ParsedExcelDto[];
+  viewEnabled: boolean;
 }
 
 interface PreviewRow {
@@ -16,7 +17,11 @@ interface PreviewRow {
   actions: React.ReactNode;
 }
 
-export function UploadPreviewTable({ className, targets }: UploadTableProps): React.ReactElement {
+export function UploadPreviewTable({
+  className,
+  targets,
+  viewEnabled,
+}: UploadTableProps): React.ReactElement {
   const previewColumns = React.useMemo(
     () => [
       {
@@ -43,7 +48,7 @@ export function UploadPreviewTable({ className, targets }: UploadTableProps): Re
         target: `${ex.target.name} ${ex.target.id ? "" : "*"}`,
         actions: (
           <div className="uploadPreviewTable__actions">
-            <Button type="link" disabled>
+            <Button type="link" disabled={!viewEnabled}>
               View
             </Button>
           </div>

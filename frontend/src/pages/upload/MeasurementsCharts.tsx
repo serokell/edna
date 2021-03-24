@@ -13,32 +13,6 @@ export default function MeasurementsCharts({
 }: MeasurementsChartsProps): React.ReactElement {
   return (
     <>
-      <table className="uploadResultTable">
-        <thead>
-          <tr>
-            <th>Compound</th>
-            <th>Concentration</th>
-            <th>Signal</th>
-            <th>Outlier</th>
-            <th>Target</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {experiments.map(ex =>
-            ex.measurements.map(v => (
-              <tr key={uuidv4()}>
-                <td>{v.compoundId}</td>
-                <td>{v.concentration}</td>
-                <td>{v.signal}</td>
-                <td>{v.outlier.toString()}</td>
-                <td>{ex.target}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
       {experiments.map(x => (
         <PlotlyChart key={uuidv4()} experiments={[x]} />
       ))}

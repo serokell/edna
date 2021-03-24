@@ -109,11 +109,20 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     },
 
     uploadExperiments: async (form: UploadExperimentsArgsApi) => {
-      return axios.post("/addExperiments", form, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const formData = new FormData();
+      formData.append("file", form.file);
+
+      return axios.post(
+        `/file/upload/${form.projectId}/${form.methodologyId}${
+          form.description ? `?description=${form.description}` : ""
+        }`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
     },
 
     createProject: async (args: CreateProjectArgsApi) => {

@@ -14,7 +14,7 @@ export type FileUploadState =
   | { state: "verifying" }
   | { state: "parsed"; targets: ParsedExcelDto[]; experiments: Experiment[] }
   | { state: "failed-to-parse"; reason: string }
-  | { state: "added" }
+  | { state: "added"; targets: ParsedExcelDto[] }
   | { state: "failed-to-add"; reason: string };
 
 export function isParsed(

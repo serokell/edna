@@ -25,6 +25,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const methodologiesLoadable = useRecoilValueLoadable(methodologiesAtom);
   const [excelFile, setExcelFile] = useRecoilState(excelFileAtom);
 
+  // TODO reset form field on click Add another
   return (
     <PageLayout>
       <Formik<UploadForm>
@@ -50,9 +51,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
         onSubmit={async form => {
           try {
             const apiType = uploadFormToApi(form);
-            if (apiType) {
+            if (apiType && excelFile?.state === "parsed") {
               await Api.uploadExperiments(apiType);
-              setExcelFile({ state: "added" });
+              setExcelFile({ state: "added", targets: excelFile.targets });
             }
           } catch (ex) {
             setExcelFile({ state: "failed-to-add", reason: ex.message });
@@ -81,8 +82,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
           {isDefined(excelFile) && <UploadStatus />}
 
-          {excelFile?.state === "parsed" && (
+          {(excelFile?.state === "parsed" || excelFile?.state === "added") && (
             <UploadPreviewTable
+              viewEnabled={excelFile.state === "added"}
               className="uploadingForm__previewTable"
               targets={excelFile.targets}
             />
