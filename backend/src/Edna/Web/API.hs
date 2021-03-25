@@ -35,7 +35,7 @@ data EdnaEndpoints route = EdnaEndpoints
 
 -- | API type specification.
 type EdnaAPI =
-  "api" :> ToServant EdnaEndpoints AsApi
+  ToServant EdnaEndpoints AsApi
   :<|>
   "health" :> Summary "Check the health of this server" :> GetNoContent
 
