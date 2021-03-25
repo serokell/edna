@@ -14,9 +14,9 @@ export default function MeasurementsCharts({
   return (
     <>
       {experiments.map(x => (
-        <PlotlyChart key={uuidv4()} experiments={[x]} />
+        <PlotlyChart key={uuidv4()} experiments={[x]} title={`${x.compoundId} ${x.target}`} />
       ))}
-      <PlotlyChart experiments={experiments} />
+      <PlotlyChart experiments={experiments} title="Comparison chart" />
     </>
   );
 }

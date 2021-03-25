@@ -6,6 +6,10 @@
     "paths": {
       "~*": [
         "./src"
+      ],
+
+      "plotly.js-basic-dist": [
+        "../node_modules/@types/plotly.js"
       ]
     },
     "sourceMap": true,
