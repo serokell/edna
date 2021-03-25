@@ -1,39 +1,25 @@
 // TODO consider using smaller plotly bundle when we will optimize bundle size
 // https://github.com/plotly/plotly.js/blob/master/dist/README.md#plotlyjs-basic
-import Plot from "react-plotly.js";
-import * as Plotly from "plotly.js";
+import * as Plotly from "plotly.js-basic-dist";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
-import "./Plotting.scss";
+import createPlotlyComponent from "react-plotly.js/factory";
 import { Experiment } from "../../store/types";
+import "./Plotting.scss";
 
-const colors = ["red", "blue", "green", "yellow", "pink", "aqua", "chartreuse"];
-const plotConfig: Partial<Plotly.Config> = {
+const plotConfig = {
   displaylogo: false,
   // displayModeBar: false,
 };
 
-// To determine compound color by its name.
-// We want to have a compound the same color
-// regardless of chart where it's plotted.
-function hashCode(str: string) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const chr = str.charCodeAt(i);
-    // eslint-disable-next-line no-bitwise
-    hash = (hash << 5) - hash + chr;
-    // eslint-disable-next-line no-bitwise
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
-}
-
 interface PlotlyChartProps {
   experiments: Experiment[];
+  title: string;
 }
 
-export default function PlotlyChart({ experiments }: PlotlyChartProps): React.ReactElement {
+export default function PlotlyChart({ experiments, title }: PlotlyChartProps): React.ReactElement {
   const chartKey = uuidv4();
+  const Plot = createPlotlyComponent(Plotly);
   return (
     <Plot
       key={chartKey}
@@ -51,7 +37,7 @@ export default function PlotlyChart({ experiments }: PlotlyChartProps): React.Re
         };
       })}
       layout={{
-        title: "Comparison chart",
+        title,
         xaxis: {
           type: "log",
           autorange: true,
@@ -60,4 +46,21 @@ export default function PlotlyChart({ experiments }: PlotlyChartProps): React.Re
       config={plotConfig}
     />
   );
+}
+
+const colors = ["red", "blue", "green", "yellow", "pink", "aqua", "chartreuse"];
+
+// To determine compound color by its name.
+// We want to have a compound the same color
+// regardless of chart where it's plotted.
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    // eslint-disable-next-line no-bitwise
+    hash = (hash << 5) - hash + chr;
+    // eslint-disable-next-line no-bitwise
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
 }

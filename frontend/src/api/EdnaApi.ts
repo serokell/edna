@@ -81,7 +81,7 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
           // TODO remove this mock transformation
           const byCompound = groupCompounds(response.data);
           return Object.entries(byCompound).map(([cmpId, measurements]) => ({
-            target: "target",
+            target: "",
             compoundId: cmpId,
             measurements,
           }));
