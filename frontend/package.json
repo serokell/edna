@@ -79,7 +79,7 @@
   "scripts": {
     "clean": "rm -rf dist/ && rm -rf .cache/",
     "serve": "webpack serve --config webpack.dev.js",
-    "build": "webpack --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
     "tscompile": "tsc --noEmit --skipLibCheck",
     "test": "jest",
     "tslint": "eslint src/ --ext ts,tsx",
