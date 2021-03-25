@@ -18,10 +18,11 @@ module.exports = merge(common, {
 
     // Redirect api requests to the backend
     proxy: {
-      "/api": {
-        target: "http://localhost:9000"
-      }
-    }
+      '/api': {
+        target: 'http://localhost:9000',
+        pathRewrite: { '^/api': '' },
+      },
+    },
 
     // Uncomment in case of some troubles to inspect whether dev server generates bundles
     // writeToDisk: true,
