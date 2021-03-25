@@ -49,6 +49,8 @@ steps:
   - label: Push backend image to registry
     commands:
       - nix-shell --run 'scripts/docker-push.sh docker-archive:$(nix-build -A packages.x86_64-linux.docker-backend) docker://ghcr.io/serokell/edna-backend:latest'
+    branches: "master"
   - label: Push frontend image to registry
     commands:
       - nix-shell --run 'scripts/docker-push.sh docker-archive:$(nix-build -A packages.x86_64-linux.docker-frontend) docker://ghcr.io/serokell/edna-frontend:latest'
+    branches: "master"
