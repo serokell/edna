@@ -13,6 +13,7 @@ import Servant.API (GetNoContent, JSON, Post, Summary, (:<|>), (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
+import qualified Edna.Dashboard.Web.API as Dashboard
 import qualified Edna.Upload.Web.API as Upload
 
 import Edna.Library.Web.API (CompoundAPI, MethodologyAPI, ProjectAPI, TargetAPI)
@@ -31,6 +32,7 @@ data EdnaEndpoints route = EdnaEndpoints
   , eeMethodologyEndpoints :: route :- MethodologyAPI
   , eeCompoundEndpoints :: route :- CompoundAPI
   , eeTargetEndpoints :: route :- TargetAPI
+  , eeDashboardEndpoints :: route :- Dashboard.DashboardAPI
   } deriving stock (Generic)
 
 -- | API type specification.

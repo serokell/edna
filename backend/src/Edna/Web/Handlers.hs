@@ -5,6 +5,7 @@ module Edna.Web.Handlers
 import Servant.API.Generic (ToServant)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
+import qualified Edna.Dashboard.Web.API as Dashboard
 import qualified Edna.Library.Web.API as Library
 import qualified Edna.Upload.Web.API as Upload
 
@@ -22,4 +23,5 @@ ednaHandlers = genericServerT EdnaEndpoints
   , eeMethodologyEndpoints = Library.methodologyEndpoints
   , eeCompoundEndpoints = Library.compoundEndpoints
   , eeTargetEndpoints = Library.targetEndpoints
+  , eeDashboardEndpoints = Dashboard.dashboardEndpoints
   }

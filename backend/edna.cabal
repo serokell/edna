@@ -33,6 +33,8 @@ library
   exposed-modules:
       Edna.Config.Definition
       Edna.Config.Utils
+      Edna.Dashboard.Web.API
+      Edna.Dashboard.Web.Types
       Edna.DB.Connection
       Edna.DB.Initialisation
       Edna.DB.Integration
