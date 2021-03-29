@@ -18,6 +18,8 @@ import {
   projectsQuery,
   targetsQuery,
 } from "../../store/selectors";
+import { ContextActions } from "../../components/ContextActions/ContextActions";
+import EditSvg from "../../assets/svg/edit.svg";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -117,9 +119,14 @@ function ProjectsSuspendable() {
       {
         id: "actions",
         accessor: () => (
-          <div className="contextActions">
-            <DotsSvg />
-          </div>
+          <ContextActions
+            actions={[
+              <div key="edit" className="contextActions__item">
+                <EditSvg />
+                Edit
+              </div>,
+            ]}
+          />
         ),
       },
     ],
