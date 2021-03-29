@@ -20,12 +20,13 @@ import Database.Beam.Postgres (PgJSON(..))
 import Hedgehog.Range (constant)
 
 import Edna.DB.Schema
-  (AnalysisMethodRec, AnalysisMethodT(..), ExperimentFileRec, ExperimentFileT(..), ExperimentRec,
-  ExperimentT(..), MeasurementRec, MeasurementT(..), RemovedMeasurementsRec,
-  RemovedMeasurementsT(..), SubExperimentRec, SubExperimentT(..))
+  (AnalysisMethodRec, AnalysisMethodT(..), ExperimentRec, ExperimentT(..), MeasurementRec,
+  MeasurementT(..), RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec,
+  SubExperimentT(..))
 import Edna.Library.DB.Schema
   (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
   TestMethodologyT(..))
+import Edna.Upload.DB.Schema (ExperimentFileRec, ExperimentFileT(..))
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
   genURI)

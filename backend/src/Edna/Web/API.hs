@@ -13,7 +13,7 @@ import Servant.API (GetNoContent, JSON, Post, Summary, (:<|>), (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (Mem, MultipartData(..), MultipartForm)
 
-import qualified Edna.Upload.API as Upload
+import qualified Edna.Upload.Web.API as Upload
 
 import Edna.Library.Web.API (CompoundAPI, MethodologyAPI, ProjectAPI, TargetAPI)
 

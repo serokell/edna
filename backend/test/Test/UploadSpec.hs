@@ -14,8 +14,8 @@ import Test.Hspec (Spec, describe, it, shouldBe, shouldThrow, xit)
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
+import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
 import Edna.Util (SqlId(..))
-import Edna.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
 
 import Test.Setup (runWithInit, withContext)
 

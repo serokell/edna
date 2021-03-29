@@ -21,8 +21,8 @@ module Edna.Library.Web.API
 import Universum
 
 import Servant (ReqBody)
-import Servant.API ((:>), Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary)
-import Servant.API.Generic ((:-), AsApi, ToServant)
+import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary, (:>))
+import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Library.Service

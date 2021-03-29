@@ -6,7 +6,7 @@ import Servant.API.Generic (ToServant)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import qualified Edna.Library.Web.API as Library
-import qualified Edna.Upload.API as Upload
+import qualified Edna.Upload.Web.API as Upload
 
 import Edna.Setup (Edna)
 import Edna.Web.API (EdnaEndpoints(..))
