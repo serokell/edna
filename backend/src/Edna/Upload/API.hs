@@ -14,10 +14,12 @@ import Universum
 
 import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
+import Fmt (Buildable(..))
 import Servant.API (Capture, JSON, Post, QueryParam, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Multipart (FileData(..), Mem, MultipartData(..), MultipartForm)
 import Servant.Server.Generic (AsServerT, genericServerT)
+import Servant.Util.Combinators.Logging (ForResponseLog(..))
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMeasurements(..))
@@ -82,6 +84,9 @@ data ExperimentalMeasurement = ExperimentalMeasurement
   , emSignal :: Double
   , emOutlier :: Bool
   } deriving stock (Generic, Show, Eq)
+
+instance Buildable (ForResponseLog [ExperimentalMeasurement]) where
+  build _ = "LEGACY ExperimentalMeasurement"
 
 deriveToJSON ednaAesonWebOptions ''ExperimentalMeasurement
 

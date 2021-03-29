@@ -5,6 +5,11 @@ with-compiler: ghc-8.10.3
 packages:
     ./
 
+source-repository-package
+    type: git
+    location: git@github.com:serokell/servant-util.git
+    tag: 3dff2de34cce90c4d1dab68e03d30f8939fd52ca
+    subdir: servant-util
 
 allow-older: *
 allow-newer: *

@@ -9,23 +9,29 @@ module Edna.Web.Server
 
 import Universum
 
+import Data.Default (def)
+import Network.Wai (Middleware)
 import qualified Network.Wai.Handler.Warp as Warp
+import Network.Wai.Middleware.RequestLogger
+  (Destination(..), IPAddrSource(..), OutputFormat(..), RequestLoggerSettings(..), mkRequestLogger)
 import RIO (runRIO)
 import Servant
   (Application, Handler, NoContent(..), Server, hoistServer, serve, throwError, (:<|>)(..))
+import Servant.Util.Combinators.Logging (ServantLogConfig(..), serverWithLogging)
 
-import Edna.Config.Definition (acListenAddr, acServeDocs, ecApi)
+import Edna.Config.Definition (LoggingConfig(..), acListenAddr, acServeDocs, ecApi, ecLogging)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
 import Edna.ExperimentReader.Error (ExperimentParsingError)
 import Edna.Library.Error (LibraryError)
+import Edna.Orphans ()
 import Edna.Setup (Edna, EdnaContext)
 import Edna.Upload.Error (UploadApiError, UploadError)
 import Edna.Util (NetworkAddress(..))
 import Edna.Web.API (EdnaAPI, ednaAPI)
 import Edna.Web.Error (ToServerError(..))
 import Edna.Web.Handlers (ednaHandlers)
-import Edna.Web.Swagger (ednaAPIWithDocs, ednaApiSwagger, withSwaggerUI)
+import Edna.Web.Swagger (EdnaAPIWithDocs, ednaAPIWithDocs, ednaApiSwagger, withSwaggerUI)
 
 -- | Sets the given listen address in a Warp server settings.
 addrSettings :: NetworkAddress -> Warp.Settings
@@ -35,10 +41,21 @@ addrSettings NetworkAddress {..} = Warp.defaultSettings
 
 -- | Helper for running a Warp server on a given listen port in
 -- arbitrary @MonadIO@.
-serveWeb :: MonadIO m => NetworkAddress -> Application -> m a
-serveWeb addr app = do
-  liftIO $ Warp.runSettings (addrSettings addr) app
+serveWeb :: MonadIO m => NetworkAddress -> LoggingConfig -> Application -> m a
+serveWeb addr loggingConfig app = liftIO $ do
+  middleware <- fromMaybe id <$> loggingMiddleware
+  Warp.runSettings (addrSettings addr) $ middleware app
   return $ error "Server terminated early"
+  where
+    -- This function creates a non-verbose logging middleware if logging mode
+    -- is 'LogProd'.
+    loggingMiddleware :: IO (Maybe Middleware)
+    loggingMiddleware = runMaybeT $ do
+      settings <- case loggingConfig of
+        LogProd -> pure $ def { outputFormat = Apache FromSocket }
+        _ -> empty
+
+      lift $ mkRequestLogger $ settings { destination = Handle stderr }
 
 -- | Makes the @Server@ for Edna API, given 'EdnaContext'.
 ednaServer :: EdnaContext -> Server EdnaAPI
@@ -67,8 +84,29 @@ edna = do
   schemaInit
   listenAddr <- fromConfig $ ecApi . acListenAddr
   withDocs <- fromConfig $ ecApi . acServeDocs
+  loggingConfig <- fromConfig ecLogging
   server <- ednaServer <$> ask
-  serveWeb listenAddr
-    if withDocs then
-      serve ednaAPIWithDocs (withSwaggerUI ednaAPI ednaApiSwagger server)
-    else serve ednaAPI server
+  let
+    servantLogConfig :: ServantLogConfig
+    servantLogConfig = ServantLogConfig (hPutStrLn stderr)
+
+    serverWithDocs :: Server EdnaAPIWithDocs
+    serverWithDocs = withSwaggerUI ednaAPI ednaApiSwagger server
+
+    app :: Application
+    app
+      -- Dev logging and docs
+      | LogDev <- loggingConfig
+      , withDocs =
+        serverWithLogging servantLogConfig ednaAPIWithDocs $
+          \api -> serve api serverWithDocs
+      -- No dev logging, docs
+      | withDocs = serve ednaAPIWithDocs serverWithDocs
+      -- Dev logging, no docs
+      | LogDev <- loggingConfig =
+        serverWithLogging servantLogConfig ednaAPI $
+          \api -> serve api server
+      -- No dev logging, no docs
+      | otherwise = serve ednaAPI server
+
+  serveWeb listenAddr loggingConfig app

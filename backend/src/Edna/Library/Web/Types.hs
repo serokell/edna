@@ -1,3 +1,5 @@
+-- | Types that exist specifially for Library API.
+
 module Edna.Library.Web.Types
   ( TargetResp (..)
   , CompoundResp (..)
@@ -11,9 +13,13 @@ import Universum
 import Data.Aeson.TH (deriveJSON)
 import Data.Swagger (ToSchema(..))
 import Data.Time (LocalTime)
+import Data.Time.Format.ISO8601 (iso8601Show)
+import Fmt (Buildable(..), genericF, (+|), (|+))
 import Network.URI.JSON ()
+import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse)
 
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
+import Edna.Util.URI ()
 import Edna.Web.Types (URI)
 
 -- | Project as submitted by end users.
@@ -21,6 +27,14 @@ data ProjectReq = ProjectReq
   { prqName :: Text
   , prqDescription :: Maybe Text
   } deriving stock (Generic, Show, Eq)
+
+instance Buildable ProjectReq where
+  build ProjectReq {..} =
+    "Project " +| prqName |+
+    " (" +| maybe "no description" build prqDescription |+ ")"
+
+instance Buildable (ForResponseLog ProjectReq) where
+  build = buildForResponse
 
 -- | Project as response from server
 data ProjectResp = ProjectResp
@@ -31,6 +45,11 @@ data ProjectResp = ProjectResp
   , prCompoundNames :: [Text]
   -- ^ Names of all compounds involved in this project.
   } deriving stock (Generic, Show)
+
+instance Buildable ProjectResp where
+  build ProjectResp {..} =
+    ProjectReq prName prDescription |+
+    " created at " +| iso8601Show prCreationDate |+ ""
 
 deriveJSON ednaAesonWebOptions ''ProjectReq
 deriveJSON ednaAesonWebOptions ''ProjectResp
@@ -47,6 +66,12 @@ data MethodologyReqResp = MethodologyReqResp
   , mrpDescription :: Maybe Text
   , mrpConfluence :: Maybe URI
   } deriving stock (Generic, Show, Eq)
+
+instance Buildable MethodologyReqResp where
+  build = genericF
+
+instance Buildable (ForResponseLog MethodologyReqResp) where
+  build = buildForResponse
 
 deriveJSON ednaAesonWebOptions ''MethodologyReqResp
 
@@ -66,6 +91,14 @@ data TargetResp = TargetResp
   -- ^ Timestamp when this target was added to the system (by uploading a file).
   } deriving stock (Generic, Show)
 
+instance Buildable TargetResp where
+  build TargetResp {..} =
+    "Target " +| trName |+ " with " +| length trProjects |+
+    " projects, added on " +| iso8601Show trAdditionDate |+ ""
+
+instance Buildable (ForResponseLog TargetResp) where
+  build = buildForResponse
+
 deriveJSON ednaAesonWebOptions ''TargetResp
 
 instance ToSchema TargetResp where
@@ -82,6 +115,12 @@ data CompoundResp = CompoundResp
   , crAdditionDate :: LocalTime
   -- ^ Timestamp when this compound was added to the system (by uploading a file).
   } deriving stock (Generic, Show)
+
+instance Buildable CompoundResp where
+  build = genericF
+
+instance Buildable (ForResponseLog CompoundResp) where
+  build = buildForResponse
 
 deriveJSON ednaAesonWebOptions ''CompoundResp
 

@@ -27,6 +27,15 @@ extra-deps:
 - dependent-sum-0.7.1.0
 - constraints-extras-0.3.0.2
 - network-uri-json-0.4.0.0
+# servant-util is in dirty state and is not on Hackage.
+# Perhaps it should be renamed and maybe even split into multiple packages
+# with more precise goals.
+# It's developed by us, so we are quite confident in it, that's why we are using
+# it even though it's not ready yet.
+- git: git@github.com:serokell/servant-util.git
+  commit: 3dff2de34cce90c4d1dab68e03d30f8939fd52ca # not master
+  subdirs:
+    - servant-util
 
 # beam-core currently doesn't support aeson from the resolver we are using
 allow-newer: true

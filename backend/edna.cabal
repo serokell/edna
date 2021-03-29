@@ -37,6 +37,7 @@ library
       Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
+      Edna.Logging
       Edna.Orphans
       Edna.Setup
       Edna.Web.API
@@ -70,6 +71,7 @@ library
     beam-postgres,
     bytestring,
     containers,
+    data-default,
     fmt,
     microlens,
     microlens-platform,
@@ -85,11 +87,14 @@ library
     servant-swagger,
     servant-swagger-ui-core,
     servant-swagger-ui,
+    servant-util,
     split,
     swagger2,
     text,
     time,
     unordered-containers,
+    wai,
+    wai-extra,
     warp,
     xlsx
 
@@ -120,6 +125,7 @@ test-suite edna-test
       Test.SMT.State
       Test.SwaggerSpec
       Test.UploadSpec
+      Test.Util.URISpec
       Paths_edna
   hs-source-dirs:
       test
@@ -144,7 +150,8 @@ test-suite edna-test
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:
-      beam-core
+      aeson
+    , beam-core
     , beam-postgres
     , bytestring
     , containers

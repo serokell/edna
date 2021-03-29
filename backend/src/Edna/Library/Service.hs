@@ -30,6 +30,7 @@ import Edna.Library.DB.Schema
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Web.Types
   (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp, TargetResp)
+import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, nothingOrThrow)
 import Edna.Util.URI (parseURI, renderURI)
@@ -99,7 +100,8 @@ getMethodologies _ _ _ = Q.getMethodologies >>= mapM methodologyToResp
 addMethodology :: MethodologyReqResp -> Edna (WithId 'MethodologyId MethodologyReqResp)
 addMethodology tm@MethodologyReqResp{..} = do
   Q.getMethodologyByName mrpName >>= nothingOrThrow (LEMethodologyNameExists mrpName)
-  Q.insertMethodology tm >>= methodologyToResp
+  res <- Q.insertMethodology tm >>= methodologyToResp
+  res <$ logMessage ("Added methodology with name " <> mrpName)
 
 updateMethodology
   :: SqlId 'MethodologyId
@@ -128,6 +130,7 @@ addProject :: ProjectReq -> Edna (WithId 'ProjectId ProjectResp)
 addProject p@ProjectReq{..} = do
   Q.getProjectByName prqName >>= nothingOrThrow (LEProjectNameExists prqName)
   ProjectRec{..} <- Q.insertProject p
+  logMessage $ "Added project with name " <> prqName
   getProject $ SqlId $ unSerial pProjectId
 
 updateProject

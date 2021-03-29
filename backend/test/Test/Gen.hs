@@ -41,7 +41,7 @@ import qualified Hedgehog.Range as Range
 import Data.Time (LocalTime(..), fromGregorian, secondsToDiffTime, timeToTimeOfDay)
 import Hedgehog (MonadGen)
 import Lens.Micro (at, (?~))
-import Network.URI (URIAuth(..))
+import Network.URI (URIAuth(..), nullURI)
 import Test.QuickCheck (Arbitrary(..))
 import Test.QuickCheck.Hedgehog (hedgehog)
 
@@ -73,18 +73,18 @@ genDescription :: MonadGen m => m Text
 genDescription = Gen.text (Range.linear 5 200) Gen.unicode
 
 genURI :: forall m. MonadGen m => m URI
-genURI = do
+genURI = Gen.choice . (:[pure nullURI]) $ do
   uriScheme <- Gen.element ["http:", "ftp:"]
   uriAuthority <- Gen.maybe genURIAuth
-  uriPath <- Gen.element ["", "aaa", "bbb", "ccc"]
-  uriQuery <- Gen.element ["", "query", "foo"]
-  uriFragment <- Gen.element ["", "frag", "bar"]
+  uriPath <- Gen.element ["/aaa", "/bbb", "/ccc"]
+  uriQuery <- Gen.element ["?query", "?foo"]
+  uriFragment <- Gen.element ["#frag", "#bar"]
   return URI {..}
   where
     -- doesn't matter for our needs
     genURIAuth :: m URIAuth
     genURIAuth = pure URIAuth
-      { uriUserInfo = "edna"
+      { uriUserInfo = "edna@"
       , uriRegName = "www.leningrad.spb.ru"
       , uriPort = ":42"
       }

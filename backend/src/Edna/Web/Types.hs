@@ -16,10 +16,12 @@ import Universum
 import Data.Aeson (ToJSON)
 import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
+import Fmt (Buildable(..))
 import Lens.Micro ((?~))
 import Network.URI (URI(..))
 import Network.URI.JSON ()
 import Servant (FromHttpApiData(..))
+import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Util (IdType(..), SqlId(..), ednaAesonWebOptions, gDeclareNamedSchema)
 
@@ -33,11 +35,23 @@ data WithId k t = WithId
   , wItem :: t
   } deriving stock (Generic, Show)
 
+instance Buildable t => Buildable (WithId k t) where
+  build wi = build (wiId wi) <> " " <> build (wItem wi)
+
+instance Buildable t => Buildable (ForResponseLog (WithId k t)) where
+  build = buildForResponse
+
+instance Buildable t => Buildable (ForResponseLog [WithId k t]) where
+  build = buildListForResponse (take 5)
+
 -- | A stub to specify the sorting order, most likely will be replaced with
 -- @servant-util@.
 data StubSortBy =
     SortByName
   | SortBySomething
+
+instance Buildable StubSortBy where
+  build _ = "STUB"
 
 instance FromHttpApiData StubSortBy where
   parseQueryParam = \case
@@ -53,6 +67,11 @@ instance FromHttpApiData StubSortBy where
 newtype FileSummary = FileSummary
   { unFileSummary :: [FileSummaryItem]
   } deriving stock (Generic, Show, Eq)
+    deriving newtype (Buildable)
+
+instance Buildable (ForResponseLog FileSummary) where
+  build (ForResponseLog (FileSummary items)) =
+    buildListForResponse (take 5) (ForResponseLog items)
 
 -- | This type holds name of a compound or target and its ID if this item
 -- is already known. For new targets and compounds we can't provide IDs
@@ -64,6 +83,14 @@ data NameAndId what = NameAndId
   -- ^ ID of the entity if available (entity is already in DB).
   } deriving stock (Generic, Show, Eq, Ord)
 
+instance Buildable (NameAndId what) where
+  build (NameAndId name mId) = maybe nameB (mappend (nameB <> ",") . build) mId
+    where
+      nameB = build name
+
+instance Buildable (ForResponseLog (NameAndId what)) where
+  build = buildForResponse
+
 -- | One element in 'FileSummary'. Corresponds to one target from the file.
 -- Contains all compounds that interact with the target in the file.
 -- Also contains information whether this target is new or already known.
@@ -73,6 +100,13 @@ data FileSummaryItem = FileSummaryItem
   , fsiCompounds :: [NameAndId 'CompoundId]
   -- ^ All compounds interacting with this target.
   } deriving stock (Generic, Show, Eq, Ord)
+
+instance Buildable FileSummaryItem where
+  build (FileSummaryItem target compounds) =
+    build target <> " interacts with " <> build compounds
+
+instance Buildable (ForResponseLog FileSummaryItem) where
+  build = buildForResponse
 
 ----------------
 -- JSON

@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -- | Utilities to work with 'URI'.
 
 module Edna.Util.URI
@@ -7,6 +9,7 @@ module Edna.Util.URI
 
 import Universum
 
+import Fmt (Buildable(..))
 import Network.URI (URI)
 import qualified Network.URI as URI
 
@@ -14,8 +17,14 @@ import qualified Network.URI as URI
 renderURI :: URI -> Text
 renderURI = show
 
+instance Buildable URI where
+  build = build . renderURI
+
 -- | Parse 'URI' from the format we use to communicate with outer world.
 --
--- TODO: is 'URI.parseURI' the right function? There are other parsing functions.
+-- Currently parsing logic is very permissive and accepts absolute and relative
+-- URIs with optional fragment identifier.
+-- So even empty URI is permitted.
+-- We can make it stricter later if we want.
 parseURI :: Text -> Maybe URI
-parseURI = URI.parseURI . toString
+parseURI = URI.parseURIReference . toString

@@ -9,6 +9,7 @@ module Edna.Config.Definition
   , EdnaConfig (..)
   , ecApi
   , ecDb
+  , ecLogging
 
   , ApiConfig (..)
   , acListenAddr
@@ -22,10 +23,13 @@ module Edna.Config.Definition
   , dbConnString
   , dbMaxConnections
   , dbInitialisation
+
+  , LoggingConfig (..)
   ) where
 
 import Universum
 
+import qualified Data.Aeson as Aeson
 import Data.Aeson.TH (deriveJSON)
 import Lens.Micro.Platform (makeLenses)
 import Text.Read (read)
@@ -48,10 +52,33 @@ data DbConfig = DbConfig
   , _dbInitialisation :: Maybe DbInit
   } deriving stock (Generic, Show)
 
+-- | Specification of how much to log.
+data LoggingConfig =
+    LogDev
+  -- ^ Development logging mode: log a lot.
+  | LogProd
+  -- ^ Production logging mode: log less than in development mode.
+  | LogNothing
+  -- ^ No logging.
+  deriving stock (Generic, Show, Eq)
+
+loggingConfigAesonOptions :: Aeson.Options
+loggingConfigAesonOptions = Aeson.defaultOptions
+  { Aeson.sumEncoding = Aeson.UntaggedValue
+  , Aeson.constructorTagModifier = drop 3
+  }
+
+instance Aeson.FromJSON LoggingConfig where
+  parseJSON = Aeson.genericParseJSON loggingConfigAesonOptions
+
+instance Aeson.ToJSON LoggingConfig where
+  toEncoding = Aeson.genericToEncoding loggingConfigAesonOptions
+
 data EdnaConfig = EdnaConfig
   { _ecApi :: ApiConfig
   , _ecDb :: DbConfig
-} deriving stock (Generic, Show)
+  , _ecLogging :: LoggingConfig
+  } deriving stock (Generic, Show)
 
 defaultEdnaConfig :: EdnaConfig
 defaultEdnaConfig = EdnaConfig
@@ -64,6 +91,7 @@ defaultEdnaConfig = EdnaConfig
     , _dbMaxConnections = 200
     , _dbInitialisation = Nothing
     }
+  , _ecLogging = LogProd
   }
 
 ---------------------------------------------------------------------------
