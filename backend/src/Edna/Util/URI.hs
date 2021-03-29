@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -- | Utilities to work with 'URI'.
 
 module Edna.Util.URI
@@ -7,12 +9,16 @@ module Edna.Util.URI
 
 import Universum
 
+import Fmt (Buildable(..))
 import Network.URI (URI)
 import qualified Network.URI as URI
 
 -- | Render 'URI' in the way we use to communicate with outer world.
 renderURI :: URI -> Text
 renderURI = show
+
+instance Buildable URI where
+  build = build . renderURI
 
 -- | Parse 'URI' from the format we use to communicate with outer world.
 --

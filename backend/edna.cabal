@@ -85,6 +85,7 @@ library
     servant-swagger,
     servant-swagger-ui-core,
     servant-swagger-ui,
+    servant-util,
     split,
     swagger2,
     text,
