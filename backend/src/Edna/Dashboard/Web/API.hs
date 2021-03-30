@@ -14,6 +14,7 @@ import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server (err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
+import Edna.Dashboard.Service (getExperiments, getMeasurements, getSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId)
@@ -93,7 +94,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deSetNameSubExp = \_ _ -> throwM err501
   , deSetIsSuspiciousSubExp = \_ _ -> throwM err501
   , deDeleteSubExp = \_ -> throwM err501
-  , deGetExperiments = \_ _ _ _ _ _ -> throwM err501
-  , deGetSubExperiment = \_ -> throwM err501
-  , deGetMeasurements = \_ -> throwM err501
+  , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
+  , deGetSubExperiment = getSubExperiment
+  , deGetMeasurements = getMeasurements
   }

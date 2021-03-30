@@ -44,20 +44,23 @@ data ExperimentResp = ExperimentResp
   -- ^ Compound involved in this experiment.
   , erTarget :: TargetId
   -- ^ Compound involved in this experiment.
-  , erMethodology :: MethodologyId
+  , erMethodology :: Maybe MethodologyId
   -- ^ Test methodology used in this experiment.
   , erUploadDate :: UTCTime
   -- ^ Date when the experiment was uploaded.
   , erSubExperiments :: [SubExperimentId]
   -- ^ IDs of all sub-experiments from this experiment.
   -- Usually their number is small (≤2, maybe 3).
+  , erPrimarySubExperiment :: SubExperimentId
+  -- ^ Idenfitier of the primary sub-experiment from this experiment.
   } deriving stock (Generic, Show)
 
 instance Buildable ExperimentResp where
   build ExperimentResp {..} =
     "Project " +| erProject |+ ", compound " +| erCompound |+ ", target " +| erTarget |+
     ", methodology " +| erMethodology |+ ", upload date: " +| iso8601Show erUploadDate |+
-    ", sub-experiments: " +| map unSqlId erSubExperiments |+ ""
+    ", sub-experiments: " +| map unSqlId erSubExperiments |+
+    ", primary: " +| erPrimarySubExperiment |+ ""
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
@@ -65,11 +68,9 @@ instance Buildable (ForResponseLog ExperimentResp) where
 -- | SubExperiment as response from the server.
 data SubExperimentResp = SubExperimentResp
   { serName :: Text
-  -- ^ Sub-eperiment name.
-  , serIsDefault :: Bool
-  -- ^ Whether this subexperiment is the default one.
+  -- ^ Sub-experiment name.
   , serIsSuspicious :: Bool
-  -- ^ Whether this subexperiment's data is suspicious (potentially has
+  -- ^ Whether this sub-experiment's data is suspicious (potentially has
   -- incorrect points).
   , serIC50 :: Double
   -- ^ IC50 computed for this sub-experiment.

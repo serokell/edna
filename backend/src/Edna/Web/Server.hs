@@ -22,6 +22,7 @@ import Servant.Util.Combinators.Logging (ServantLogConfig(..), serverWithLogging
 import Edna.Config.Definition (LoggingConfig(..), acListenAddr, acServeDocs, ecApi, ecLogging)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
+import Edna.Dashboard.Error (DashboardError)
 import Edna.ExperimentReader.Error (ExperimentParsingError)
 import Edna.Library.Error (LibraryError)
 import Edna.Orphans ()
@@ -73,6 +74,7 @@ ednaToHandler ctx action =
   `catch` throwPurely @UploadError
   `catch` throwPurely @UploadApiError
   `catch` throwPurely @LibraryError
+  `catch` throwPurely @DashboardError
   `catch` throwError   -- catch 'ServantError'
   where
     throwPurely :: ToServerError e => e -> Handler a

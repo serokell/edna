@@ -148,15 +148,15 @@ genExperimentResp = do
   erProject <- genSqlId
   erCompound <- genSqlId
   erTarget <- genSqlId
-  erMethodology <- genSqlId
+  erMethodology <- Gen.maybe genSqlId
   erUploadDate <- genUTCTime
-  erSubExperiments <- Gen.list (Range.linear 0 5) genSqlId
+  erSubExperiments <- Gen.list (Range.linear 1 5) genSqlId
+  erPrimarySubExperiment <- Gen.element erSubExperiments
   return ExperimentResp {..}
 
 genSubExperimentResp :: MonadGen m => m SubExperimentResp
 genSubExperimentResp = do
   serName <- genName
-  serIsDefault <- Gen.bool
   serIsSuspicious <- Gen.bool
   serIC50 <- genDoubleSmallPrec
   return SubExperimentResp {..}
