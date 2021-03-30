@@ -23,6 +23,7 @@ import Edna.Util
   (CompoundId, ExperimentFileId, ExperimentId, MeasurementId, MethodologyId, ProjectId, SqlId(..),
   SubExperimentId, TargetId, fromSqlSerial)
 
+-- | Insert experiment and return its ID
 insertExperiment :: ExperimentFileId -> CompoundId -> TargetId -> Edna ExperimentId
 insertExperiment (SqlId experimentFileId) (SqlId compoundId) (SqlId targetId) =
   fromSqlSerial . eExperimentId <$>
@@ -35,6 +36,7 @@ insertExperiment (SqlId experimentFileId) (SqlId compoundId) (SqlId targetId) =
         }
       ])
 
+-- | Insert sub-experiment and return its ID
 insertSubExperiment :: ExperimentId -> Edna SubExperimentId
 insertSubExperiment (SqlId experimentId) = fromSqlSerial . seSubExperimentId <$>
   runInsertReturningOne' (insert (esSubExperiment ednaSchema) $ insertExpressions
@@ -47,6 +49,7 @@ insertSubExperiment (SqlId experimentId) = fromSqlSerial . seSubExperimentId <$>
       }
     ])
 
+-- | Insert list of measurements for given experiment and return IDs of these measurements
 insertMeasurements :: ExperimentId -> [Measurement] -> Edna [MeasurementId]
 insertMeasurements (SqlId expId) measurements = map (fromSqlSerial . mMeasurementId) <$>
   runInsertReturningList' (insert (esMeasurement ednaSchema) $ insertExpressions $
@@ -59,11 +62,13 @@ insertMeasurements (SqlId expId) measurements = map (fromSqlSerial . mMeasuremen
       , mIsOutlier = val_ (EReader.mIsOutlier measurement)
       })
 
+-- | Insert removed measurements for given sub-experiment
 insertRemovedMeasurements :: SubExperimentId -> [MeasurementId] -> Edna ()
 insertRemovedMeasurements (SqlId subExpId) removedIds =
   runInsert' $ insert (esRemovedMeasurements ednaSchema) $ insertValues $
     flip map removedIds $ \(SqlId removedId) -> RemovedMeasurementsRec subExpId removedId
 
+-- | Insert experiment file and return its ID
 insertExperimentFile ::
   ProjectId -> MethodologyId -> FileMetadata -> Text -> Text -> LByteString -> Edna ExperimentFileId
 insertExperimentFile (SqlId projId) (SqlId methodId) meta descr fileName blob = do
