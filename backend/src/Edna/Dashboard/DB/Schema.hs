@@ -15,6 +15,9 @@ module Edna.Dashboard.DB.Schema
   , SubExperimentT (..)
   , SubExperimentRec
 
+  , PrimarySubExperimentT (..)
+  , PrimarySubExperimentRec
+
   , RemovedMeasurementsT (..)
   , RemovedMeasurementsRec
 
@@ -127,6 +130,7 @@ theOnlyAnalysisMethodId = unSerial (amAnalysisMethodId theOnlyAnalysisMethod)
 data SubExperimentT f = SubExperimentRec
   { seSubExperimentId :: C f (SqlSerial Word32)
   , seAnalysisMethodId :: C f Word32
+  , seName :: C f Text
   , seExperimentId :: C f Word32
   , seIsSuspicious :: C f Bool
   , seResult :: C f (PgJSON Double)
@@ -146,6 +150,30 @@ instance Table SubExperimentT where
 
 deriving stock instance Show (PrimaryKey SubExperimentT Identity)
 deriving stock instance Eq (PrimaryKey SubExperimentT Identity)
+
+-------------------------
+-- Primary sub-experiment
+-------------------------
+
+data PrimarySubExperimentT f = PrimarySubExperimentRec
+  { pseExperimentId :: C f Word32
+  , pseSubExperimentId :: C f Word32
+  } deriving stock Generic
+    deriving anyclass Beamable
+
+type PrimarySubExperimentRec = PrimarySubExperimentT Identity
+
+deriving stock instance Show PrimarySubExperimentRec
+deriving stock instance Eq PrimarySubExperimentRec
+
+instance Table PrimarySubExperimentT where
+  data PrimaryKey PrimarySubExperimentT f = PrimarySubExperimentId (C f Word32) (C f Word32)
+    deriving stock (Generic)
+    deriving anyclass Beamable
+  primaryKey = PrimarySubExperimentId <$> pseExperimentId <*> pseSubExperimentId
+
+deriving stock instance Show (PrimaryKey PrimarySubExperimentT Identity)
+deriving stock instance Eq (PrimaryKey PrimarySubExperimentT Identity)
 
 -------------------------
 -- Removed Measurements

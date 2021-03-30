@@ -126,6 +126,7 @@ insertExperiment :: ExperimentFileId -> CompoundId -> TargetId -> [Measurement] 
 insertExperiment experimentFileId compoundId targetId measurements = do
   expId <- UQ.insertExperiment experimentFileId compoundId targetId
   subExpId <- UQ.insertSubExperiment expId
+  UQ.insertPrimarySubExperiment expId subExpId
   measurementIds <- UQ.insertMeasurements expId measurements
   let removedIds = map fst . filter (EReader.mIsOutlier . snd) $ zip measurementIds measurements
   UQ.insertRemovedMeasurements subExpId removedIds

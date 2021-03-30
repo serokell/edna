@@ -72,7 +72,8 @@ genExperimentFileRec experimentFileId efProjectId methodologyId = do
     , ..}
 
 genExperimentRec :: Word32 -> Word32 -> Word32 -> Word32 -> ExperimentRec
-genExperimentRec experimentId eExperimentFileId eCompoundId eTargetId = ExperimentRec
+genExperimentRec experimentId eExperimentFileId eCompoundId eTargetId =
+  ExperimentRec
   { eExperimentId = SqlSerial experimentId
   , ..}
 
@@ -91,6 +92,7 @@ genAnalysisMethodRec analysisMethodId = do
 
 genSubExperimentRec :: Gen.MonadGen m => Word32 -> Word32 -> Word32 -> m SubExperimentRec
 genSubExperimentRec subExperimentId seAnalysisMethodId seExperimentId = do
+  seName <- genName
   seIsSuspicious <- Gen.bool
   seResult <- PgJSON <$> Gen.double (constant 0 100)
   pure SubExperimentRec {seSubExperimentId = SqlSerial subExperimentId, ..}

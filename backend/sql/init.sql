@@ -83,12 +83,12 @@ create table if not exists experiment_file
 -- so more than 1 value for each concentration.
 create table if not exists experiment
 (
-    experiment_id       serial  not null primary key,
+    experiment_id       serial not null primary key,
     -- File from which this experiment was taken.
     -- Project, methodology and some other data are inherited from that file.
-    experiment_file_id  int     not null,
-    compound_id         int     not null,
-    target_id           int     not null,
+    experiment_file_id  int    not null,
+    compound_id         int    not null,
+    target_id           int    not null,
 
     constraint has_compound
         foreign key (compound_id) references compound (compound_id)
@@ -139,7 +139,8 @@ create table if not exists analysis_method
 insert into analysis_method values (1, 'IC50', '[]'::json) on conflict do nothing;
 
 -- Sub-experiment is an experiment with disabled points.
--- An experiment is a sub-experiment of itself with 0 disabled points.
+-- An experiment always has at least one sub-experiment of itself.
+-- Each sub-experiment has a name.
 -- We define analysis for sub-experiments.
 -- For each sub-experiment we store information about applied analysis method
 -- and analysis outcome (result).
@@ -149,8 +150,9 @@ insert into analysis_method values (1, 'IC50', '[]'::json) on conflict do nothin
 -- (something looks wrong in its data).
 create table if not exists sub_experiment
 (
-    sub_experiment_id   serial not null primary key,
+    sub_experiment_id  serial not null primary key,
     analysis_method_id int    not null,
+    name               text   not null,
     experiment_id      int    not null,
     is_suspicious      bool   not null,
     result             json   not null,
@@ -167,6 +169,27 @@ create table if not exists sub_experiment
 
     -- TODO do we want to make sure that there is at least one measurement for (experiment_id, compound_id) in
     -- measurement table?
+);
+
+-- Each experiment has exactly one primary sub-experiment.
+-- We store this relation in a separate table to avoid circular references.
+create table if not exists primary_sub_experiment
+(
+    experiment_id       int not null unique,
+    sub_experiment_id   int not null unique,
+    primary key (experiment_id, sub_experiment_id),
+
+    constraint belongs_to_experiment
+        foreign key (experiment_id) references experiment (experiment_id)
+            -- Experiments can't be deleted.
+            on delete no action
+            on update no action,
+
+    constraint belongs_to_subexperiment
+        foreign key (sub_experiment_id) references sub_experiment (sub_experiment_id)
+            -- Prohibit deleting primary sub-experiment.
+            on delete no action
+            on update no action
 );
 
 create table if not exists removed_measurements

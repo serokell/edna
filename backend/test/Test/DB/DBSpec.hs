@@ -12,8 +12,8 @@ import Test.Hspec.Hedgehog (forAll, modifyMaxShrinks, modifyMaxSuccess, (===))
 import Edna.DB.Integration (runInsert', runSelectReturningList', runSelectReturningOne')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
-  (AnalysisMethodT(..), ExperimentT(..), MeasurementT(..), SubExperimentT(..),
-  theOnlyAnalysisMethod, theOnlyAnalysisMethodId)
+  (AnalysisMethodT(..), ExperimentT(..), MeasurementT(..), PrimarySubExperimentT(..),
+  SubExperimentT(..), theOnlyAnalysisMethod, theOnlyAnalysisMethodId)
 import Edna.Library.DB.Schema (CompoundT(..), ProjectT(..), TargetT(..), TestMethodologyT(..))
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Test.DB.Gen
@@ -85,6 +85,15 @@ spec = withContext $
             (unSerial amAnalysisMethodId) (unSerial eExperimentId)
           lift $ insertWithConflict esSubExperiment $ insertValues [expectedSubExperiment]
           pure expectedSubExperiment
+    let insertPrimarySubExperiment = do
+          SubExperimentRec{..} <- insertSubExperiment
+          let expectedPrimarySubExperiment = PrimarySubExperimentRec
+                { pseExperimentId = seExperimentId
+                , pseSubExperimentId = unSerial seSubExperimentId
+                }
+          lift $ insertWithConflict esPrimarySubExperiment $
+            insertValues [expectedPrimarySubExperiment]
+          pure expectedPrimarySubExperiment
     let insertRemovedMeasurements = do
           SubExperimentRec{..} <- insertSubExperiment
           m@MeasurementRec{..} <- forAll $ genMeasurementRec 1 seExperimentId
@@ -113,5 +122,7 @@ spec = withContext $
       actual === [theOnlyAnalysisMethod, expected2]
     it "SubExperiment" $ \ctx -> ednaTestMode ctx $
       insertSubExperiment >>= commonCheck esSubExperiment
+    it "PrimarySubExperiment" $ \ctx -> ednaTestMode ctx $
+      insertPrimarySubExperiment >>= commonCheck esPrimarySubExperiment
     it "RemovedMeasurements" $ \ctx -> ednaTestMode ctx $
       insertRemovedMeasurements >>= commonCheck esRemovedMeasurements

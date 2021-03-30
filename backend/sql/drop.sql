@@ -6,5 +6,6 @@ drop table if exists experiment_file cascade;
 drop table if exists experiment cascade;
 drop table if exists measurement cascade;
 drop table if exists analysis_method cascade;
-drop table if exists subexperiment cascade;
+drop table if exists sub_experiment cascade;
+drop table if exists primary_sub_experiment cascade;
 drop table if exists removed_measurements cascade;

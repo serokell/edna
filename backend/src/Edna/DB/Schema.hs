@@ -11,7 +11,8 @@ import Database.Beam.Postgres (Postgres)
 import Database.Beam.Schema (Database, DatabaseSettings, TableEntity, defaultDbSettings)
 
 import Edna.Dashboard.DB.Schema
-  (AnalysisMethodT, ExperimentT, MeasurementT, RemovedMeasurementsT, SubExperimentT)
+  (AnalysisMethodT, ExperimentT, MeasurementT, PrimarySubExperimentT, RemovedMeasurementsT,
+  SubExperimentT)
 import Edna.Library.DB.Schema (CompoundT, ProjectT, TargetT, TestMethodologyT)
 import Edna.Upload.DB.Schema (ExperimentFileT)
 
@@ -29,6 +30,7 @@ data EdnaSchema f = EdnaSchema
   , esMeasurement :: f (TableEntity MeasurementT)
   , esAnalysisMethod :: f (TableEntity AnalysisMethodT)
   , esSubExperiment :: f (TableEntity SubExperimentT)
+  , esPrimarySubExperiment :: f (TableEntity PrimarySubExperimentT)
   , esRemovedMeasurements :: f (TableEntity RemovedMeasurementsT)
   } deriving stock (Generic)
     deriving anyclass (Database be)
