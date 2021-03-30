@@ -19,6 +19,10 @@ module Test.Gen
   , genMethodologyReqResp
   , genCompoundResp
   , genTargetResp
+  , genExperimentsResp
+  , genExperimentResp
+  , genSubExperimentResp
+  , genMeasurementResp
   , genName
   , genURI
   , genDescription
@@ -45,6 +49,7 @@ import Network.URI (URIAuth(..), nullURI)
 import Test.QuickCheck (Arbitrary(..))
 import Test.QuickCheck.Hedgehog (hedgehog)
 
+import Edna.Dashboard.Web.Types
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
 import Edna.Library.Web.Types
@@ -130,6 +135,36 @@ genTargetResp = do
   trProjects <- Gen.list (Range.linear 0 5) genName
   trAdditionDate <- genLocalTime
   return TargetResp {..}
+
+genExperimentsResp :: MonadGen m => m ExperimentsResp
+genExperimentsResp =
+  ExperimentsResp
+  <$> Gen.list (Range.linear 0 5) (genWithId genExperimentResp)
+  <*> Gen.maybe genDoubleSmallPrec
+
+genExperimentResp :: MonadGen m => m ExperimentResp
+genExperimentResp = do
+  erProject <- genSqlId
+  erCompound <- genSqlId
+  erTarget <- genSqlId
+  erMethodology <- genSqlId
+  erUploadDate <- genLocalTime
+  erSubExperiments <- Gen.list (Range.linear 0 5) genSqlId
+  return ExperimentResp {..}
+
+genSubExperimentResp :: MonadGen m => m SubExperimentResp
+genSubExperimentResp = do
+  serName <- genName
+  serIsDefault <- Gen.bool
+  serIsSuspicious <- Gen.bool
+  serIC50 <- genDoubleSmallPrec
+  return SubExperimentResp {..}
+
+genMeasurementResp :: MonadGen m => m MeasurementResp
+genMeasurementResp = do
+  mrConcentration <- genDoubleSmallPrec
+  mrSignal <- genDoubleSmallPrec
+  return MeasurementResp {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
 genFileContents genTargetName genCompoundName = do
@@ -245,3 +280,19 @@ instance Arbitrary CompoundResp where
 
 instance Arbitrary TargetResp where
   arbitrary = hedgehog genTargetResp
+
+instance Arbitrary ExperimentsResp where
+  arbitrary = hedgehog genExperimentsResp
+
+instance Arbitrary ExperimentResp where
+  arbitrary = hedgehog genExperimentResp
+
+instance Arbitrary SubExperimentResp where
+  arbitrary = hedgehog genSubExperimentResp
+
+instance Arbitrary MeasurementResp where
+  arbitrary = hedgehog genMeasurementResp
+
+-- Is needed for swagger tests
+instance Arbitrary Text where
+  arbitrary = hedgehog genName
