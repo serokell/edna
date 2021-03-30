@@ -13,7 +13,7 @@ import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Fmt (Buildable(..), genericF, tupleF, (+|), (|+))
+import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Util
@@ -87,10 +87,14 @@ data MeasurementResp = MeasurementResp
   -- ^ Concentration for which the signal is measured.
   , mrSignal :: Double
   -- ^ Something that is measured.
+  , mrIsEnabled :: Bool
+  -- ^ Whether this point is enabled.
   } deriving stock (Generic, Show)
 
 instance Buildable MeasurementResp where
-  build MeasurementResp {..} = tupleF (mrConcentration, mrSignal)
+  build MeasurementResp {..}
+    | mrIsEnabled = tupleF (mrConcentration, mrSignal)
+    | otherwise = tupleF (mrConcentration, mrSignal, "DISABLED" :: Builder)
 
 instance Buildable (ForResponseLog MeasurementResp) where
   build = buildForResponse

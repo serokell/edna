@@ -165,6 +165,7 @@ genMeasurementResp :: MonadGen m => m MeasurementResp
 genMeasurementResp = do
   mrConcentration <- genDoubleSmallPrec
   mrSignal <- genDoubleSmallPrec
+  mrIsEnabled <- Gen.bool
   return MeasurementResp {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
