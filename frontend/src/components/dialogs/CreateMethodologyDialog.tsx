@@ -5,40 +5,32 @@ import { DialogLayout } from "../DialogLayout/DialogLayout";
 import { modalDialogAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
-import "./CreateDialog.scss";
+import "../DialogLayout/CreateDialog.scss";
 import Api from "../../api/api";
-import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
-import { CreateMethodologyArgsApi } from "../../api/EdnaApi";
-import { replaceEmptyWithUndefined } from "../../utils/utils";
+import { CreateDialogFooter, FormState } from "../DialogLayout/CreateDialogFooter";
 import { useMethodologiesRefresher } from "../../store/updaters";
+import { CreateMethodologyForm, toCreateMethodologyForm } from "./types";
+import { toCreateMethodologyArgsApi } from "../../api/EdnaApi";
+import { MethodologyDto } from "../../api/types";
 
-interface CreateMethodologyForm {
-  name: string;
-  description: string;
-  confluence: string;
+interface CreateMethodologyDialogProps {
+  editing?: MethodologyDto;
 }
 
-function toApiArgs(form: CreateMethodologyForm): CreateMethodologyArgsApi {
-  return {
-    name: form.name,
-    description: replaceEmptyWithUndefined(form.description.trim()),
-    confluence: replaceEmptyWithUndefined(form.confluence.trim()),
-  };
-}
-
-export function CreateMethodologyDialog(): React.ReactElement {
+export function CreateMethodologyDialog({
+  editing,
+}: CreateMethodologyDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const refreshMethodologies = useMethodologiesRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
-    <DialogLayout title="Create methodology" onClose={() => setModalDialog(undefined)}>
+    <DialogLayout
+      title={editing ? "Edit methodology" : "Create methodology"}
+      onClose={() => setModalDialog(undefined)}
+    >
       <Formik<CreateMethodologyForm>
-        initialValues={{
-          name: "",
-          description: "",
-          confluence: "",
-        }}
+        initialValues={toCreateMethodologyForm(editing)}
         validate={values => {
           const errors: any = {};
           if (!values.name) {
@@ -49,10 +41,13 @@ export function CreateMethodologyDialog(): React.ReactElement {
         onSubmit={async form => {
           setFormState({ kind: "submitting" });
           try {
-            await Api.createMethodology(toApiArgs(form));
+            if (editing) {
+              await Api.editMethodology(editing.id, toCreateMethodologyArgsApi(form));
+            } else {
+              await Api.createMethodology(toCreateMethodologyArgsApi(form));
+            }
             setModalDialog(undefined);
             refreshMethodologies();
-            // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
           }
@@ -89,7 +84,7 @@ export function CreateMethodologyDialog(): React.ReactElement {
             )}
           </FormField>
 
-          <CreateDialogFooter formState={formState} />
+          <CreateDialogFooter formState={formState} editing={!!editing} />
         </Form>
       </Formik>
     </DialogLayout>

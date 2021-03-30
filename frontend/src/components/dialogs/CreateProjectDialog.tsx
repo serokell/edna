@@ -5,38 +5,31 @@ import { DialogLayout } from "../DialogLayout/DialogLayout";
 import { modalDialogAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
-import "./CreateDialog.scss";
+import "../DialogLayout/CreateDialog.scss";
 import Api from "../../api/api";
 import "../RoundSpinner.scss";
-import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
-import { CreateProjectArgsApi } from "../../api/EdnaApi";
-import { replaceEmptyWithUndefined } from "../../utils/utils";
+import { CreateDialogFooter, FormState } from "../DialogLayout/CreateDialogFooter";
+import { toCreateProjectArgsApi } from "../../api/EdnaApi";
 import { useProjectRefresher } from "../../store/updaters";
+import { CreateProjectForm, toCreateProjectForm } from "./types";
+import { ProjectDto } from "../../api/types";
 
-interface CreateProjectForm {
-  name: string;
-  description: string;
+interface CreateProjectDialogProps {
+  editing?: ProjectDto;
 }
 
-function toApiArgs(form: CreateProjectForm): CreateProjectArgsApi {
-  return {
-    name: form.name,
-    description: replaceEmptyWithUndefined(form.description.trim()),
-  };
-}
-
-export function CreateProjectDialog(): React.ReactElement {
+export function CreateProjectDialog({ editing }: CreateProjectDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const refreshProjects = useProjectRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
-    <DialogLayout title="Create project" onClose={() => setModalDialog(undefined)}>
+    <DialogLayout
+      title={editing ? "Edit project" : "Create project"}
+      onClose={() => setModalDialog(undefined)}
+    >
       <Formik<CreateProjectForm>
-        initialValues={{
-          name: "",
-          description: "",
-        }}
+        initialValues={toCreateProjectForm(editing)}
         validate={values => {
           const errors: any = {};
           if (!values.name) {
@@ -47,10 +40,13 @@ export function CreateProjectDialog(): React.ReactElement {
         onSubmit={async form => {
           setFormState({ kind: "submitting" });
           try {
-            await Api.createProject(toApiArgs(form));
+            if (editing) {
+              await Api.editProject(editing.id, toCreateProjectArgsApi(form));
+            } else {
+              await Api.createProject(toCreateProjectArgsApi(form));
+            }
             setModalDialog(undefined);
             refreshProjects();
-            // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
           }
@@ -77,7 +73,7 @@ export function CreateProjectDialog(): React.ReactElement {
             )}
           </FormField>
 
-          <CreateDialogFooter formState={formState} />
+          <CreateDialogFooter formState={formState} editing={!!editing} />
         </Form>
       </Formik>
     </DialogLayout>

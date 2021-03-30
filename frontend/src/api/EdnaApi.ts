@@ -10,7 +10,8 @@ import {
   ProjectDto,
   TargetDto,
 } from "./types";
-import { isDefined, Maybe } from "../utils/utils";
+import { Maybe, replaceEmptyWithUndefined } from "../utils/utils";
+import { CreateMethodologyForm, CreateProjectForm } from "../components/dialogs/types";
 
 export interface UploadExperimentsArgsApi {
   file: File;
@@ -25,9 +26,24 @@ export interface CreateMethodologyArgsApi {
   confluence: Maybe<string>;
 }
 
+export function toCreateMethodologyArgsApi(form: CreateMethodologyForm): CreateMethodologyArgsApi {
+  return {
+    name: form.name,
+    description: replaceEmptyWithUndefined(form.description.trim()),
+    confluence: replaceEmptyWithUndefined(form.confluence.trim()),
+  };
+}
+
 export interface CreateProjectArgsApi {
   name: string;
   description: Maybe<string>;
+}
+
+export function toCreateProjectArgsApi(form: CreateProjectForm): CreateProjectArgsApi {
+  return {
+    name: form.name,
+    description: replaceEmptyWithUndefined(form.description.trim()),
+  };
 }
 
 interface EdnaApiInterface {
@@ -45,10 +61,12 @@ interface EdnaApiInterface {
   uploadExperiments(form: UploadExperimentsArgsApi): Promise<unknown>;
   fetchProjects: () => Promise<ProjectDto[]>;
   createProject: (args: CreateProjectArgsApi) => Promise<ProjectDto>;
+  editProject: (projId: number, args: CreateProjectArgsApi) => Promise<ProjectDto>;
   fetchTargets: () => Promise<TargetDto[]>;
   fetchCompounds: () => Promise<CompoundDto[]>;
   fetchMethodologies: () => Promise<MethodologyDto[]>;
   createMethodology: (args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
+  editMethodology: (methId: number, args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -133,6 +151,15 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         });
     },
 
+    editProject: async (projId: number, args: CreateProjectArgsApi) => {
+      return axios
+        .put(`/project/${projId}`, args)
+        .then(resp => resp.data)
+        .catch(error => {
+          throw new Error(error.response.data);
+        });
+    },
+
     fetchProjects: async () => {
       return axios.get("/projects").then(proj => proj.data);
     },
@@ -140,6 +167,15 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     createMethodology: async (args: CreateMethodologyArgsApi) => {
       return axios
         .post("/methodology", args)
+        .then(resp => resp.data)
+        .catch(error => {
+          throw new Error(error.response.data);
+        });
+    },
+
+    editMethodology: async (methId: number, args: CreateMethodologyArgsApi) => {
+      return axios
+        .put(`/methodology/${methId}`, args)
         .then(resp => resp.data)
         .catch(error => {
           throw new Error(error.response.data);

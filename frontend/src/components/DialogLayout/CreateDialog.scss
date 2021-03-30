@@ -9,10 +9,12 @@
   &__footer {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    width: 100%;
   }
 
-  &__submitBtn {
-    margin-right: 20 * $px;
+  &__footerBtn {
+    margin-left: 36 * $px;
   }
 
   &__errorMsg {
