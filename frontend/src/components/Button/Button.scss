@@ -83,7 +83,9 @@
   @include snd-btn();
 
   padding: (9 * $px) (20 * $px);
+  font-size: 14 * $px;
   font-weight: 700;
+  line-height: 18 * $px;
   color: $color-green;
   background-color: $color-light-green;
   border: 0;
@@ -100,6 +102,14 @@
   &:disabled {
     pointer-events: none;
     background: rgba($color-light-green, 0.3);
+  }
+
+  &_smallRounding {
+    border-radius: 4 * $px;
+  }
+
+  &_size-small {
+    padding: (6 * $px) (8 * $px);
   }
 }
 
@@ -121,6 +131,7 @@
   }
 
   &:hover {
+    cursor: pointer;
     background-color: #206c58;
   }
 }

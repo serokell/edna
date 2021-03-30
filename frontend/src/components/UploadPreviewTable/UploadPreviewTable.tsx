@@ -59,13 +59,7 @@ export function UploadPreviewTable({
 
   return (
     <div className={cx(["uploadPreviewTableContainer", className])}>
-      <Table
-        mode="alternate"
-        small
-        data={data}
-        columns={previewColumns}
-        className="uploadPreviewTable"
-      />
+      <Table small data={data} columns={previewColumns} className="uploadPreviewTable" />
     </div>
   );
 }

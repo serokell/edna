@@ -1,16 +1,16 @@
 import React, { FunctionComponent, useState } from "react";
 import { useRecoilValue } from "recoil";
 import cx from "classnames";
+import { Column } from "react-table";
 import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
-import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
+import { CompoundDto, MethodologyDto, ProjectDto, TargetDto } from "../../api/types";
 import { formatDateTimeDto } from "../../utils/utils";
 import DotsSvg from "../../assets/svg/dots.svg";
-import { MethodologyPlate } from "../../components/MethodologyPlate/MethodologyPlate";
 import { ErrorPlaceholder } from "../../components/Error/ErrorPlaceholder";
 import {
   compoundsQuery,
@@ -20,6 +20,7 @@ import {
 } from "../../store/selectors";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import EditSvg from "../../assets/svg/edit.svg";
+import { Button } from "../../components/Button/Button";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -132,7 +133,7 @@ function ProjectsSuspendable() {
     ],
     []
   );
-  return <Table mode="bordered" data={projects} columns={projectColumns} />;
+  return <Table data={projects} columns={projectColumns} />;
 }
 
 function CompoundsSuspendable() {
@@ -159,12 +160,12 @@ function CompoundsSuspendable() {
     ],
     []
   );
-  return <Table mode="bordered" data={projects} columns={projectColumns} />;
+  return <Table data={projects} columns={projectColumns} />;
 }
 
 function TargetsSuspendable() {
   const projects = useRecoilValue(targetsQuery);
-  const projectColumns = React.useMemo(
+  const projectColumns: Column<TargetDto>[] = React.useMemo(
     () => [
       {
         Header: "Target",
@@ -178,27 +179,85 @@ function TargetsSuspendable() {
         Header: "Addition date",
         accessor: (t: TargetDto) => formatDateTimeDto(t.item.additionDate),
       },
+    ],
+    []
+  );
+  return <Table data={projects} columns={projectColumns} />;
+}
+
+function MethodsSuspendable() {
+  const methodologies = useRecoilValue(methodologiesQuery);
+  const methodologyColumns: Column<MethodologyDto>[] = React.useMemo(
+    () => [
+      {
+        Header: "Methodology",
+        accessor: (t: MethodologyDto) => t.item.name,
+      },
+      {
+        Header: "Project",
+        accessor: () => "project1, project2",
+      },
+      {
+        Header: "Confluence link",
+        id: "link",
+        accessor: (t: MethodologyDto) => {
+          if (t.item.confluence)
+            return (
+              <div className="ednaTable__cell">
+                <a href={t.item.confluence}>{t.item.confluence}</a>
+              </div>
+            );
+          return (
+            <td className="ednaTable__cell methodology__btn">
+              <Button type="small-rounded" size="small">
+                Add link
+              </Button>
+            </td>
+          );
+        },
+      },
+      {
+        Header: "Description",
+        id: "description",
+        accessor: () => {
+          return (
+            <td className="ednaTable__cell methodology__btn">
+              <Button type="small-rounded" size="small">
+                Show description
+              </Button>
+            </td>
+          );
+        },
+      },
+
       {
         id: "actions",
         accessor: () => (
-          <div className="contextActions">
-            <DotsSvg />
-          </div>
+          <ContextActions
+            actions={[
+              <div key="edit" className="contextActions__item">
+                <EditSvg />
+                Edit
+              </div>,
+              <div key="remove" className="contextActions__item">
+                Remove
+              </div>,
+            ]}
+          />
         ),
       },
     ],
     []
   );
-  return <Table mode="bordered" data={projects} columns={projectColumns} />;
-}
 
-function MethodsSuspendable() {
-  const methodologies = useRecoilValue(methodologiesQuery);
   return (
-    <>
-      {methodologies.map(m => (
-        <MethodologyPlate key={m.item.name} title={m.item.name} description={m.item?.description} />
-      ))}
-    </>
+    <Table
+      data={methodologies}
+      columns={methodologyColumns}
+      columnExtras={{
+        link: { manualCellRendering: true },
+        description: { manualCellRendering: true },
+      }}
+    />
   );
 }
