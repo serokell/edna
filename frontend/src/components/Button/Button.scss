@@ -33,7 +33,7 @@
   position: relative;
   display: flex;
 
-  padding: (16 * $px) (36 * $px);
+  padding: (16 * $px) (22 * $px);
   color: white;
   background-color: $color-green;
   border: 0;
@@ -54,28 +54,38 @@
   }
 }
 
-.outlinedButton {
+.textButton {
   @include main-btn();
 
-  padding: (16 * $px) (36 * $px);
+  padding: (16 * $px) (22 * $px);
+
+  font-size: 18 * $px;
+  font-weight: 500;
+  line-height: 24 * $px;
   color: $color-green;
   background-color: white;
-  border: $px solid $color-green;
-  border-radius: $border-radius;
+  border: 0;
 
-  &:disabled {
-    color: #c4dad5;
-    pointer-events: none;
-    border-color: #c4dad5;
+  &:hover {
+    color: #206c58;
+    cursor: pointer;
   }
 
   &:active {
     color: #175a49;
   }
 
-  &:hover {
-    color: #206c58;
-    cursor: pointer;
+  &:disabled {
+    color: #c4dad5;
+    pointer-events: none;
+  }
+
+  &_danger {
+    color: $color-help-red;
+  }
+
+  &_gray {
+    color: $color-gray;
   }
 }
 

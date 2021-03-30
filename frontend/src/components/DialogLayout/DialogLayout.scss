@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   max-width: 720 * $px;
-  padding: 50 * $px;
+  padding: 36 * $px;
   margin: (100 * $px) auto 0 auto;
 
   background-color: white;
@@ -15,7 +15,7 @@
   &__close {
     position: absolute;
     top: 40 * $px;
-    right: 40 * $px;
+    right: 36 * $px;
     color: #9ba5a1;
 
     &:hover {

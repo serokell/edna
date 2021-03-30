@@ -14,8 +14,12 @@ export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
   return (
     <>
-      {modalDialog === "create-methodology" && <CreateMethodologyDialog />}
-      {modalDialog === "create-project" && <CreateProjectDialog />}
+      {modalDialog?.kind === "create-edit-methodology" && (
+        <CreateMethodologyDialog editing={modalDialog.editing} />
+      )}
+      {modalDialog?.kind === "create-edit-project" && (
+        <CreateProjectDialog editing={modalDialog.editing} />
+      )}
       <Switch>
         <Route path="/upload">
           <UploadPage />

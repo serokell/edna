@@ -167,7 +167,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               </Button>
 
               <Button
-                type="outlined"
+                type="text"
                 tabIndex={5}
                 onClick={() => {
                   setExcelFile(undefined);

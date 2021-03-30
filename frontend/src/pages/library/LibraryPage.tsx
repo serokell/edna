@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import cx from "classnames";
 import { Column } from "react-table";
 import { Table } from "../../components/Table/Table";
@@ -21,6 +21,7 @@ import {
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import EditSvg from "../../assets/svg/edit.svg";
 import { Button } from "../../components/Button/Button";
+import { modalDialogAtom } from "../../store/atoms";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -96,6 +97,7 @@ const extraFormatter = (compounds: string[]) => {
 };
 
 function ProjectsSuspendable() {
+  const setModalDialog = useSetRecoilState(modalDialogAtom);
   const projects = useRecoilValue(projectsQuery);
   const projectColumns = React.useMemo(
     () => [
@@ -119,10 +121,19 @@ function ProjectsSuspendable() {
       },
       {
         id: "actions",
-        accessor: () => (
+        accessor: (p: ProjectDto) => (
           <ContextActions
             actions={[
-              <div key="edit" className="contextActions__item">
+              <div
+                key="edit"
+                className="contextActions__item"
+                onClick={() =>
+                  setModalDialog({
+                    kind: "create-edit-project",
+                    editing: p,
+                  })
+                }
+              >
                 <EditSvg />
                 Edit
               </div>,
@@ -131,7 +142,7 @@ function ProjectsSuspendable() {
         ),
       },
     ],
-    []
+    [setModalDialog]
   );
   return <Table data={projects} columns={projectColumns} />;
 }
@@ -186,6 +197,7 @@ function TargetsSuspendable() {
 }
 
 function MethodsSuspendable() {
+  const setModalDialog = useSetRecoilState(modalDialogAtom);
   const methodologies = useRecoilValue(methodologiesQuery);
   const methodologyColumns: Column<MethodologyDto>[] = React.useMemo(
     () => [
@@ -232,10 +244,19 @@ function MethodsSuspendable() {
 
       {
         id: "actions",
-        accessor: () => (
+        accessor: (m: MethodologyDto) => (
           <ContextActions
             actions={[
-              <div key="edit" className="contextActions__item">
+              <div
+                key="edit"
+                className="contextActions__item"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "create-edit-methodology",
+                    editing: m,
+                  });
+                }}
+              >
                 <EditSvg />
                 Edit
               </div>,

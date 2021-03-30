@@ -16,7 +16,7 @@ export function CreateMethodologyButton({
     <Button
       type="rounded"
       className={className}
-      onClick={() => setModalDialog("create-methodology")}
+      onClick={() => setModalDialog({ kind: "create-edit-methodology" })}
     >
       <PlusSvg /> methodology
     </Button>
