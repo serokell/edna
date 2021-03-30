@@ -41,7 +41,7 @@
 
   &:disabled {
     pointer-events: none;
-    background-color: #c4dad5;
+    background-color: rgba($color-green, 0.3);
   }
 
   &:active {
@@ -79,29 +79,27 @@
   }
 }
 
-.secondaryButton {
+.roundedButton {
   @include snd-btn();
 
   padding: (9 * $px) (20 * $px);
   font-weight: 700;
   color: $color-green;
-  background-color: $color-disabled-green;
+  background-color: $color-light-green;
   border: 0;
   border-radius: 50 * $px;
 
   &:hover {
-    background-color: #9ac3b9;
+    background-color: #def4e9;
   }
 
   &:active {
-    color: white;
-    background-color: $color-green;
+    background-color: #bfe5d2;
   }
 
   &:disabled {
-    color: $color-green;
     pointer-events: none;
-    background: $color-light-green;
+    background: rgba($color-light-green, 0.3);
   }
 }
 

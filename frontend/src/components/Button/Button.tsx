@@ -3,7 +3,7 @@ import "../RoundSpinner.scss";
 import "./Button.scss";
 import cx from "classnames";
 
-type ButtonType = "submit" | "primary" | "outlined" | "secondary" | "link";
+type ButtonType = "submit" | "primary" | "outlined" | "rounded" | "link";
 
 interface ButtonProps {
   type: ButtonType;
@@ -27,7 +27,7 @@ export function Button({
   const buttonModifiers = {
     primaryButton: type === "submit" || type === "primary",
     outlinedButton: type === "outlined",
-    secondaryButton: type === "secondary",
+    roundedButton: type === "rounded",
     linkButton: type === "link",
   };
 

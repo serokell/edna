@@ -8,9 +8,9 @@ $container-side-padding: 20 * $px;
 $container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
 
 $color-green: #3a8370;
-$color-light-green: #f6faf8;
+$color-light-green: #edf8f2;
 $color-titles-gray: #afb6b6;
-$color-disabled-green: #c4dad5;
+$color-disabled-green: rgba($color-green, 0.3);
 $color-black: #191c1c;
 $color-gray: #9ba5a1;
 $color-help-red: #ea2243;
