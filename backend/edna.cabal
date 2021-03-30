@@ -54,9 +54,12 @@ library
       Edna.Library.Web.API
       Edna.Library.Web.Types
       Edna.Library.Service
-      Edna.Upload.API
+      Edna.Upload.Web.API
+      Edna.Upload.Web.Types
       Edna.Upload.Error
       Edna.Upload.Service
+      Edna.Upload.DB.Schema
+      Edna.Upload.DB.Query
       Edna.Util
       Edna.Util.URI
   other-modules:

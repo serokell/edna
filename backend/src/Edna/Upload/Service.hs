@@ -13,27 +13,25 @@ module Edna.Upload.Service
 import Universum
 
 import qualified Data.HashMap.Strict as HM
-import qualified Database.Beam.Postgres.Full as Pg
 
-import Database.Beam.Backend.SQL.BeamExtensions (unSerial)
-import Database.Beam.Postgres (PgJSON(..), Postgres)
-import Database.Beam.Query
-  (QExpr, all_, default_, guard_, insert, insertExpressions, insertValues, lookup_, select, val_,
-  (==.))
 import Fmt ((+|), (|+))
 import Lens.Micro.Platform (at, (?~))
 
-import Edna.DB.Integration
-  (runInsert', runInsertReturningList', runInsertReturningOne', runSelectReturningOne', transact)
-import Edna.DB.Schema
+import qualified Edna.Library.DB.Query as LQ
+import qualified Edna.Upload.DB.Query as UQ
+
+import Edna.DB.Integration (transact)
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
+import Edna.Library.DB.Query (getMethodologyById, getProjectById)
 import Edna.Library.DB.Schema as LDB
 import Edna.Logging (logDebug, logMessage)
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
-import Edna.Util as U (IdType(..), SqlId(..))
-import Edna.Web.Types
+import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
+import Edna.Util as U
+  (CompoundId, ExperimentFileId, MethodologyId, ProjectId, SqlId(..), TargetId, fromSqlSerial,
+  justOrThrow)
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
 -- Uses database to determine which targets are new.
@@ -48,22 +46,13 @@ parseFile content =
 parseFile' :: FileContents -> Edna FileSummary
 parseFile' = measurementsToSummary . fcMeasurements
 
-compoundNameToId :: Text -> Edna (Maybe (SqlId 'U.CompoundId))
+compoundNameToId :: Text -> Edna (Maybe CompoundId)
 compoundNameToId compoundName =
-  fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
-    compound <- all_ (esCompound ednaSchema)
-    guard_ (cName compound ==. val_ compoundName)
-    return $ cCompoundId compound
+  (fromSqlSerial . cCompoundId) <<$>> LQ.getCompoundByName compoundName
 
-targetNameToId :: Text -> Edna (Maybe (SqlId 'U.TargetId))
+targetNameToId :: Text -> Edna (Maybe TargetId)
 targetNameToId targetName =
-  fmap (fmap mkSqlId) . runSelectReturningOne' $ select $ do
-    target <- all_ (esTarget ednaSchema)
-    guard_ (tName target ==. val_ targetName)
-    return $ tTargetId target
-
-mkSqlId :: Integral x => x -> SqlId y
-mkSqlId = SqlId . fromIntegral
+  (fromSqlSerial . tTargetId) <<$>> LQ.getTargetByName targetName
 
 measurementsToSummary :: HashMap Text TargetMeasurements -> Edna FileSummary
 measurementsToSummary =
@@ -83,32 +72,25 @@ measurementsToSummary =
 
 -- | Parse an experiment data file and save it to DB.
 uploadFile ::
-  SqlId 'U.ProjectId -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
+  ProjectId -> MethodologyId -> Text -> Text -> LByteString ->
   Edna FileSummary
 uploadFile proj methodology description fileName content = do
   uploadFile' proj methodology description fileName content =<<
     either throwM pure (parseExperimentXls content)
 
 uploadFile' ::
-  SqlId 'U.ProjectId -> SqlId 'MethodologyId -> Text -> Text -> LByteString ->
+  ProjectId -> MethodologyId -> Text -> Text -> LByteString ->
   FileContents -> Edna FileSummary
 uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
   description fileName fileBytes fc = do
-    let projId = LDB.ProjectId $ fromIntegral proj
-    let methodId = TestMethodologyId $ fromIntegral method
     logDebug $ "Checking whether project ID " +| proj |+ " exists"
-    runSelectReturningOne' (lookup_ (esProject ednaSchema) projId)
-      `whenNothingM_`
-      throwM (UEUnknownProject projSqlId)
+    _ <- getProjectById projSqlId >>= justOrThrow (UEUnknownProject projSqlId)
     logDebug $ "Checking whether test methodology ID " +| method |+ " exists"
-    runSelectReturningOne' (lookup_ (esTestMethodology ednaSchema) methodId)
-      `whenNothingM_`
-      throwM (UEUnknownTestMethodology methodSqlId)
-
+    _ <- getMethodologyById methodSqlId >>= justOrThrow (UEUnknownTestMethodology methodSqlId)
     logMessage "A new file is being added to the database along with its data"
-    transact $ insertAll proj method
+    transact $ insertAll projSqlId methodSqlId
   where
-    insertAll :: HasCallStack => Word32 -> Word32 -> Edna FileSummary
+    insertAll :: HasCallStack => ProjectId -> MethodologyId -> Edna FileSummary
     insertAll projId methodId = do
       let fileMeasurements = fcMeasurements fc
       targetToId <- HM.fromList <$> mapM insertTarget (keys fileMeasurements)
@@ -116,14 +98,14 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
             \(TargetMeasurements targetMeasurements) -> keys targetMeasurements
       compoundToId <- HM.fromList <$> mapM insertCompound compounds
 
-      expFileId <- insertExperimentFile projId methodId (fcMetadata fc)
+      expFileId <- UQ.insertExperimentFile projId methodId (fcMetadata fc)
         description fileName fileBytes
 
       forM_ (toPairs fileMeasurements) $
         \(targetName, TargetMeasurements targetMeasurements) ->
           forM_ (toPairs targetMeasurements) $ \(compoundName, measurements) -> do
             let
-              getId :: HasCallStack => Text -> HashMap Text Word32 -> Word32
+              getId :: HasCallStack => Text -> HashMap Text (SqlId a) -> SqlId a
               getId name =
                 fromMaybe (error $ "unexpected name: " <> name) .
                 view (at name)
@@ -133,82 +115,17 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
 
       measurementsToSummary fileMeasurements
 
-insertTarget :: Text -> Edna (Text, Word32)
-insertTarget targetName = (targetName,) . unSqlId <$> do
-  runInsert' $ Pg.insert
-    (esTarget ednaSchema)
-    (insertExpressions [TargetRec default_ (val_ targetName) default_])
-    (Pg.onConflict (Pg.conflictingFields tName) Pg.onConflictDoNothing)
-  fromMaybe (error $ "added target not found: " <> targetName)  <$>
-    targetNameToId targetName
+insertTarget :: Text -> Edna (Text, TargetId)
+insertTarget targetName = (targetName,) . fromSqlSerial . tTargetId <$> LQ.insertTarget targetName
 
-insertCompound :: Text -> Edna (Text, Word32)
-insertCompound compoundName = (compoundName,) . unSqlId <$> do
-  runInsert' $ Pg.insert
-    (esCompound ednaSchema)
-    (insertExpressions [CompoundRec default_ (val_ compoundName) default_ default_])
-    (Pg.onConflict (Pg.conflictingFields cName) Pg.onConflictDoNothing)
-  fromMaybe (error $ "added compound not found: " <> compoundName)  <$>
-    compoundNameToId compoundName
+insertCompound :: Text -> Edna (Text, CompoundId)
+insertCompound compoundName =
+  (compoundName,) . fromSqlSerial . cCompoundId <$> LQ.insertCompound compoundName
 
-insertExperimentFile ::
-  Word32 -> Word32 -> FileMetadata -> Text -> Text -> LByteString -> Edna Word32
-insertExperimentFile projId methodId meta descr fileName blob = do
-  unSerial . efExperimentFileId <$> runInsertReturningOne'
-    (insert (esExperimentFile ednaSchema) $ insertExpressions [experimentFileRec])
-  where
-    experimentFileRec :: ExperimentFileT (QExpr Postgres s)
-    experimentFileRec = ExperimentFileRec
-      { efExperimentFileId = default_
-      , efProjectId = val_ projId
-      , efMethodologyId = val_ (Just methodId)
-      , efUploadDate = default_
-      , efMeta = val_ (PgJSON meta)
-      , efDescription = val_ descr
-      , efName = val_ fileName
-      , efContents = val_ blob
-      }
-
-insertExperiment :: Word32 -> Word32 -> Word32 -> [Measurement] -> Edna ()
+insertExperiment :: ExperimentFileId -> CompoundId -> TargetId -> [Measurement] -> Edna ()
 insertExperiment experimentFileId compoundId targetId measurements = do
-  expId <-
-    unSerial . eExperimentId <$> runInsertReturningOne'
-    (insert (esExperiment ednaSchema) $ insertExpressions [experimentRec])
-  subExpId <-
-    unSerial . seSubExperimentId <$> runInsertReturningOne'
-    (insert (esSubExperiment ednaSchema) $ insertExpressions [subExperimentRec expId])
-  let
-    measurementRecs :: [MeasurementT (QExpr Postgres s)]
-    measurementRecs = flip map measurements $ \measurement -> MeasurementRec
-      { mMeasurementId = default_
-      , mExperimentId = val_ expId
-      , mConcentration = val_ (EReader.mConcentration measurement)
-      , mSignal = val_ (EReader.mSignal measurement)
-      , mIsOutlier = val_ (EReader.mIsOutlier measurement)
-      }
-  measurementIds <- map (unSerial . mMeasurementId) <$> runInsertReturningList'
-    (insert (esMeasurement ednaSchema) $ insertExpressions measurementRecs)
-  let removedIds =
-        map fst . filter (EReader.mIsOutlier . snd) $
-        zip measurementIds measurements
-  let removedMeasurementsRecs = flip map removedIds $ \removedId ->
-        RemovedMeasurementsRec subExpId removedId
-  runInsert' $ insert (esRemovedMeasurements ednaSchema) $ insertValues
-    removedMeasurementsRecs
-  where
-    experimentRec :: ExperimentT (QExpr Postgres s)
-    experimentRec = ExperimentRec
-      { eExperimentId = default_
-      , eExperimentFileId = val_ experimentFileId
-      , eCompoundId = val_ compoundId
-      , eTargetId = val_ targetId
-      }
-
-    subExperimentRec :: Word32 -> SubExperimentT (QExpr Postgres s)
-    subExperimentRec experimentId = SubExperimentRec
-      { seSubExperimentId = default_
-      , seAnalysisMethodId = val_ theOnlyAnalysisMethodId
-      , seExperimentId = val_ experimentId
-      , seIsSuspicious = val_ False
-      , seResult = val_ (PgJSON 10)  -- stub value, will be computed later
-      }
+  expId <- UQ.insertExperiment experimentFileId compoundId targetId
+  subExpId <- UQ.insertSubExperiment expId
+  measurementIds <- UQ.insertMeasurements expId measurements
+  let removedIds = map fst . filter (EReader.mIsOutlier . snd) $ zip measurementIds measurements
+  UQ.insertRemovedMeasurements subExpId removedIds

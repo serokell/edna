@@ -1,6 +1,6 @@
 -- | Upload-related part of API definition along with implementation.
 
-module Edna.Upload.API
+module Edna.Upload.Web.API
   ( FileUploadEndpoints (..)
   , FileUploadAPI
   , fileUploadEndpoints
@@ -26,8 +26,8 @@ import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMea
 import Edna.Setup (Edna)
 import Edna.Upload.Error (UploadApiError(..))
 import Edna.Upload.Service (parseFile, uploadFile)
+import Edna.Upload.Web.Types (FileSummary)
 import Edna.Util (MethodologyId, ProjectId, ednaAesonWebOptions, gDeclareNamedSchema)
-import Edna.Web.Types
 
 -- | Endpoints necessary to implement file uploading.
 data FileUploadEndpoints route = FileUploadEndpoints

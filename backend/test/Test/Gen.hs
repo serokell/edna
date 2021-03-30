@@ -49,7 +49,8 @@ import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
 import Edna.Library.Web.Types
   (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
-import Edna.Upload.API (ExperimentalMeasurement(..))
+import Edna.Upload.Web.API (ExperimentalMeasurement(..))
+import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
 import Edna.Util (SqlId(..))
 import Edna.Web.Types
 

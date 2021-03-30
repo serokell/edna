@@ -8,6 +8,10 @@ module Edna.Util
   , CompoundId
   , MethodologyId
   , ProjectId
+  , ExperimentFileId
+  , ExperimentId
+  , SubExperimentId
+  , MeasurementId
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
   , schemaOptions
@@ -16,6 +20,8 @@ module Edna.Util
   , justOrThrow
   , nothingOrThrow
   , ensureOrThrow
+  , justOrError
+  , fromSqlSerial
   ) where
 
 import Universum
@@ -31,6 +37,7 @@ import Data.Swagger.Internal.ParamSchema (GToParamSchema, genericToParamSchema)
 import qualified Data.Swagger.Internal.Schema as S
 import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
 import Data.Swagger.SchemaOptions (SchemaOptions, fromAesonOptions)
+import Database.Beam.Backend (SqlSerial(..))
 import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified GHC.Generics as G
 import Servant (FromHttpApiData(..))
@@ -145,6 +152,9 @@ gToParamSchema = genericToParamSchema schemaOptions
 justOrThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m a
 justOrThrow e = maybe (throwM e) pure
 
+justOrError :: Monad m => Text -> Maybe a -> m a
+justOrError t = maybe (error t) pure
+
 nothingOrThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m ()
 nothingOrThrow e = maybe (pure ()) (\_ -> throwM e)
 
@@ -173,10 +183,25 @@ instance Buildable (SqlId t) where
 instance ToParamSchema (SqlId t) where
   toParamSchema = gToParamSchema
 
+fromSqlSerial :: SqlSerial Word32 -> SqlId a
+fromSqlSerial = SqlId . unSerial
+
 -- | Kind used for phantom parameter in 'SqlId'.
-data IdType = TargetId | CompoundId | MethodologyId | ProjectId
+data IdType
+  = TargetId
+  | CompoundId
+  | MethodologyId
+  | ProjectId
+  | ExperimentFileId
+  | ExperimentId
+  | SubExperimentId
+  | MeasurementId
 
 type TargetId = SqlId 'TargetId
 type CompoundId = SqlId 'CompoundId
 type MethodologyId = SqlId 'MethodologyId
 type ProjectId = SqlId 'ProjectId
+type ExperimentFileId = SqlId 'ExperimentFileId
+type ExperimentId = SqlId 'ExperimentId
+type SubExperimentId = SqlId 'SubExperimentId
+type MeasurementId = SqlId 'MeasurementId

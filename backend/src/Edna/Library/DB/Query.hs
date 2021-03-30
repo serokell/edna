@@ -16,46 +16,62 @@ module Edna.Library.DB.Query
   , getProjectsWithCompounds
   , insertProject
   , updateProject
+  , insertTarget
+  , getTargetByName
+  , getCompoundByName
+  , insertCompound
   ) where
 
 import Universum
 
 import qualified Data.List as L
+import qualified Database.Beam.Postgres.Full as Pg
 
 import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (pgNubBy_)
 import Database.Beam.Query
   (all_, asc_, cast_, default_, delete, filter_, guard_, insert, insertExpressions, int, just_,
-  leftJoin_, orderBy_, select, update, val_, (<-.), (==.))
+  leftJoin_, lookup_, orderBy_, select, update, val_, (<-.), (==.))
 
 import Edna.DB.Integration
-  (runDelete', runInsertReturningOne', runSelectReturningList', runSelectReturningOne', runUpdate')
-import Edna.DB.Schema (EdnaSchema(..), ExperimentFileT(..), ExperimentT(..), ednaSchema)
+  (runDelete', runInsert', runInsertReturningOne', runSelectReturningList', runSelectReturningOne',
+  runUpdate')
+import Edna.DB.Schema (EdnaSchema(..), ExperimentT(..), ednaSchema)
 import Edna.Library.DB.Schema as LDB
-  (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
-  TestMethodologyT(..))
+  (CompoundRec, CompoundT(..), PrimaryKey(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..),
+  TestMethodologyRec, TestMethodologyT(..))
 import Edna.Library.Web.Types
   (MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
 import Edna.Setup (Edna)
-import Edna.Util (IdType(..), SqlId(..), TargetId)
+import Edna.Upload.DB.Schema (ExperimentFileT(..))
+import Edna.Util as U
+  (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId, justOrError)
 import Edna.Util.URI (renderURI)
 import Edna.Web.Types (WithId(..))
 
-targetToDomain :: TargetId -> TargetRec -> [Maybe ProjectRec] -> WithId 'TargetId TargetResp
+--------------------------
+-- Target
+--------------------------
+
+targetToDomain :: TargetId -> TargetRec -> [Maybe ProjectRec] -> WithId 'U.TargetId TargetResp
 targetToDomain targetSqlId TargetRec{..} projects = WithId targetSqlId $ TargetResp
   { trName = tName
   , trProjects = mapMaybe (fmap pName) projects
   , trAdditionDate = tAdditionDate
   }
 
-getTargetById :: TargetId -> Edna (Maybe (WithId 'TargetId TargetResp))
+-- TODO maybe we should move it to Service layer
+-- | Return API value of the target by its ID
+getTargetById :: TargetId -> Edna (Maybe (WithId 'U.TargetId TargetResp))
 getTargetById targetSqlId = do
   targetWithProjects <- targetsWithProjects $ Just targetSqlId
   case targetWithProjects of
     [] -> pure Nothing
     xs@((target, _) : _) -> pure $ Just $ targetToDomain targetSqlId target $ map snd xs
 
-getTargets :: Edna [WithId 'TargetId TargetResp]
+-- TODO maybe we should move it to Service layer
+-- | Return API values of all targets
+getTargets :: Edna [WithId 'U.TargetId TargetResp]
 getTargets = do
   targets <- targetsWithProjects Nothing
   let groupedTargets =
@@ -67,6 +83,8 @@ getTargets = do
         targetToDomain (SqlId $ unSerial $ tTargetId t) t (map snd xs) : targets
       _ -> targets
 
+-- | Combines targets with projects to which they relate
+-- If specific target was passed, use only this target in query
 targetsWithProjects :: Maybe TargetId -> Edna [(TargetRec, Maybe ProjectRec)]
 targetsWithProjects targetSqlId = runSelectReturningList' $ select $
   orderBy_ (\(t, _) -> asc_ $ tTargetId t) $
@@ -87,35 +105,83 @@ targetsWithProjects targetSqlId = runSelectReturningList' $ select $
         tTargetId t ==. val_ (SqlSerial targetId)
       Nothing -> \_ -> val_ True
 
-getCompoundById :: SqlId 'CompoundId -> Edna (Maybe CompoundRec)
+-- | Get target by its name. Return nothing if there is no such target.
+getTargetByName :: Text -> Edna (Maybe TargetRec)
+getTargetByName name = runSelectReturningOne' $ select $ do
+  targets <- all_ $ esTarget ednaSchema
+  guard_ (LDB.tName targets ==. val_ name)
+  pure targets
+
+-- | Insert target with given name and return its DB value. If target with this name
+-- already exists do nothing and simply return it.
+insertTarget :: Text -> Edna TargetRec
+insertTarget targetName = do
+  runInsert' $ Pg.insert
+    (esTarget ednaSchema)
+    (insertExpressions [TargetRec default_ (val_ targetName) default_])
+    (Pg.onConflict (Pg.conflictingFields tName) Pg.onConflictDoNothing)
+  getTargetByName targetName >>= justOrError ("added target not found: " <> targetName)
+
+--------------------------
+-- Compound
+--------------------------
+
+-- | Get compound by its ID. Return nothing if there is no such compound.
+getCompoundById :: CompoundId -> Edna (Maybe CompoundRec)
 getCompoundById (SqlId compoundId) = runSelectReturningOne' $ select $ do
   compounds <- all_ $ esCompound ednaSchema
   guard_ (cCompoundId compounds ==. val_ (SqlSerial compoundId))
   pure compounds
 
+-- | Get all compounds
 getCompounds :: Edna [CompoundRec]
 getCompounds = runSelectReturningList' $ select $ all_ $ esCompound ednaSchema
 
-editCompoundChemSoft :: SqlId 'CompoundId -> Text -> Edna ()
+-- | Edit ChemSoft link of a given compound
+editCompoundChemSoft :: CompoundId -> Text -> Edna ()
 editCompoundChemSoft (SqlId compoundId) link = runUpdate' $ update (esCompound ednaSchema)
   (\c -> cChemsoftLink c <-. val_ (Just link))
   (\c -> cCompoundId c ==. val_ (SqlSerial compoundId))
 
-getMethodologyById :: SqlId 'MethodologyId -> Edna (Maybe TestMethodologyRec)
-getMethodologyById (SqlId methodologyId) = runSelectReturningOne' $ select $ do
-  methodologies <- all_ $ esTestMethodology ednaSchema
-  guard_ (tmTestMethodologyId methodologies ==. val_ (SqlSerial methodologyId))
-  pure methodologies
+-- | Get compound by its name. Return nothing if there is no such compound.
+getCompoundByName :: Text -> Edna (Maybe CompoundRec)
+getCompoundByName name = runSelectReturningOne' $ select $ do
+  compounds <- all_ $ esCompound ednaSchema
+  guard_ (LDB.cName compounds ==. val_ name)
+  pure compounds
 
+-- | Insert compound with given name and return its DB value. If compound with this name
+-- already exists do nothing and simply return it.
+insertCompound :: Text -> Edna CompoundRec
+insertCompound compoundName = do
+  runInsert' $ Pg.insert
+    (esCompound ednaSchema)
+    (insertExpressions [CompoundRec default_ (val_ compoundName) default_ default_])
+    (Pg.onConflict (Pg.conflictingFields cName) Pg.onConflictDoNothing)
+  getCompoundByName compoundName >>= justOrError ("added compound not found: " <> compoundName)
+
+--------------------------
+-- Test methodology
+--------------------------
+
+-- | Get methodology by its name. Return nothing if there is no such methodology.
+getMethodologyById :: MethodologyId -> Edna (Maybe TestMethodologyRec)
+getMethodologyById (SqlId methodologyId) = runSelectReturningOne' $
+  lookup_ (esTestMethodology ednaSchema) $ TestMethodologyId $ SqlSerial methodologyId
+
+-- | Get methodology by its name. Return nothing if there is no such methodology.
 getMethodologyByName :: Text -> Edna (Maybe TestMethodologyRec)
 getMethodologyByName name = runSelectReturningOne' $ select $ do
   methodologies <- all_ $ esTestMethodology ednaSchema
   guard_ (LDB.tmName methodologies ==. val_ name)
   pure methodologies
 
+-- | Get all methodologies
 getMethodologies :: Edna [TestMethodologyRec]
 getMethodologies = runSelectReturningList' $ select $ all_ $ esTestMethodology ednaSchema
 
+-- | Insert methodology and return its DB value
+-- Fails if methodology with this name already exists
 insertMethodology :: MethodologyReqResp -> Edna TestMethodologyRec
 insertMethodology MethodologyReqResp{..} = runInsertReturningOne' $
   insert (esTestMethodology ednaSchema) $ insertExpressions
@@ -127,7 +193,8 @@ insertMethodology MethodologyReqResp{..} = runInsertReturningOne' $
       }
     ]
 
-updateMethodology :: SqlId 'MethodologyId -> MethodologyReqResp -> Edna ()
+-- | Update methodology by its ID
+updateMethodology :: MethodologyId -> MethodologyReqResp -> Edna ()
 updateMethodology (SqlId methodologyId) MethodologyReqResp{..} =
   runUpdate' $ update (esTestMethodology ednaSchema)
     (\tm -> mconcat
@@ -136,16 +203,21 @@ updateMethodology (SqlId methodologyId) MethodologyReqResp{..} =
       , LDB.tmConfluenceLink tm <-. val_ (renderURI <$> mrpConfluence)])
     (\tm -> tmTestMethodologyId tm ==. val_ (SqlSerial methodologyId))
 
-deleteMethodology :: SqlId 'MethodologyId -> Edna ()
+-- | Delete methodology by its ID
+deleteMethodology :: MethodologyId -> Edna ()
 deleteMethodology (SqlId methodologyId) =
   runDelete' $ delete (esTestMethodology ednaSchema) $
   \m -> tmTestMethodologyId m ==. val_ (SqlSerial methodologyId)
 
+--------------------------
+-- Project
+--------------------------
+
 projectToDomain
-  :: SqlId 'ProjectId
+  :: ProjectId
   -> ProjectRec
   -> [Maybe CompoundRec]
-  -> WithId 'ProjectId ProjectResp
+  -> WithId 'U.ProjectId ProjectResp
 projectToDomain projectSqlId ProjectRec{..} compounds = WithId projectSqlId $ ProjectResp
   { prName = pName
   , prDescription = pDescription
@@ -154,26 +226,30 @@ projectToDomain projectSqlId ProjectRec{..} compounds = WithId projectSqlId $ Pr
   , prCompoundNames = mapMaybe (fmap cName) compounds
   }
 
-getProjectById :: SqlId 'ProjectId -> Edna (Maybe ProjectRec)
-getProjectById (SqlId projectId) = runSelectReturningOne' $ select $ do
-  projects <- all_ $ esProject ednaSchema
-  guard_ (pProjectId projects ==. val_ (SqlSerial projectId))
-  pure projects
+-- | Get project by its ID. Return nothing if there is no such project.
+getProjectById :: ProjectId -> Edna (Maybe ProjectRec)
+getProjectById (SqlId projectId) = runSelectReturningOne' $
+  lookup_ (esProject ednaSchema) $ LDB.ProjectId $ SqlSerial projectId
 
+-- | Get project by its name. Return nothing if there is no such project.
 getProjectByName :: Text -> Edna (Maybe ProjectRec)
 getProjectByName name = runSelectReturningOne' $ select $ do
   projects <- all_ $ esProject ednaSchema
   guard_ (pName projects ==. val_ name)
   pure projects
 
-getProjectWithCompoundsById :: SqlId 'ProjectId -> Edna (Maybe (WithId 'ProjectId ProjectResp))
+-- TODO maybe we should move it to Service layer
+-- | Return API value of the project by its ID
+getProjectWithCompoundsById :: ProjectId -> Edna (Maybe (WithId 'U.ProjectId ProjectResp))
 getProjectWithCompoundsById projectSqlId = do
   projectWithCompounds <- projectsWithCompounds $ Just projectSqlId
   case projectWithCompounds of
     [] -> pure Nothing
     xs@((project, _) : _) -> pure $ Just $ projectToDomain projectSqlId project $ map snd xs
 
-getProjectsWithCompounds :: Edna [WithId 'ProjectId ProjectResp]
+-- TODO maybe we should move it to Service layer
+-- | Return API values of all projects
+getProjectsWithCompounds :: Edna [WithId 'U.ProjectId ProjectResp]
 getProjectsWithCompounds = do
   projects <- projectsWithCompounds Nothing
   let groupedProjects = L.groupBy
@@ -185,7 +261,9 @@ getProjectsWithCompounds = do
         projectToDomain (SqlId $ unSerial $ pProjectId p) p (map snd xs) : projects
       _ -> projects
 
-projectsWithCompounds :: Maybe (SqlId 'ProjectId) -> Edna [(ProjectRec, Maybe CompoundRec)]
+-- | Combines project with compounds to which they relate
+-- If specific project was passed, use only this project in query
+projectsWithCompounds :: Maybe ProjectId -> Edna [(ProjectRec, Maybe CompoundRec)]
 projectsWithCompounds projectSqlId = runSelectReturningList' $ select $
   orderBy_ (\(t, _) -> asc_ $ pProjectId t) $
   pgNubBy_ (bimap pProjectId cCompoundId) $
@@ -204,6 +282,8 @@ projectsWithCompounds projectSqlId = runSelectReturningList' $ select $
       Just (SqlId projectId) -> \(t, _) -> pProjectId t ==. val_ (SqlSerial projectId)
       Nothing -> \_ -> val_ True
 
+-- | Insert project and return its DB value
+-- Fails if project with this name already exists
 insertProject :: ProjectReq -> Edna ProjectRec
 insertProject ProjectReq{..} = runInsertReturningOne' $
   insert (esProject ednaSchema) $ insertExpressions
@@ -216,7 +296,8 @@ insertProject ProjectReq{..} = runInsertReturningOne' $
       }
     ]
 
-updateProject :: SqlId 'ProjectId -> ProjectReq -> Edna ()
+-- | Update project bu its ID
+updateProject :: ProjectId -> ProjectReq -> Edna ()
 updateProject (SqlId projectId) ProjectReq{..} =
   runUpdate' $ update (esProject ednaSchema)
     (\p -> mconcat
