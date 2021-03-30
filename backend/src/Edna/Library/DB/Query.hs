@@ -36,7 +36,8 @@ import Database.Beam.Query
 import Edna.DB.Integration
   (runDelete', runInsert', runInsertReturningOne', runSelectReturningList', runSelectReturningOne',
   runUpdate')
-import Edna.DB.Schema (EdnaSchema(..), ExperimentT(..), ednaSchema)
+import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
+import Edna.Dashboard.DB.Schema (ExperimentT(..))
 import Edna.Library.DB.Schema as LDB
   (CompoundRec, CompoundT(..), PrimaryKey(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..),
   TestMethodologyRec, TestMethodologyT(..))

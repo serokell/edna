@@ -19,7 +19,7 @@ import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial(..))
 import Database.Beam.Postgres (PgJSON(..))
 import Hedgehog.Range (constant)
 
-import Edna.DB.Schema
+import Edna.Dashboard.DB.Schema
   (AnalysisMethodRec, AnalysisMethodT(..), ExperimentRec, ExperimentT(..), MeasurementRec,
   MeasurementT(..), RemovedMeasurementsRec, RemovedMeasurementsT(..), SubExperimentRec,
   SubExperimentT(..))

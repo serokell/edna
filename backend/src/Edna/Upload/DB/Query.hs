@@ -13,9 +13,10 @@ import Database.Beam.Query (default_, insert, insertExpressions, insertValues, v
 import Database.Beam.Query.Internal (QExpr)
 
 import Edna.DB.Integration (runInsert', runInsertReturningList', runInsertReturningOne')
-import Edna.DB.Schema
-  (EdnaSchema(..), ExperimentT(..), MeasurementT(..), RemovedMeasurementsT(..), SubExperimentT(..),
-  ednaSchema, theOnlyAnalysisMethodId)
+import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
+import Edna.Dashboard.DB.Schema
+  (ExperimentT(..), MeasurementT(..), RemovedMeasurementsT(..), SubExperimentT(..),
+  theOnlyAnalysisMethodId)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))

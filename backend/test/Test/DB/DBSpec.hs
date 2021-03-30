@@ -10,9 +10,10 @@ import Test.Hspec (Spec, describe, it)
 import Test.Hspec.Hedgehog (forAll, modifyMaxShrinks, modifyMaxSuccess, (===))
 
 import Edna.DB.Integration (runInsert', runSelectReturningList', runSelectReturningOne')
-import Edna.DB.Schema
-  (AnalysisMethodT(..), EdnaSchema(..), ExperimentT(..), MeasurementT(..), SubExperimentT(..),
-  ednaSchema, theOnlyAnalysisMethod, theOnlyAnalysisMethodId)
+import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
+import Edna.Dashboard.DB.Schema
+  (AnalysisMethodT(..), ExperimentT(..), MeasurementT(..), SubExperimentT(..),
+  theOnlyAnalysisMethod, theOnlyAnalysisMethodId)
 import Edna.Library.DB.Schema (CompoundT(..), ProjectT(..), TargetT(..), TestMethodologyT(..))
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Test.DB.Gen
