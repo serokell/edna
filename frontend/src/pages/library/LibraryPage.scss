@@ -35,6 +35,12 @@
   }
 }
 
+.methodology {
+  &__btn {
+    padding: (10 * $px) 0 (10 * $px) (20 * $px);
+  }
+}
+
 .contextActions {
   padding-right: 20 * $px;
 }
