@@ -11,7 +11,7 @@ interface CreateProjectButtonProps {
 export function CreateProjectButton({ className }: CreateProjectButtonProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   return (
-    <Button type="secondary" className={className} onClick={() => setModalDialog("create-project")}>
+    <Button type="rounded" className={className} onClick={() => setModalDialog("create-project")}>
       <PlusSvg /> project
     </Button>
   );

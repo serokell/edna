@@ -14,7 +14,7 @@ export function CreateMethodologyButton({
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   return (
     <Button
-      type="secondary"
+      type="rounded"
       className={className}
       onClick={() => setModalDialog("create-methodology")}
     >

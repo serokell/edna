@@ -12,8 +12,9 @@
 
   &__tab {
     margin-right: 86 * $px;
-    font-size: 25 * $px;
-    font-weight: 400;
+    font-size: 26 * $px;
+    font-weight: 700;
+    line-height: 32 * $px;
     color: $color-titles-gray;
 
     &:hover {
@@ -21,7 +22,7 @@
     }
 
     &_active {
-      color: $color-black;
+      color: $color-green;
     }
   }
 }
