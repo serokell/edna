@@ -15,15 +15,20 @@ TODO: CI and license badges!
 Edna is an open-source web application for data analysis aimed to help researchers with their experiments.
 It consists of backend and frontend.
 
-## Usage and Build Instructions
+## Usage
 
+The recommended way to deploy Edna is to use Docker images from GitHub Container Registry:
+* [backend](https://github.com/orgs/serokell/packages/container/package/edna-backend)
+* [frontend](https://github.com/orgs/serokell/packages/container/package/edna-frontend)
+
+Note that some additional configuration is needed: you need to launch PostgreSQL DB server, forward ports, provide a config file.
+The [`deployment`](deployment/) folder contains an example [`docker-compose`](deployment/docker-compose.yml) file that automates the whole deployment.
+
+## Build Instructions
+
+If the above way is not suitable for you, you can build Edna from sources and run it.
 You need to build and run both [backend](./backend) and [frontend](./frontend).
 Please refer to the respective directories for more details.
-
-### Local database
-
-To run a postgres container run `docker-compose up postgres` in `deployment` directory,
-then you can connect to it via `psql` or using any convenient database viewer.
 
 ## Issue Tracker
 
