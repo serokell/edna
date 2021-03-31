@@ -20,7 +20,7 @@ steps:
       - buildkite-agent artifact upload "$(readlink -f result)"
   - label: backend hlint
     commands:
-      - nix-shell --run 'hlint backend -j'
+      - nix-shell --run 'hlint backend -j --hint backend/.hlint.yaml'
   - label: frontend build
     commands:
       - nix-build -A packages.x86_64-linux.frontend
