@@ -28,3 +28,9 @@ export function toCreateMethodologyForm(meth?: MethodologyDto): CreateMethodolog
     confluence: meth?.item.confluence ?? "",
   };
 }
+
+// Add link dialog
+
+export interface AddLinkForm {
+  link: string;
+}
