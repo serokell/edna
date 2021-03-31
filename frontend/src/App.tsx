@@ -11,11 +11,15 @@ import { CreateMethodologyDialog } from "./components/dialogs/CreateMethodologyD
 import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
 import { MethodologyDescriptionDialog } from "./components/dialogs/MethodologyDescriptionDialog";
 import { DeleteMethodologyDialog } from "./components/dialogs/DeleteMethodologyDialog";
+import { AddLinkDialog } from "./components/dialogs/AddLinkDialog";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
+
   return (
     <>
+      {modalDialog?.kind === "add-edit-link" && <AddLinkDialog target={modalDialog.target} />}
+
       {modalDialog?.kind === "delete-methodology" && (
         <DeleteMethodologyDialog methodology={modalDialog.methodology} />
       )}

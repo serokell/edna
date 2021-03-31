@@ -10,7 +10,6 @@ import { CreateMethodologyButton } from "../../components/buttons/CreateMethodol
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
 import { CompoundDto, MethodologyDto, ProjectDto, TargetDto } from "../../api/types";
 import { formatDateTimeDto } from "../../utils/utils";
-import DotsSvg from "../../assets/svg/dots.svg";
 import { ErrorPlaceholder } from "../../components/Error/ErrorPlaceholder";
 import {
   compoundsQuery,
@@ -150,6 +149,7 @@ function ProjectsSuspendable() {
 
 function CompoundsSuspendable() {
   const projects = useRecoilValue(compoundsQuery);
+  const setModalDialog = useSetRecoilState(modalDialogAtom);
   const projectColumns = React.useMemo(
     () => [
       {
@@ -163,14 +163,28 @@ function CompoundsSuspendable() {
       },
       {
         id: "actions",
-        accessor: () => (
-          <div className="contextActions">
-            <DotsSvg />
-          </div>
+        accessor: (c: CompoundDto) => (
+          <ContextActions
+            actions={[
+              <div
+                key="edit"
+                className="contextActions__item"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "add-edit-link",
+                    target: { kind: "compound", object: c },
+                  });
+                }}
+              >
+                <EditSvg />
+                Edit
+              </div>,
+            ]}
+          />
         ),
       },
     ],
-    []
+    [setModalDialog]
   );
   return <Table data={projects} columns={projectColumns} />;
 }
@@ -213,16 +227,25 @@ function MethodsSuspendable() {
       {
         Header: "Confluence link",
         id: "link",
-        accessor: (t: MethodologyDto) => {
-          if (t.item.confluence)
+        accessor: (m: MethodologyDto) => {
+          if (m.item.confluence)
             return (
               <div className="ednaTable__cell">
-                <a href={t.item.confluence}>{t.item.confluence}</a>
+                <a href={m.item.confluence}>{m.item.confluence}</a>
               </div>
             );
           return (
             <td className="ednaTable__cell methodology__btn">
-              <Button type="half-rounded" size="small">
+              <Button
+                type="half-rounded"
+                size="small"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "add-edit-link",
+                    target: { kind: "methodology", object: m },
+                  });
+                }}
+              >
                 Add link
               </Button>
             </td>
@@ -288,7 +311,7 @@ function MethodsSuspendable() {
         ),
       },
     ],
-    []
+    [setModalDialog]
   );
 
   return (
