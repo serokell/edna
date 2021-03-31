@@ -15,19 +15,18 @@ import Universum
 import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
 import Fmt (Buildable(..))
-import Servant.API (Capture, JSON, Post, QueryParam, Summary, (:>))
+import Servant.API (JSON, Post, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
-import Servant.Multipart (FileData(..), Mem, MultipartData(..), MultipartForm)
+import Servant.Multipart (Mem, MultipartForm)
 import Servant.Server.Generic (AsServerT, genericServerT)
 import Servant.Util.Combinators.Logging (ForResponseLog(..))
 
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), TargetMeasurements(..))
 import Edna.Setup (Edna)
-import Edna.Upload.Error (UploadApiError(..))
 import Edna.Upload.Service (parseFile, uploadFile)
-import Edna.Upload.Web.Types (FileSummary)
-import Edna.Util (MethodologyId, ProjectId, ednaAesonWebOptions, gDeclareNamedSchema)
+import Edna.Upload.Web.Types (FileBS(..), FileSummary, FileUploadReq(..))
+import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
 
 -- | Endpoints necessary to implement file uploading.
 data FileUploadEndpoints route = FileUploadEndpoints
@@ -37,17 +36,14 @@ data FileUploadEndpoints route = FileUploadEndpoints
     fueParseFile :: route
       :- "parse"
       :> Summary "Parse the file and return its summary for preview"
-      :> MultipartForm Mem (MultipartData Mem)
+      :> MultipartForm Mem FileBS
       :> Post '[JSON] FileSummary
 
   , -- | Upload the file with some methodology and project.
     fueUploadFile :: route
       :- "upload"
       :> Summary "Upload the file with some methodology and project"
-      :> Capture "projectId" ProjectId
-      :> Capture "methodologyId" MethodologyId
-      :> QueryParam "description" Text
-      :> MultipartForm Mem (MultipartData Mem)
+      :> MultipartForm Mem FileUploadReq
       :> Post '[JSON] FileSummary
   } deriving stock (Generic)
 
@@ -55,22 +51,10 @@ type FileUploadAPI = ToServant FileUploadEndpoints AsApi
 
 fileUploadEndpoints :: ToServant FileUploadEndpoints (AsServerT Edna)
 fileUploadEndpoints = genericServerT FileUploadEndpoints
-  { fueParseFile = expectOneFile >=> parseFile . snd
-  , fueUploadFile = \projectId testMethodologyId description multipart -> do
-      (name, contents) <- expectOneFile multipart
-      uploadFile projectId testMethodologyId (fromMaybe "" description)
-        name contents
+  { fueParseFile = parseFile . fbsFile
+  , fueUploadFile = \FileUploadReq{furFile = FileBS{..}, ..} ->
+      uploadFile furProject furTestMethodology (fromMaybe "" furDescription) fbsName fbsFile
   }
-
-----------------
--- Helpers
-----------------
-
-expectOneFile :: MonadThrow m => MultipartData Mem -> m (Text, LByteString)
-expectOneFile multipart = case files multipart of
-  [file] -> pure (fdFileName file, fdPayload file)
-  [] -> throwM NoExperimentFileError
-  _ -> throwM TooManyExperimentFilesError
 
 ----------------
 -- Legacy
@@ -94,11 +78,10 @@ instance ToSchema ExperimentalMeasurement where
   declareNamedSchema = gDeclareNamedSchema
 
 -- Legacy function
-uploadExperiment :: MultipartData Mem -> Edna [ExperimentalMeasurement]
-uploadExperiment multipart = do
-  (fileName, file) <- expectOneFile multipart
-  putStrLn $ "Excel file name " ++ show fileName
-  fileContents <- either throwM pure (parseExperimentXls file)
+uploadExperiment :: FileBS -> Edna [ExperimentalMeasurement]
+uploadExperiment FileBS{..} = do
+  putStrLn $ "Excel file name " ++ show fbsName
+  fileContents <- either throwM pure (parseExperimentXls fbsFile)
   let
     flatten :: (Text, TargetMeasurements) -> [ExperimentalMeasurement]
     flatten (targetName, TargetMeasurements targetMeasurements) =

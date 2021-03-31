@@ -20,7 +20,7 @@ module Edna.Web.Swagger
 
 import Universum
 
-import Data.Swagger (ParamAnySchema(..), ParamLocation(..), ToParamSchema, ToSchema(..), toSchema)
+import Data.Swagger (ToParamSchema, ToSchema(..), toSchema)
 import qualified Data.Swagger as S
 import Data.Swagger.Internal.Schema (named)
 import qualified Data.Swagger.Internal.Schema as S
@@ -29,10 +29,7 @@ import Lens.Micro ((?~))
 import Lens.Micro.Platform (zoom, (.=), (?=))
 import Network.URI (URI)
 import Servant (Server, (:<|>)(..))
-import Servant.API ((:>))
-import Servant.Multipart (MultipartData(..), MultipartForm)
 import Servant.Swagger (HasSwagger(..))
-import Servant.Swagger.Internal (addParam)
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.Core (SwaggerUiHtml)
 
@@ -105,15 +102,3 @@ instance S.ToSchema S.Swagger where
       S.type_ ?= S.SwaggerObject
       S.title ?= "Swagger specification"
       S.description ?= "The specification you are currently reading."
-
-instance HasSwagger api =>
-         HasSwagger (MultipartForm mem (MultipartData mem) :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api) & addParam param
-    where
-      param = mempty
-        & name .~ "file"
-        & required ?~ True
-        & description ?~ "Experiment to upload"
-        & schema .~ ParamOther (mempty
-            & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ ?~ S.SwaggerFile))
