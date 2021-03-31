@@ -2,7 +2,11 @@
 
 module Edna.Dashboard.Service
   ( -- * Implementation
-    getExperiments
+    makePrimarySubExperiment
+  , setNameSubExperiment
+  , setIsSuspiciousSubExperiment
+  , deleteSubExperiment
+  , getExperiments
   , getSubExperiment
   , getMeasurements
   ) where
@@ -13,6 +17,8 @@ import qualified Data.HashSet as HS
 
 import Database.Beam.Backend.SQL.BeamExtensions (unSerial)
 import Database.Beam.Postgres (PgJSON(..))
+import Fmt (fmt, (+|), (|+))
+import Servant.API (NoContent(..))
 
 import qualified Edna.Dashboard.DB.Query as Q
 
@@ -20,10 +26,46 @@ import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
   (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), SubExperimentResp(..))
+import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
 import Edna.Util
   (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId, justOrThrow, unSqlId)
 import Edna.Web.Types (WithId(..))
+
+-- | Make given sub-experiment the primary one for its parent experiment.
+-- Previous primary sub-experiment is no longer primary.
+makePrimarySubExperiment :: SubExperimentId ->
+  Edna (WithId 'SubExperimentId SubExperimentResp)
+makePrimarySubExperiment subExpId = do
+  logMessage $ fmt $ "Making sub-experiment " +| subExpId |+ " primary"
+  Q.makePrimarySubExperiment subExpId
+  getSubExperiment subExpId
+
+-- | Update name of a sub-experiment.
+setNameSubExperiment :: SubExperimentId -> Text ->
+  Edna (WithId 'SubExperimentId SubExperimentResp)
+setNameSubExperiment subExpId name = do
+  logMessage $ fmt $ "Setting the name of sub-experiment " +| subExpId |+
+    " to " +| name |+ ""
+  Q.setNameSubExperiment subExpId name
+  getSubExperiment subExpId
+
+-- | Update @isSuspicious@ flag for a sub-experiment.
+setIsSuspiciousSubExperiment :: SubExperimentId -> Bool ->
+  Edna (WithId 'SubExperimentId SubExperimentResp)
+setIsSuspiciousSubExperiment subExpId isSuspicious = do
+  logMessage $ fmt $ "Marking sub-experiment " +| subExpId |+ mappend " as "
+    if isSuspicious then "suspicious" else "not suspicious"
+  Q.setIsSuspiciousSubExperiment subExpId isSuspicious
+  getSubExperiment subExpId
+
+-- | Delete a sub-experiment with given ID. Fails if this sub-experiment is
+-- primary.
+deleteSubExperiment :: SubExperimentId -> Edna NoContent
+deleteSubExperiment subExpId = NoContent <$ do
+  logMessage $ fmt $ "Deleting sub-experiment " +| subExpId |+ ""
+  unlessM (Q.deleteSubExperiment subExpId) $
+    throwM $ DECantDeletePrimary subExpId
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
 -- compound ID and target ID. If filters by compound and target are specified,

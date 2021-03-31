@@ -7,18 +7,22 @@ module Edna.Dashboard.Error
 import Universum
 
 import Fmt (Buildable(..), pretty)
-import Servant (ServerError(..), err404)
+import Servant (ServerError(..), err400, err404)
 
 import Edna.Util (SubExperimentId)
 import Edna.Web.Error (ToServerError(..))
 
 data DashboardError
   = DESubExperimentNotFound SubExperimentId
+  | DECantDeletePrimary SubExperimentId
   deriving stock (Show, Eq)
 
 instance Buildable DashboardError where
   build = \case
     DESubExperimentNotFound i -> "Sub-experiment not found: " <> build i
+    DECantDeletePrimary i ->
+      "It's not allowed to delete primary sub-experiments (" <> build i <>
+      "), please choose the new primary one first"
 
 instance Exception DashboardError where
   displayException = pretty
@@ -26,5 +30,6 @@ instance Exception DashboardError where
 instance ToServerError DashboardError where
   toServerError err = case err of
     DESubExperimentNotFound _ -> err404 { errBody = prettyErr }
+    DECantDeletePrimary _ -> err400 { errBody = prettyErr }
     where
       prettyErr = encodeUtf8 @Text $ pretty err

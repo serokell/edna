@@ -11,10 +11,11 @@ import Universum
 import Servant (ReqBody)
 import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
-import Servant.Server (err501)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
-import Edna.Dashboard.Service (getExperiments, getMeasurements, getSubExperiment)
+import Edna.Dashboard.Service
+  (deleteSubExperiment, getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment,
+  setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId)
@@ -24,11 +25,11 @@ import Edna.Web.Types (StubSortBy, WithId)
 
 -- | Endpoints related to projects.
 data DashboardEndpoints route = DashboardEndpoints
-  { -- | Make a sub-experiment default.
-    deMakeDefaultSubExp :: route
+  { -- | Make a sub-experiment primary.
+    deMakePrimarySubExp :: route
       :- "subExperiment"
-      :> "default"
-      :> Summary "Make a sub-experiment default."
+      :> "primary"
+      :> Summary "Make a sub-experiment primary."
       :> Capture "subExperimentId" SubExperimentId
       :> Post '[JSON] (WithId 'SubExperimentId SubExperimentResp)
 
@@ -90,10 +91,10 @@ type DashboardAPI = ToServant DashboardEndpoints AsApi
 
 dashboardEndpoints :: ToServant DashboardEndpoints (AsServerT Edna)
 dashboardEndpoints = genericServerT DashboardEndpoints
-  { deMakeDefaultSubExp = \_ -> throwM err501
-  , deSetNameSubExp = \_ _ -> throwM err501
-  , deSetIsSuspiciousSubExp = \_ _ -> throwM err501
-  , deDeleteSubExp = \_ -> throwM err501
+  { deMakePrimarySubExp = makePrimarySubExperiment
+  , deSetNameSubExp = setNameSubExperiment
+  , deSetIsSuspiciousSubExp = setIsSuspiciousSubExperiment
+  , deDeleteSubExp = deleteSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements

@@ -194,13 +194,13 @@ create table if not exists primary_sub_experiment
 
 create table if not exists removed_measurements
 (
-    sub_experiment_id    int not null,
+    sub_experiment_id   int not null,
     measurement_id      int not null,
     primary key (sub_experiment_id, measurement_id),
 
     constraint belongs_to_subexperiment
         foreign key (sub_experiment_id) references sub_experiment (sub_experiment_id)
-            on delete no action
+            on delete cascade
             on update no action,
 
     constraint such_measurement_exists

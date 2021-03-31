@@ -1,7 +1,11 @@
 -- | Queries for the Dashboard part of the database.
 
 module Edna.Dashboard.DB.Query
-  ( getExperiments
+  ( makePrimarySubExperiment
+  , setNameSubExperiment
+  , setIsSuspiciousSubExperiment
+  , deleteSubExperiment
+  , getExperiments
   , getSubExperiment
   , getMeasurements
   , getRemovedMeasurements
@@ -13,10 +17,13 @@ import qualified Data.List.NonEmpty as NE
 
 import Data.Time (LocalTime)
 import Database.Beam.Backend (SqlSerial(..))
+import Database.Beam.Postgres.Full (deleteReturning)
 import Database.Beam.Query
-  (all_, asc_, cast_, guard_, int, leftJoin_, lookup_, orderBy_, select, val_, (==.))
+  (aggregate_, all_, as_, asc_, cast_, countAll_, guard_, int, leftJoin_, lookup_, orderBy_, select,
+  subquery_, update, val_, (&&.), (<-.), (==.))
 
-import Edna.DB.Integration (runSelectReturningList', runSelectReturningOne')
+import Edna.DB.Integration
+  (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
 import Edna.Dashboard.Web.Types (ExperimentResp(..))
@@ -25,6 +32,50 @@ import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U
   (CompoundId, ExperimentId, MeasurementId, ProjectId, SqlId(..), SubExperimentId, TargetId,
   fromSqlSerial, localToUTC)
+
+-- | Make given sub-experiment the primary one for its parent experiment.
+-- Previous primary sub-experiment is no longer primary.
+makePrimarySubExperiment :: SubExperimentId -> Edna ()
+makePrimarySubExperiment (SqlId subExpId) =
+  runUpdate' $ update (esPrimarySubExperiment ednaSchema)
+  (\pse -> pseSubExperimentId pse <-. val_ subExpId)
+  (\pse -> pseExperimentId pse ==. subquery_ (do
+    subExperiment <- all_ (esSubExperiment ednaSchema)
+    guard_ (seSubExperimentId subExperiment ==. val_ (SqlSerial subExpId))
+    return (seExperimentId subExperiment)
+    ))
+
+-- | Update name of a sub-experiment.
+setNameSubExperiment :: SubExperimentId -> Text -> Edna ()
+setNameSubExperiment (SqlId subExpId) name =
+  runUpdate' $ update (esSubExperiment ednaSchema)
+  (\se -> seName se <-. val_ name)
+  (\se -> seSubExperimentId se ==. val_ (SqlSerial subExpId))
+
+-- | Update @isSuspicious@ flag for a sub-experiment.
+setIsSuspiciousSubExperiment :: SubExperimentId -> Bool -> Edna ()
+setIsSuspiciousSubExperiment (SqlId subExpId) isSuspicious =
+  runUpdate' $ update (esSubExperiment ednaSchema)
+  (\se -> seIsSuspicious se <-. val_ isSuspicious)
+  (\se -> seSubExperimentId se ==. val_ (SqlSerial subExpId))
+
+-- | Delete a sub-experiment with given ID along with all @removed_measurement@
+-- entries for this sub-experiment.
+--
+-- Does not delete primary sub-experiments.
+-- Returns @True@ iff sub-experiment was successfully deleted (i. e. is not
+-- primary).
+deleteSubExperiment :: SubExperimentId -> Edna Bool
+deleteSubExperiment (SqlId subExpId) =
+  fmap (not . null) $ runDeleteReturningList' $
+  deleteReturning (esSubExperiment ednaSchema) (
+  \se -> seSubExperimentId se ==. val_ (SqlSerial subExpId) &&.
+     (0 ==. subquery_ (aggregate_ (\_ -> as_ @Int32 countAll_) $ do
+       primarySubExp <- all_ (esPrimarySubExperiment ednaSchema)
+       guard_ (pseSubExperimentId primarySubExp ==. val_ subExpId)
+       pure primarySubExp)
+     )
+  ) seSubExperimentId
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
 -- compound ID and target ID.
