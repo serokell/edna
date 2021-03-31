@@ -27,15 +27,30 @@
   }
 }
 
-.primaryDialogWindow {
+.dialogWindow {
   position: relative;
   display: flex;
   flex-direction: column;
-  max-width: 720 * $px;
-  padding: 36 * $px;
   margin: (100 * $px) auto 0 auto;
-
   background-color: white;
+
+  &_size_small {
+    max-width: 485 * $px;
+    padding: (26 * $px) (30 * $px) 0 (26 * $px);
+  }
+
+  &_size_medium {
+    max-width: 648 * $px;
+    padding: 36 * $px;
+  }
+
+  &_size_large {
+    max-width: 695 * $px;
+    padding: (26 * $px) (30 * $px) 0 (26 * $px);
+  }
+}
+
+.primaryDialogWindow {
   border-radius: 10 * $px;
 
   &__title {
@@ -60,14 +75,6 @@
 }
 
 .secondaryDialogWindow {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  max-width: 695 * $px;
-  padding: (26 * $px) (30 * $px) 0 (26 * $px);
-  margin: (100 * $px) auto 0 auto;
-
-  background-color: white;
   border-radius: 6 * $px;
 
   &__title {

@@ -67,6 +67,8 @@ interface EdnaApiInterface {
   fetchMethodologies: () => Promise<MethodologyDto[]>;
   createMethodology: (args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
   editMethodology: (methId: number, args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  deleteMethodology: (methId: number) => Promise<{}>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -176,6 +178,15 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     editMethodology: async (methId: number, args: CreateMethodologyArgsApi) => {
       return axios
         .put(`/methodology/${methId}`, args)
+        .then(resp => resp.data)
+        .catch(error => {
+          throw new Error(error.response.data);
+        });
+    },
+
+    deleteMethodology: async (methId: number) => {
+      return axios
+        .delete(`/methodology/${methId}`)
         .then(resp => resp.data)
         .catch(error => {
           throw new Error(error.response.data);

@@ -25,6 +25,7 @@ export function isParsed(
 
 export type ModalDialogState =
   | undefined
+  | { kind: "delete-methodology"; methodology: MethodologyDto }
   | { kind: "methodology-description"; methodology: MethodologyDto }
   | { kind: "create-edit-methodology"; editing?: MethodologyDto }
   | { kind: "create-edit-project"; editing?: ProjectDto };

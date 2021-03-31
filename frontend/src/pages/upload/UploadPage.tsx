@@ -158,8 +158,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             <div className="uploadingForm__buttons">
               <Button
+                type="primary"
                 disabled={!isParsed(excelFile)}
-                type="submit"
+                isSubmit
                 className="uploadingForm__submitBtn"
                 tabIndex={4}
               >
