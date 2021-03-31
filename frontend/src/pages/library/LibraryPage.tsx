@@ -20,6 +20,7 @@ import {
 } from "../../store/selectors";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import EditSvg from "../../assets/svg/edit.svg";
+import DeleteSvg from "../../assets/svg/delete.svg";
 import { Button } from "../../components/Button/Button";
 import { modalDialogAtom } from "../../store/atoms";
 
@@ -269,8 +270,18 @@ function MethodsSuspendable() {
                 <EditSvg />
                 Edit
               </div>,
-              <div key="remove" className="contextActions__item">
-                Remove
+              <div
+                key="delete"
+                className="contextActions__item"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "delete-methodology",
+                    methodology: m,
+                  });
+                }}
+              >
+                <DeleteSvg />
+                Delete
               </div>,
             ]}
           />

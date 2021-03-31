@@ -3,6 +3,7 @@ import { Form, Formik, FormikConfig } from "formik";
 import CrossSvg from "../../assets/svg/cross.svg";
 import "./DialogLayout.scss";
 import cn from "../../utils/bemUtils";
+import cx from "classnames";
 
 export interface DialogLayoutProps<T> {
   title: string;
@@ -11,6 +12,7 @@ export interface DialogLayoutProps<T> {
   footer?: React.ReactNode;
   onClose: () => void;
   dialogClass: string;
+  size: "small" | "medium" | "large";
 
   formik?: FormikConfig<T>;
 }
@@ -22,13 +24,15 @@ export function DialogLayout<T = any>({
   footer,
   onClose,
   dialogClass,
+  size,
   formik,
 }: DialogLayoutProps<T>): React.ReactElement {
   const dialogCls = cn(dialogClass);
+  const dialogWindowSize = cn("dialogWindow")({ size });
   return (
     <div className="dialogBackground" onClick={onClose}>
       <div
-        className={dialogClass}
+        className={cx(dialogWindowSize, dialogClass)}
         onClick={e => {
           e.stopPropagation();
         }}

@@ -17,6 +17,7 @@ export function MethodologyDescriptionDialog({
   return (
     <DialogLayout
       dialogClass="secondaryDialogWindow"
+      size="large"
       title={methodology.item.name}
       onClose={() => setModalDialog(undefined)}
       description={methodology.item.description}

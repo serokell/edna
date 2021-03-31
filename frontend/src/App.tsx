@@ -10,11 +10,16 @@ import { modalDialogAtom } from "./store/atoms";
 import { CreateMethodologyDialog } from "./components/dialogs/CreateMethodologyDialog";
 import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
 import { MethodologyDescriptionDialog } from "./components/dialogs/MethodologyDescriptionDialog";
+import { DeleteMethodologyDialog } from "./components/dialogs/DeleteMethodologyDialog";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
   return (
     <>
+      {modalDialog?.kind === "delete-methodology" && (
+        <DeleteMethodologyDialog methodology={modalDialog.methodology} />
+      )}
+
       {modalDialog?.kind === "methodology-description" && (
         <MethodologyDescriptionDialog methodology={modalDialog.methodology} />
       )}

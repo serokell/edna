@@ -27,6 +27,7 @@ export function CreateMethodologyDialog({
   return (
     <DialogLayout<CreateMethodologyForm>
       dialogClass="primaryDialogWindow"
+      size="medium"
       title={editing ? "Edit methodology" : "Create methodology"}
       onClose={() => setModalDialog(undefined)}
       footer={<CreateDialogFooter formState={formState} editing={!!editing} cancelBtn />}

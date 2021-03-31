@@ -26,6 +26,7 @@ export function CreateProjectDialog({ editing }: CreateProjectDialogProps): Reac
   return (
     <DialogLayout<CreateProjectForm>
       dialogClass="primaryDialogWindow"
+      size="medium"
       title={editing ? "Edit project" : "Create project"}
       onClose={() => setModalDialog(undefined)}
       footer={<CreateDialogFooter formState={formState} editing={!!editing} cancelBtn />}

@@ -38,9 +38,10 @@ export function CreateDialogFooter({
       )}
 
       <Button
+        type="primary"
+        isSubmit
         loading={formState?.kind === "submitting"}
         disabled={formState?.kind === "submitting"}
-        type="submit"
         className="createDialog__footerBtn"
       >
         {editing ? "Save" : "Create"}
