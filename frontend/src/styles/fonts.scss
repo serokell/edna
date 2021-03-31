@@ -7,10 +7,10 @@
 }
 
 @mixin headline1() {
-  font-size: 32 * $px;
+  font-size: 26 * $px;
   font-style: normal;
   font-weight: 400;
-  line-height: 40 * $px;
+  line-height: 32 * $px;
   text-align: left;
   letter-spacing: 0;
 }
@@ -20,6 +20,16 @@
   font-style: normal;
   font-weight: 700;
   line-height: 23 * $px;
+  text-align: left;
+  letter-spacing: 0;
+}
+
+
+@mixin paragraph-p1() {
+  font-size: 14 * $px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18 * $px;
   text-align: left;
   letter-spacing: 0;
 }

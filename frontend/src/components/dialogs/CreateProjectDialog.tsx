@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
-import { Form, Formik } from "formik";
-import { DialogLayout } from "../DialogLayout/DialogLayout";
+import { FormikErrors } from "formik";
 import { modalDialogAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
@@ -13,6 +12,7 @@ import { toCreateProjectArgsApi } from "../../api/EdnaApi";
 import { useProjectRefresher } from "../../store/updaters";
 import { CreateProjectForm, toCreateProjectForm } from "./types";
 import { ProjectDto } from "../../api/types";
+import { DialogLayout } from "../DialogLayout/DialogLayout";
 
 interface CreateProjectDialogProps {
   editing?: ProjectDto;
@@ -24,20 +24,22 @@ export function CreateProjectDialog({ editing }: CreateProjectDialogProps): Reac
   const [formState, setFormState] = useState<FormState>();
 
   return (
-    <DialogLayout
+    <DialogLayout<CreateProjectForm>
+      dialogClass="primaryDialogWindow"
       title={editing ? "Edit project" : "Create project"}
       onClose={() => setModalDialog(undefined)}
-    >
-      <Formik<CreateProjectForm>
-        initialValues={toCreateProjectForm(editing)}
-        validate={values => {
-          const errors: any = {};
+      footer={<CreateDialogFooter formState={formState} editing={!!editing} cancelBtn />}
+      formik={{
+        initialValues: toCreateProjectForm(editing),
+        validate: values => {
+          const errors: FormikErrors<CreateProjectForm> = {};
           if (!values.name) {
             errors.name = "Name required";
           }
           return errors;
-        }}
-        onSubmit={async form => {
+        },
+
+        onSubmit: async form => {
           setFormState({ kind: "submitting" });
           try {
             if (editing) {
@@ -50,32 +52,28 @@ export function CreateProjectDialog({ editing }: CreateProjectDialogProps): Reac
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
           }
-        }}
-      >
-        <Form>
-          <FormField<string> required name="name" label="Name">
-            {field => (
-              <input
-                className="ednaInput"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
+        },
+      }}
+    >
+      <FormField<string> required name="name" label="Name">
+        {field => (
+          <input
+            className="ednaInput"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
 
-          <FormField<string> name="description" label="Description">
-            {field => (
-              <textarea
-                className="ednaTextarea createDialog__description"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <CreateDialogFooter formState={formState} editing={!!editing} />
-        </Form>
-      </Formik>
+      <FormField<string> name="description" label="Description">
+        {field => (
+          <textarea
+            className="ednaTextarea createDialog__description"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
     </DialogLayout>
   );
 }

@@ -80,12 +80,28 @@
     pointer-events: none;
   }
 
-  &_danger {
+  &_delete {
     color: $color-help-red;
+
+    &:hover {
+      color: #bf6060;
+    }
+
+    &:active {
+      color: #af5656;
+    }
   }
 
   &_gray {
     color: $color-gray;
+
+    &:hover {
+      color: #7a847f;
+    }
+
+    &:active {
+      color: #6e7571;
+    }
   }
 }
 
@@ -114,7 +130,7 @@
     background: rgba($color-light-green, 0.3);
   }
 
-  &_smallRounding {
+  &_halfRounding {
     border-radius: 4 * $px;
   }
 

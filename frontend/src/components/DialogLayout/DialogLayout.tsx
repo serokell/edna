@@ -1,36 +1,62 @@
-import React, { FunctionComponent } from "react";
+import React from "react";
+import { Form, Formik, FormikConfig } from "formik";
 import CrossSvg from "../../assets/svg/cross.svg";
 import "./DialogLayout.scss";
+import cn from "../../utils/bemUtils";
 
-interface DialogLayoutProps {
+export interface DialogLayoutProps<T> {
   title: string;
-  description?: string;
-  children: React.ReactElement;
+  description?: React.ReactNode;
+  children?: React.ReactNode;
+  footer?: React.ReactNode;
   onClose: () => void;
+  dialogClass: string;
+
+  formik?: FormikConfig<T>;
 }
 
-export const DialogLayout: FunctionComponent<DialogLayoutProps> = ({
+export function DialogLayout<T = any>({
   title,
   description,
   children,
+  footer,
   onClose,
-}) => {
+  dialogClass,
+  formik,
+}: DialogLayoutProps<T>): React.ReactElement {
+  const dialogCls = cn(dialogClass);
   return (
-    <div className="dialogWindow__background" onClick={onClose}>
+    <div className="dialogBackground" onClick={onClose}>
       <div
-        className="dialogWindow"
+        className={dialogClass}
         onClick={e => {
           e.stopPropagation();
         }}
       >
-        <div className="dialogWindow__close" onClick={onClose}>
-          <CrossSvg />
+        <div className="dialogHeader">
+          <span className={dialogCls("title")}>{title}</span>
+          <div className="closeDialogBtn" onClick={onClose}>
+            <CrossSvg />
+          </div>
         </div>
-        <div className="dialogWindow__title">{title}</div>
-        {description && <div className="dialogWindow__description">{description} </div>}
-        <div className="dialogWindow__spacer" />
-        {children}
+
+        {description && <div className={dialogCls("description")}>{description} </div>}
+        <div className={dialogCls("spacer")} />
+
+        {formik ? (
+          <Formik<T> {...formik}>
+            <Form>
+              {children}
+              {footer && <div className={dialogCls("footer")}>{footer}</div>}
+            </Form>
+          </Formik>
+        ) : (
+          <>
+            {children}
+            {footer && <div className={dialogCls("footer")}>{footer}</div>}
+          </>
+        )}
       </div>
     </div>
   );
-};
+}

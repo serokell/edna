@@ -39,6 +39,7 @@
   &__item {
     display: flex;
     align-items: center;
+    min-width: 126 * $px;
     padding: (6 * $px) (12 * $px);
     color: rgba($color-black, 0.7);
 

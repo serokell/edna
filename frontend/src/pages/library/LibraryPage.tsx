@@ -221,7 +221,7 @@ function MethodsSuspendable() {
             );
           return (
             <td className="ednaTable__cell methodology__btn">
-              <Button type="small-rounded" size="small">
+              <Button type="half-rounded" size="small">
                 Add link
               </Button>
             </td>
@@ -231,10 +231,19 @@ function MethodsSuspendable() {
       {
         Header: "Description",
         id: "description",
-        accessor: () => {
+        accessor: (m: MethodologyDto) => {
           return (
             <td className="ednaTable__cell methodology__btn">
-              <Button type="small-rounded" size="small">
+              <Button
+                type="half-rounded"
+                size="small"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "methodology-description",
+                    methodology: m,
+                  });
+                }}
+              >
                 Show description
               </Button>
             </td>
