@@ -79,8 +79,8 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     updateChemSoftLink: async (compoundId: number, newLink: string): Promise<any> => {
       return axios
-        .put(`/compound/chemsoft/${compoundId}`, newLink, {
-          headers: { "Content-Type": "text/plain" },
+        .put(`/compound/chemsoft/${compoundId}`, `"${newLink}"`, {
+          headers: { "Content-Type": "application/json" },
         })
         .then(proj => proj.data);
     },
