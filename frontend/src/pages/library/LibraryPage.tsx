@@ -2,6 +2,7 @@ import React, { FunctionComponent, useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import cx from "classnames";
 import { Column } from "react-table";
+import { Link } from "react-router-dom";
 import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
@@ -22,6 +23,7 @@ import EditSvg from "../../assets/svg/edit.svg";
 import DeleteSvg from "../../assets/svg/delete.svg";
 import { Button } from "../../components/Button/Button";
 import { modalDialogAtom } from "../../store/atoms";
+import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -144,13 +146,25 @@ function ProjectsSuspendable() {
     ],
     [setModalDialog]
   );
-  return <Table data={projects} columns={projectColumns} />;
+  return projects.length === 0 ? (
+    <EmptyPlaceholder
+      title="No projects created yet"
+      description="All created projects will be displayed here"
+      button={
+        <Button type="primary" onClick={() => setModalDialog({ kind: "create-edit-project" })}>
+          Create project
+        </Button>
+      }
+    />
+  ) : (
+    <Table data={projects} columns={projectColumns} />
+  );
 }
 
 function CompoundsSuspendable() {
-  const projects = useRecoilValue(compoundsQuery);
+  const compounds = useRecoilValue(compoundsQuery);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const projectColumns = React.useMemo(
+  const compoundsColumns = React.useMemo(
     () => [
       {
         Header: "Compounds",
@@ -218,10 +232,20 @@ function CompoundsSuspendable() {
     ],
     [setModalDialog]
   );
-  return (
+  return compounds.length === 0 ? (
+    <EmptyPlaceholder
+      title="No compounds added yet"
+      description="To add compounds add new experiments"
+      button={
+        <Link to="/upload" className="libraryPage__linkButton">
+          <Button type="primary">Add experiments</Button>
+        </Link>
+      }
+    />
+  ) : (
     <Table
-      data={projects}
-      columns={projectColumns}
+      data={compounds}
+      columns={compoundsColumns}
       columnExtras={{
         chemsoft: { manualCellRendering: true },
       }}
@@ -230,8 +254,8 @@ function CompoundsSuspendable() {
 }
 
 function TargetsSuspendable() {
-  const projects = useRecoilValue(targetsQuery);
-  const projectColumns: Column<TargetDto>[] = React.useMemo(
+  const targets = useRecoilValue(targetsQuery);
+  const targetColumns: Column<TargetDto>[] = React.useMemo(
     () => [
       {
         Header: "Target",
@@ -248,7 +272,19 @@ function TargetsSuspendable() {
     ],
     []
   );
-  return <Table data={projects} columns={projectColumns} />;
+  return targets.length === 0 ? (
+    <EmptyPlaceholder
+      title="No targets added yet"
+      description="To add targets add new experiments"
+      button={
+        <Link to="/upload" className="libraryPage__linkButton">
+          <Button type="primary">Add experiments</Button>
+        </Link>
+      }
+    />
+  ) : (
+    <Table data={targets} columns={targetColumns} />
+  );
 }
 
 function MethodsSuspendable() {
@@ -275,7 +311,7 @@ function MethodsSuspendable() {
               </td>
             );
           return (
-            <td className="ednaTable__cell cellBtn">
+            <td className="ednaTable__cell libraryTable__cellBtn">
               <Button
                 type="half-rounded"
                 size="small"
@@ -354,7 +390,17 @@ function MethodsSuspendable() {
     [setModalDialog]
   );
 
-  return (
+  return methodologies.length === 0 ? (
+    <EmptyPlaceholder
+      title="No methodologies created yet"
+      description="All created methodologies will be displayed here"
+      button={
+        <Button type="primary" onClick={() => setModalDialog({ kind: "create-edit-methodology" })}>
+          Create methodology
+        </Button>
+      }
+    />
+  ) : (
     <Table
       data={methodologies}
       columns={methodologyColumns}

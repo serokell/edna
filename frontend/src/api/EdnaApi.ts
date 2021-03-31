@@ -10,7 +10,7 @@ import {
   ProjectDto,
   TargetDto,
 } from "./types";
-import { Maybe, replaceEmptyWithUndefined } from "../utils/utils";
+import { isDefined, Maybe, replaceEmptyWithUndefined } from "../utils/utils";
 import { CreateMethodologyForm, CreateProjectForm } from "../components/dialogs/types";
 
 export interface UploadExperimentsArgsApi {
