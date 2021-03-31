@@ -45,7 +45,7 @@ import Edna.Library.Web.Types
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U
-  (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId, justOrError)
+  (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId, justOrError, localToUTC)
 import Edna.Util.URI (renderURI)
 import Edna.Web.Types (WithId(..))
 
@@ -57,7 +57,7 @@ targetToDomain :: TargetId -> TargetRec -> [Maybe ProjectRec] -> WithId 'U.Targe
 targetToDomain targetSqlId TargetRec{..} projects = WithId targetSqlId $ TargetResp
   { trName = tName
   , trProjects = mapMaybe (fmap pName) projects
-  , trAdditionDate = tAdditionDate
+  , trAdditionDate = localToUTC tAdditionDate
   }
 
 -- TODO maybe we should move it to Service layer
@@ -221,8 +221,8 @@ projectToDomain
 projectToDomain projectSqlId ProjectRec{..} compounds = WithId projectSqlId $ ProjectResp
   { prName = pName
   , prDescription = pDescription
-  , prCreationDate = pCreationDate
-  , prLastUpdate = pLastUpdate
+  , prCreationDate = localToUTC pCreationDate
+  , prLastUpdate = localToUTC pLastUpdate
   , prCompoundNames = mapMaybe (fmap cName) compounds
   }
 

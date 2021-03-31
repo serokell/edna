@@ -33,6 +33,7 @@ module Test.Gen
   , genLocalTime
   , genByteString
   , genDoubleSmallPrec
+  , genUTCTime
   ) where
 
 import Universum
@@ -42,7 +43,7 @@ import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
 
-import Data.Time (LocalTime(..), fromGregorian, secondsToDiffTime, timeToTimeOfDay)
+import Data.Time (LocalTime(..), UTCTime, fromGregorian, secondsToDiffTime, timeToTimeOfDay)
 import Hedgehog (MonadGen)
 import Lens.Micro (at, (?~))
 import Network.URI (URIAuth(..), nullURI)
@@ -56,7 +57,7 @@ import Edna.Library.Web.Types
   (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
 import Edna.Upload.Web.API (ExperimentalMeasurement(..))
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
-import Edna.Util (SqlId(..))
+import Edna.Util (SqlId(..), localToUTC)
 import Edna.Web.Types
 
 ----------------
@@ -110,8 +111,8 @@ genProjectResp :: MonadGen m => m ProjectResp
 genProjectResp = do
   prName <- genName
   prDescription <- Gen.maybe genDescription
-  prCreationDate <- genLocalTime
-  prLastUpdate <- genLocalTime
+  prCreationDate <- genUTCTime
+  prLastUpdate <- genUTCTime
   prCompoundNames <- Gen.list (Range.linear 0 10) genName
   return ProjectResp {..}
 
@@ -126,14 +127,14 @@ genCompoundResp :: MonadGen m => m CompoundResp
 genCompoundResp = do
   crName <- genName
   crChemSoft <- Gen.maybe genURI
-  crAdditionDate <- genLocalTime
+  crAdditionDate <- genUTCTime
   return CompoundResp {..}
 
 genTargetResp :: MonadGen m => m TargetResp
 genTargetResp = do
   trName <- genName
   trProjects <- Gen.list (Range.linear 0 5) genName
-  trAdditionDate <- genLocalTime
+  trAdditionDate <- genUTCTime
   return TargetResp {..}
 
 genExperimentsResp :: MonadGen m => m ExperimentsResp
@@ -148,7 +149,7 @@ genExperimentResp = do
   erCompound <- genSqlId
   erTarget <- genSqlId
   erMethodology <- genSqlId
-  erUploadDate <- genLocalTime
+  erUploadDate <- genUTCTime
   erSubExperiments <- Gen.list (Range.linear 0 5) genSqlId
   return ExperimentResp {..}
 
@@ -216,6 +217,9 @@ genLocalTime = do
     secs <- toInteger <$> Gen.int (Range.constant 0 86401)
     let timeOfDay = timeToTimeOfDay $ secondsToDiffTime secs
     pure $ LocalTime day timeOfDay
+
+genUTCTime :: MonadGen m => m UTCTime
+genUTCTime = localToUTC <$> genLocalTime
 
 genByteString :: MonadGen m => m LByteString
 genByteString = BL.fromStrict <$> Gen.bytes (Range.linear 5 200)

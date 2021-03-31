@@ -11,7 +11,7 @@ import Universum
 
 import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
-import Data.Time (LocalTime)
+import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), genericF, tupleF, (+|), (|+))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
@@ -46,7 +46,7 @@ data ExperimentResp = ExperimentResp
   -- ^ Compound involved in this experiment.
   , erMethodology :: MethodologyId
   -- ^ Test methodology used in this experiment.
-  , erUploadDate :: LocalTime
+  , erUploadDate :: UTCTime
   -- ^ Date when the experiment was uploaded.
   , erSubExperiments :: [SubExperimentId]
   -- ^ IDs of all sub-experiments from this experiment.
