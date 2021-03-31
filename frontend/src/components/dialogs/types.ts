@@ -1,5 +1,6 @@
 import { MethodologyDto, ProjectDto } from "../../api/types";
 
+// Create Project
 export interface CreateProjectForm {
   name: string;
   description: string;
@@ -11,6 +12,8 @@ export function toCreateProjectForm(proj?: ProjectDto): CreateProjectForm {
     description: proj?.item.description ?? "",
   };
 }
+
+// Create Methodology
 
 export interface CreateMethodologyForm {
   name: string;

@@ -9,29 +9,33 @@ export type FormState = undefined | { kind: "submitting" } | { kind: "error"; er
 interface CreateDialogFooterProps {
   formState: FormState;
   editing?: boolean;
+  cancelBtn?: boolean;
 }
 
 export function CreateDialogFooter({
   formState,
+  cancelBtn,
   editing,
 }: CreateDialogFooterProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   return (
-    <div className="createDialog__footer">
+    <>
       {formState?.kind === "error" && (
         <div className="createDialog__errorMsg">{formState.errorMsg}</div>
       )}
 
-      <Button
-        disabled={formState?.kind === "submitting"}
-        type="text"
-        className="createDialog__footerBtn"
-        onClick={() => {
-          setModalDialog(undefined);
-        }}
-      >
-        Cancel
-      </Button>
+      {cancelBtn && (
+        <Button
+          disabled={formState?.kind === "submitting"}
+          type="text"
+          className="createDialog__footerBtn"
+          onClick={() => {
+            setModalDialog(undefined);
+          }}
+        >
+          Cancel
+        </Button>
+      )}
 
       <Button
         loading={formState?.kind === "submitting"}
@@ -41,6 +45,6 @@ export function CreateDialogFooter({
       >
         {editing ? "Save" : "Create"}
       </Button>
-    </div>
+    </>
   );
 }
