@@ -4,6 +4,10 @@
   &__addBtn {
     margin-left: auto;
   }
+
+  &__linkButton {
+    text-decoration: none;
+  }
 }
 
 .entityTabs {
@@ -35,10 +39,8 @@
   }
 }
 
-.cellBtn {
-  padding: (10 * $px) 0 (10 * $px) (20 * $px);
-}
-
-.contextActions {
-  padding-right: 20 * $px;
+.libraryTable {
+  &__cellBtn {
+    padding: (10 * $px) 0 (10 * $px) (20 * $px);
+  }
 }

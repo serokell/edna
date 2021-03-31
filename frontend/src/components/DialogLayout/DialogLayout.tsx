@@ -1,9 +1,9 @@
 import React from "react";
 import { Form, Formik, FormikConfig } from "formik";
+import cx from "classnames";
 import CrossSvg from "../../assets/svg/cross.svg";
 import "./DialogLayout.scss";
 import cn from "../../utils/bemUtils";
-import cx from "classnames";
 
 export interface DialogLayoutProps<T> {
   title: string;
