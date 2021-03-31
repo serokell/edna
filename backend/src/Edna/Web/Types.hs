@@ -1,5 +1,7 @@
 -- | Bridge types used to communicate between the server app and frontend.
 
+{-# LANGUAGE OverloadedLists #-}
+
 module Edna.Web.Types
   ( WithId (..)
   , StubSortBy (..)
@@ -11,7 +13,10 @@ module Edna.Web.Types
 import Universum
 
 import Data.Aeson.TH (deriveToJSON)
-import Data.Swagger (SwaggerType(..), ToParamSchema(..), ToSchema(..), enum_, type_)
+import Data.Swagger
+  (SwaggerType(..), ToParamSchema(..), ToSchema(..), declareSchemaRef, enum_, properties, required,
+  type_)
+import Data.Swagger.Internal.Schema (unnamed)
 import Fmt (Buildable(..))
 import Lens.Micro ((?~))
 import Network.URI (URI(..))
@@ -19,7 +24,7 @@ import Network.URI.JSON ()
 import Servant (FromHttpApiData(..))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
-import Edna.Util (SqlId(..), ednaAesonWebOptions, gDeclareNamedSchema)
+import Edna.Util (SqlId(..), ednaAesonWebOptions)
 
 ----------------
 -- General types
@@ -66,7 +71,16 @@ deriveToJSON ednaAesonWebOptions ''WithId
 ----------------
 
 instance ToSchema t => ToSchema (WithId k t) where
-  declareNamedSchema = gDeclareNamedSchema
+  declareNamedSchema _ = do
+    idSchema <- declareSchemaRef (Proxy :: Proxy Word32)
+    itemSchema <- declareSchemaRef (Proxy :: Proxy t)
+    pure $ unnamed $ mempty
+      & type_ ?~ SwaggerObject
+      & properties .~
+          [ ("id", idSchema)
+          , ("item", itemSchema)
+          ]
+      & required .~ [ "id", "item" ]
 
 instance ToParamSchema StubSortBy where
   toParamSchema _ = mempty
