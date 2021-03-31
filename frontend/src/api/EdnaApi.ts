@@ -10,7 +10,7 @@ import {
   ProjectDto,
   TargetDto,
 } from "./types";
-import { Maybe } from "../utils/utils";
+import { isDefined, Maybe } from "../utils/utils";
 
 export interface UploadExperimentsArgsApi {
   file: File;
@@ -111,18 +111,17 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     uploadExperiments: async (form: UploadExperimentsArgsApi) => {
       const formData = new FormData();
       formData.append("file", form.file);
+      formData.append("projectId", form.projectId.toString());
+      formData.append("methodologyId", form.methodologyId.toString());
+      if (isDefined(form.description)) {
+        formData.append("description", form.description);
+      }
 
-      return axios.post(
-        `/file/upload/${form.projectId}/${form.methodologyId}${
-          form.description ? `?description=${form.description}` : ""
-        }`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      return axios.post("/file/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
 
     createProject: async (args: CreateProjectArgsApi) => {

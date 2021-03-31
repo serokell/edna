@@ -6,9 +6,8 @@ module Edna.Orphans () where
 
 import Universum
 
-import Fmt (Buildable(..), (+|), (|+))
 import RIO (RIO(..))
-import Servant.Multipart (MultipartData(..), MultipartForm')
+import Servant.Multipart (MultipartForm')
 import Servant.Util.Combinators.Logging (ApiCanLogArg)
 import Servant.Util.Common.Common (ApiHasArgClass(..))
 
@@ -20,13 +19,8 @@ deriving newtype instance MonadCatch (RIO env)
 -- Logging
 ----------------
 
-instance ApiHasArgClass (MultipartForm' mods tag (MultipartData tag)) where
-  type ApiArg (MultipartForm' mods tag (MultipartData tag)) = MultipartData tag
+instance ApiHasArgClass (MultipartForm' mods tag t) where
+  type ApiArg (MultipartForm' mods tag t) = t
   apiArgName _ = "multipart"
 
-instance ApiCanLogArg (MultipartForm' mods tag (MultipartData tag))
-
-instance Buildable (MultipartData tag) where
-  build MultipartData {..} =
-    "multipart with " +| length inputs |+
-    " inputs and " +| length files |+ " files"
+instance ApiCanLogArg (MultipartForm' mods tag t)

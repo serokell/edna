@@ -22,6 +22,7 @@ module Edna.Util
   , ensureOrThrow
   , justOrError
   , fromSqlSerial
+  , rightOrThrow
   ) where
 
 import Universum
@@ -162,6 +163,9 @@ ensureOrThrow :: (MonadThrow  m, Exception e) => e -> Bool -> m ()
 ensureOrThrow e b
   | b = pure ()
   | otherwise = throwM e
+
+rightOrThrow :: (MonadThrow m, Exception e) => (b -> e) -> Either b a -> m a
+rightOrThrow f = either (throwM . f) pure
 
 ----------------
 -- SqlId
