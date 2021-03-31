@@ -159,7 +159,39 @@ function CompoundsSuspendable() {
       {
         Header: "MDe link",
         // TODO form MDe link
-        accessor: (c: CompoundDto) => <a href={c.item.name}>mde.io</a>,
+        accessor: (c: CompoundDto) => (
+          <a className="cellText" href={c.item.name}>
+            mde.io
+          </a>
+        ),
+      },
+      {
+        Header: "ChemSoft link",
+        id: "chemsoft",
+        accessor: (c: CompoundDto) => {
+          if (c.item.chemSoft)
+            return (
+              <td className="ednaTable__cell">
+                <a href={c.item.chemSoft}>{c.item.chemSoft}</a>
+              </td>
+            );
+          return (
+            <td className="ednaTable__cell cellBtn">
+              <Button
+                type="half-rounded"
+                size="small"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "add-edit-link",
+                    target: { kind: "compound", object: c },
+                  });
+                }}
+              >
+                Add link
+              </Button>
+            </td>
+          );
+        },
       },
       {
         id: "actions",
@@ -186,7 +218,15 @@ function CompoundsSuspendable() {
     ],
     [setModalDialog]
   );
-  return <Table data={projects} columns={projectColumns} />;
+  return (
+    <Table
+      data={projects}
+      columns={projectColumns}
+      columnExtras={{
+        chemsoft: { manualCellRendering: true },
+      }}
+    />
+  );
 }
 
 function TargetsSuspendable() {
@@ -230,12 +270,12 @@ function MethodsSuspendable() {
         accessor: (m: MethodologyDto) => {
           if (m.item.confluence)
             return (
-              <div className="ednaTable__cell">
+              <td className="ednaTable__cell">
                 <a href={m.item.confluence}>{m.item.confluence}</a>
-              </div>
+              </td>
             );
           return (
-            <td className="ednaTable__cell methodology__btn">
+            <td className="ednaTable__cell cellBtn">
               <Button
                 type="half-rounded"
                 size="small"
@@ -257,7 +297,7 @@ function MethodsSuspendable() {
         id: "description",
         accessor: (m: MethodologyDto) => {
           return (
-            <td className="ednaTable__cell methodology__btn">
+            <td className="ednaTable__cell cellBtn">
               <Button
                 type="half-rounded"
                 size="small"

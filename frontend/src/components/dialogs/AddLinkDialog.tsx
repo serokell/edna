@@ -6,7 +6,7 @@ import "../../styles/main.scss";
 import "../DialogLayout/CreateDialog.scss";
 import Api from "../../api/api";
 import { CreateDialogFooter, FormState } from "../DialogLayout/CreateDialogFooter";
-import { useMethodologiesRefresher } from "../../store/updaters";
+import { useCompoundsRefresher, useMethodologiesRefresher } from "../../store/updaters";
 import { AddLinkForm } from "./types";
 import { CompoundDto, MethodologyDto } from "../../api/types";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
@@ -25,7 +25,6 @@ function AddLinkDialogAbstract({
   onLinkSave,
 }: AddLinkDialogAbstractProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const refreshMethodologies = useMethodologiesRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
@@ -35,7 +34,9 @@ function AddLinkDialogAbstract({
       title={title}
       description={description}
       onClose={() => setModalDialog(undefined)}
-      footer={<CreateDialogFooter formState={formState} editing={!!link} cancelBtn />}
+      footer={
+        <CreateDialogFooter submitBtnText="Save" formState={formState} editing={!!link} cancelBtn />
+      }
       formik={{
         initialValues: { link: link ?? "" },
 
@@ -44,7 +45,6 @@ function AddLinkDialogAbstract({
           try {
             await onLinkSave(form.link);
             setModalDialog(undefined);
-            refreshMethodologies();
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
           }
@@ -72,6 +72,8 @@ interface AddLinkDialogProps {
 
 export function AddLinkDialog({ target }: AddLinkDialogProps): React.ReactElement {
   const { name } = target.object.item;
+  const refreshMethodologies = useMethodologiesRefresher();
+  const refreshCompounds = useCompoundsRefresher();
   const editing =
     (target.kind === "methodology" && target.object.item.confluence) ||
     (target.kind === "compound" && target.object.item.chemSoft);
@@ -94,12 +96,14 @@ export function AddLinkDialog({ target }: AddLinkDialogProps): React.ReactElemen
       onLinkSave={async newLink => {
         if (target.kind === "compound") {
           await Api.updateChemSoftLink(target.object.id, newLink);
+          refreshCompounds();
         } else {
           await Api.editMethodology(target.object.id, {
             name: target.object.item.name,
             description: target.object.item.description,
             confluence: newLink,
           });
+          refreshMethodologies();
         }
       }}
     />

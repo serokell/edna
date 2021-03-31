@@ -10,12 +10,14 @@ interface CreateDialogFooterProps {
   formState: FormState;
   editing?: boolean;
   cancelBtn?: boolean;
+  submitBtnText?: string;
 }
 
 export function CreateDialogFooter({
   formState,
   cancelBtn,
   editing,
+  submitBtnText,
 }: CreateDialogFooterProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   return (
@@ -44,7 +46,7 @@ export function CreateDialogFooter({
         disabled={formState?.kind === "submitting"}
         className="createDialog__footerBtn"
       >
-        {editing ? "Save" : "Create"}
+        {submitBtnText ?? editing ? "Save" : "Create"}
       </Button>
     </>
   );
