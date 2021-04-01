@@ -16,6 +16,7 @@ import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
+import Edna.Analysis.FourPL (Params4PL)
 import Edna.Util
   (CompoundId, IdType(..), MethodologyId, ProjectId, SubExperimentId, TargetId, ednaAesonWebOptions,
   gDeclareNamedSchema, unSqlId)
@@ -72,8 +73,8 @@ data SubExperimentResp = SubExperimentResp
   , serIsSuspicious :: Bool
   -- ^ Whether this sub-experiment's data is suspicious (potentially has
   -- incorrect points).
-  , serIC50 :: Double
-  -- ^ IC50 computed for this sub-experiment.
+  , serResult :: Params4PL
+  -- ^ 4PL parameters computed for this sub-experiment.
   } deriving stock (Generic, Show)
 
 instance Buildable SubExperimentResp where

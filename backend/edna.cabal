@@ -31,6 +31,7 @@ common common-options
 library
   import: common-options
   exposed-modules:
+      Edna.Analysis.FourPL
       Edna.Config.Definition
       Edna.Config.Utils
       Edna.Dashboard.DB.Query

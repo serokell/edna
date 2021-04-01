@@ -31,6 +31,8 @@ import Database.Beam.Backend.Types (Nullable)
 import Database.Beam.Postgres (PgJSON(..))
 import Database.Beam.Schema (Beamable, C, Table(..))
 
+import Edna.Analysis.FourPL (Params4PL)
+
 --------------------------
 -- Experiment
 --------------------------
@@ -133,7 +135,7 @@ data SubExperimentT f = SubExperimentRec
   , seName :: C f Text
   , seExperimentId :: C f Word32
   , seIsSuspicious :: C f Bool
-  , seResult :: C f (PgJSON Double)
+  , seResult :: C f (PgJSON Params4PL)
   } deriving stock Generic
     deriving anyclass Beamable
 

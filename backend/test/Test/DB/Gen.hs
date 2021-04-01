@@ -17,7 +17,6 @@ import qualified Hedgehog.Internal.Gen as Gen
 
 import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial(..))
 import Database.Beam.Postgres (PgJSON(..))
-import Hedgehog.Range (constant)
 
 import Edna.Dashboard.DB.Schema
   (AnalysisMethodRec, AnalysisMethodT(..), ExperimentRec, ExperimentT(..), MeasurementRec,
@@ -29,7 +28,7 @@ import Edna.Library.DB.Schema
 import Edna.Upload.DB.Schema (ExperimentFileRec, ExperimentFileT(..))
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
-  genURI)
+  genParams4PL, genURI)
 
 genProjectRec :: Gen.MonadGen m => Word32 -> m ProjectRec
 genProjectRec projectId = do
@@ -94,7 +93,7 @@ genSubExperimentRec :: Gen.MonadGen m => Word32 -> Word32 -> Word32 -> m SubExpe
 genSubExperimentRec subExperimentId seAnalysisMethodId seExperimentId = do
   seName <- genName
   seIsSuspicious <- Gen.bool
-  seResult <- PgJSON <$> Gen.double (constant 0 100)
+  seResult <- PgJSON <$> genParams4PL
   pure SubExperimentRec {seSubExperimentId = SqlSerial subExperimentId, ..}
 
 genRemovedMeasurementsRec :: Word32 -> Word32 -> RemovedMeasurementsRec

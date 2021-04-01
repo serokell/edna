@@ -20,6 +20,7 @@ import Lens.Micro.Platform (at, (?~))
 import qualified Edna.Library.DB.Query as LQ
 import qualified Edna.Upload.DB.Query as UQ
 
+import Edna.Analysis.FourPL (analyse4PL)
 import Edna.DB.Integration (transact)
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
@@ -125,7 +126,9 @@ insertCompound compoundName =
 insertExperiment :: ExperimentFileId -> CompoundId -> TargetId -> [Measurement] -> Edna ()
 insertExperiment experimentFileId compoundId targetId measurements = do
   expId <- UQ.insertExperiment experimentFileId compoundId targetId
-  subExpId <- UQ.insertSubExperiment expId
+  -- TODO [EDNA-71] Pass actual points.
+  analysisRes <- liftIO $ analyse4PL []
+  subExpId <- UQ.insertSubExperiment expId analysisRes
   UQ.insertPrimarySubExperiment expId subExpId
   measurementIds <- UQ.insertMeasurements expId measurements
   let removedIds = map fst . filter (EReader.mIsOutlier . snd) $ zip measurementIds measurements

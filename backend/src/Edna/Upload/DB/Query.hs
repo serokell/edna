@@ -13,6 +13,7 @@ import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Query (default_, insert, insertExpressions, insertValues, val_)
 import Database.Beam.Query.Internal (QExpr)
 
+import Edna.Analysis.FourPL (Params4PL)
 import Edna.DB.Integration (runInsert', runInsertReturningList', runInsertReturningOne')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
@@ -41,8 +42,8 @@ insertExperiment (SqlId experimentFileId) (SqlId compoundId) (SqlId targetId) =
 -- | Insert primary sub-experiment and return its ID
 --
 -- TODO [EDNA-73] Support non-primary sub-experiments
-insertSubExperiment :: ExperimentId -> Edna SubExperimentId
-insertSubExperiment (SqlId experimentId) = fromSqlSerial . seSubExperimentId <$>
+insertSubExperiment :: ExperimentId -> Params4PL -> Edna SubExperimentId
+insertSubExperiment (SqlId experimentId) res = fromSqlSerial . seSubExperimentId <$>
   runInsertReturningOne' (insert (esSubExperiment ednaSchema) $ insertExpressions
     [ SubExperimentRec
       { seSubExperimentId = default_
@@ -50,7 +51,7 @@ insertSubExperiment (SqlId experimentId) = fromSqlSerial . seSubExperimentId <$>
       , seAnalysisMethodId = val_ theOnlyAnalysisMethodId
       , seExperimentId = val_ experimentId
       , seIsSuspicious = val_ False
-      , seResult = val_ (PgJSON 10)  -- stub value, will be computed in EDNA-71
+      , seResult = val_ (PgJSON res)
       }
     ])
 

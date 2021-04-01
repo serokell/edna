@@ -22,6 +22,7 @@ import Servant.API (NoContent(..))
 
 import qualified Edna.Dashboard.DB.Query as Q
 
+import Edna.Analysis.FourPL (Params4PL(..))
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
@@ -96,9 +97,9 @@ computeMeanIC50 resps = do
       SubExperimentRec {..} <-
         justOrThrow (DESubExperimentNotFound subExpId) =<<
         Q.getSubExperiment subExpId
-      return $ unwrapResult seResult
+      return $ p4plC $ unwrapResult seResult
 
-unwrapResult :: PgJSON Double -> Double
+unwrapResult :: PgJSON Params4PL -> Params4PL
 unwrapResult (PgJSON res) = res
 
 -- | Get sub-experiment with given ID.
@@ -110,7 +111,7 @@ getSubExperiment subExpId = do
   return $ WithId subExpId SubExperimentResp
     { serName = seName
     , serIsSuspicious = seIsSuspicious
-    , serIC50 = unwrapResult seResult
+    , serResult = unwrapResult seResult
     }
 
 -- | Get all measurements from sub-experiment with given ID.
