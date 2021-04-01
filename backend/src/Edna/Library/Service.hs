@@ -32,7 +32,7 @@ import Edna.Library.Web.Types
   (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp, TargetResp)
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
-import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, nothingOrThrow)
+import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, localToUTC, nothingOrThrow)
 import Edna.Util.URI (parseURI, renderURI)
 import Edna.Web.Types (StubSortBy, URI, WithId(..))
 
@@ -54,7 +54,7 @@ compoundToResp CompoundRec{..} = do
   pure $ WithId (SqlId $ unSerial cCompoundId) $ CompoundResp
     { crName = cName
     , crChemSoft = url
-    , crAdditionDate = cAdditionDate
+    , crAdditionDate = localToUTC cAdditionDate
     }
 
 getCompound :: SqlId 'CompoundId -> Edna (WithId 'CompoundId CompoundResp)

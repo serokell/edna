@@ -12,7 +12,7 @@ import Universum
 
 import Data.Aeson.TH (deriveJSON)
 import Data.Swagger (ToSchema(..))
-import Data.Time (LocalTime)
+import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), genericF, (+|), (|+))
 import Network.URI.JSON ()
@@ -40,8 +40,8 @@ instance Buildable (ForResponseLog ProjectReq) where
 data ProjectResp = ProjectResp
   { prName :: Text
   , prDescription :: Maybe Text
-  , prCreationDate :: LocalTime
-  , prLastUpdate :: LocalTime
+  , prCreationDate :: UTCTime
+  , prLastUpdate :: UTCTime
   , prCompoundNames :: [Text]
   -- ^ Names of all compounds involved in this project.
   } deriving stock (Generic, Show)
@@ -87,7 +87,7 @@ data TargetResp = TargetResp
   -- ^ Name of the target.
   , trProjects :: [Text]
   -- ^ Names of all projects where this target is involved.
-  , trAdditionDate :: LocalTime
+  , trAdditionDate :: UTCTime
   -- ^ Timestamp when this target was added to the system (by uploading a file).
   } deriving stock (Generic, Show)
 
@@ -112,7 +112,7 @@ data CompoundResp = CompoundResp
   -- ^ Name of the compound, it may be changed to be a number later.
   , crChemSoft :: Maybe URI
   -- ^ Link to ChemSoft.
-  , crAdditionDate :: LocalTime
+  , crAdditionDate :: UTCTime
   -- ^ Timestamp when this compound was added to the system (by uploading a file).
   } deriving stock (Generic, Show)
 

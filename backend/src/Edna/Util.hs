@@ -23,6 +23,7 @@ module Edna.Util
   , justOrError
   , fromSqlSerial
   , rightOrThrow
+  , localToUTC
   ) where
 
 import Universum
@@ -38,6 +39,7 @@ import Data.Swagger.Internal.ParamSchema (GToParamSchema, genericToParamSchema)
 import qualified Data.Swagger.Internal.Schema as S
 import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
 import Data.Swagger.SchemaOptions (SchemaOptions, fromAesonOptions)
+import Data.Time (LocalTime, UTCTime, localTimeToUTC, utc)
 import Database.Beam.Backend (SqlSerial(..))
 import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified GHC.Generics as G
@@ -166,6 +168,9 @@ ensureOrThrow e b
 
 rightOrThrow :: (MonadThrow m, Exception e) => (b -> e) -> Either b a -> m a
 rightOrThrow f = either (throwM . f) pure
+
+localToUTC :: LocalTime -> UTCTime
+localToUTC = localTimeToUTC utc
 
 ----------------
 -- SqlId
