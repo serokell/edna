@@ -31,8 +31,13 @@ common common-options
 library
   import: common-options
   exposed-modules:
+      Edna.Analysis.FourPL
       Edna.Config.Definition
       Edna.Config.Utils
+      Edna.Dashboard.DB.Query
+      Edna.Dashboard.DB.Schema
+      Edna.Dashboard.Error
+      Edna.Dashboard.Service
       Edna.Dashboard.Web.API
       Edna.Dashboard.Web.Types
       Edna.DB.Connection
@@ -121,10 +126,13 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test.DashboardSpec
       Test.DB.DBSpec
       Test.DB.Gen
       Test.Gen
+      Test.Orphans
       Test.ParserSpec
+      Test.SampleData
       Test.Setup
       Test.SMT.SMTSpec
       Test.SMT.State

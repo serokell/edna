@@ -2,7 +2,7 @@ module Edna.Library.DB.Schema
   ( ProjectT (..)
   , ProjectRec
 
-  ,TestMethodologyT (..)
+  , TestMethodologyT (..)
   , TestMethodologyRec
 
   , TargetRec

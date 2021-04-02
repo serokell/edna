@@ -13,9 +13,10 @@ import Data.Aeson.TH (deriveToJSON)
 import Data.Swagger (ToSchema(..))
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Fmt (Buildable(..), genericF, tupleF, (+|), (|+))
+import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
+import Edna.Analysis.FourPL (Params4PL)
 import Edna.Util
   (CompoundId, IdType(..), MethodologyId, ProjectId, SubExperimentId, TargetId, ednaAesonWebOptions,
   gDeclareNamedSchema, unSqlId)
@@ -44,20 +45,23 @@ data ExperimentResp = ExperimentResp
   -- ^ Compound involved in this experiment.
   , erTarget :: TargetId
   -- ^ Compound involved in this experiment.
-  , erMethodology :: MethodologyId
+  , erMethodology :: Maybe MethodologyId
   -- ^ Test methodology used in this experiment.
   , erUploadDate :: UTCTime
   -- ^ Date when the experiment was uploaded.
   , erSubExperiments :: [SubExperimentId]
   -- ^ IDs of all sub-experiments from this experiment.
   -- Usually their number is small (≤2, maybe 3).
+  , erPrimarySubExperiment :: SubExperimentId
+  -- ^ Idenfitier of the primary sub-experiment from this experiment.
   } deriving stock (Generic, Show)
 
 instance Buildable ExperimentResp where
   build ExperimentResp {..} =
     "Project " +| erProject |+ ", compound " +| erCompound |+ ", target " +| erTarget |+
     ", methodology " +| erMethodology |+ ", upload date: " +| iso8601Show erUploadDate |+
-    ", sub-experiments: " +| map unSqlId erSubExperiments |+ ""
+    ", sub-experiments: " +| map unSqlId erSubExperiments |+
+    ", primary: " +| erPrimarySubExperiment |+ ""
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
@@ -65,15 +69,13 @@ instance Buildable (ForResponseLog ExperimentResp) where
 -- | SubExperiment as response from the server.
 data SubExperimentResp = SubExperimentResp
   { serName :: Text
-  -- ^ Sub-eperiment name.
-  , serIsDefault :: Bool
-  -- ^ Whether this subexperiment is the default one.
+  -- ^ Sub-experiment name.
   , serIsSuspicious :: Bool
-  -- ^ Whether this subexperiment's data is suspicious (potentially has
+  -- ^ Whether this sub-experiment's data is suspicious (potentially has
   -- incorrect points).
-  , serIC50 :: Double
-  -- ^ IC50 computed for this sub-experiment.
-  } deriving stock (Generic, Show)
+  , serResult :: Params4PL
+  -- ^ 4PL parameters computed for this sub-experiment.
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable SubExperimentResp where
   build = genericF
@@ -87,10 +89,14 @@ data MeasurementResp = MeasurementResp
   -- ^ Concentration for which the signal is measured.
   , mrSignal :: Double
   -- ^ Something that is measured.
-  } deriving stock (Generic, Show)
+  , mrIsEnabled :: Bool
+  -- ^ Whether this point is enabled.
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable MeasurementResp where
-  build MeasurementResp {..} = tupleF (mrConcentration, mrSignal)
+  build MeasurementResp {..}
+    | mrIsEnabled = tupleF (mrConcentration, mrSignal)
+    | otherwise = tupleF (mrConcentration, mrSignal, "DISABLED" :: Builder)
 
 instance Buildable (ForResponseLog MeasurementResp) where
   build = buildForResponse

@@ -13,6 +13,7 @@ module Test.Gen
   , genWithId
   , genStubSortBy
   , genNameAndId
+  , genParams4PL
   , genFileSummaryItem
   , genProjectReq
   , genProjectResp
@@ -50,6 +51,7 @@ import Network.URI (URIAuth(..), nullURI)
 import Test.QuickCheck (Arbitrary(..))
 import Test.QuickCheck.Hedgehog (hedgehog)
 
+import Edna.Analysis.FourPL (Params4PL(..))
 import Edna.Dashboard.Web.Types
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
@@ -98,6 +100,14 @@ genURI = Gen.choice . (:[pure nullURI]) $ do
 
 genNameAndId :: MonadGen m => m (NameAndId x)
 genNameAndId = NameAndId <$> genName <*> Gen.maybe genSqlId
+
+genParams4PL :: MonadGen m => m Params4PL
+genParams4PL =
+  Params4PL
+  <$> genDoubleSmallPrec
+  <*> genDoubleSmallPrec
+  <*> genDoubleSmallPrec
+  <*> genDoubleSmallPrec
 
 genFileSummaryItem :: MonadGen m => m FileSummaryItem
 genFileSummaryItem = do
@@ -148,23 +158,24 @@ genExperimentResp = do
   erProject <- genSqlId
   erCompound <- genSqlId
   erTarget <- genSqlId
-  erMethodology <- genSqlId
+  erMethodology <- Gen.maybe genSqlId
   erUploadDate <- genUTCTime
-  erSubExperiments <- Gen.list (Range.linear 0 5) genSqlId
+  erSubExperiments <- Gen.list (Range.linear 1 5) genSqlId
+  erPrimarySubExperiment <- Gen.element erSubExperiments
   return ExperimentResp {..}
 
 genSubExperimentResp :: MonadGen m => m SubExperimentResp
 genSubExperimentResp = do
   serName <- genName
-  serIsDefault <- Gen.bool
   serIsSuspicious <- Gen.bool
-  serIC50 <- genDoubleSmallPrec
+  serResult <- genParams4PL
   return SubExperimentResp {..}
 
 genMeasurementResp :: MonadGen m => m MeasurementResp
 genMeasurementResp = do
   mrConcentration <- genDoubleSmallPrec
   mrSignal <- genDoubleSmallPrec
+  mrIsEnabled <- Gen.bool
   return MeasurementResp {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
@@ -261,6 +272,9 @@ instance Arbitrary StubSortBy where
 
 instance Arbitrary URI where
   arbitrary = hedgehog genURI
+
+instance Arbitrary Params4PL where
+  arbitrary = hedgehog genParams4PL
 
 deriving newtype instance Arbitrary FileSummary
 

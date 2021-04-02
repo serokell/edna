@@ -2,6 +2,7 @@ module Edna.Upload.DB.Query
   ( insertExperimentFile
   , insertExperiment
   , insertSubExperiment
+  , insertPrimarySubExperiment
   , insertMeasurements
   , insertRemovedMeasurements
   ) where
@@ -12,10 +13,12 @@ import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Query (default_, insert, insertExpressions, insertValues, val_)
 import Database.Beam.Query.Internal (QExpr)
 
+import Edna.Analysis.FourPL (Params4PL)
 import Edna.DB.Integration (runInsert', runInsertReturningList', runInsertReturningOne')
-import Edna.DB.Schema
-  (EdnaSchema(..), ExperimentT(..), MeasurementT(..), RemovedMeasurementsT(..), SubExperimentT(..),
-  ednaSchema, theOnlyAnalysisMethodId)
+import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
+import Edna.Dashboard.DB.Schema
+  (ExperimentT(..), MeasurementT(..), PrimarySubExperimentT(..), RemovedMeasurementsT(..),
+  SubExperimentT(..), theOnlyAnalysisMethodId)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
@@ -36,16 +39,32 @@ insertExperiment (SqlId experimentFileId) (SqlId compoundId) (SqlId targetId) =
         }
       ])
 
--- | Insert sub-experiment and return its ID
-insertSubExperiment :: ExperimentId -> Edna SubExperimentId
-insertSubExperiment (SqlId experimentId) = fromSqlSerial . seSubExperimentId <$>
+-- | Insert primary sub-experiment and return its ID
+--
+-- TODO [EDNA-73] Support non-primary sub-experiments
+insertSubExperiment :: ExperimentId -> Params4PL -> Edna SubExperimentId
+insertSubExperiment (SqlId experimentId) res = fromSqlSerial . seSubExperimentId <$>
   runInsertReturningOne' (insert (esSubExperiment ednaSchema) $ insertExpressions
     [ SubExperimentRec
       { seSubExperimentId = default_
+      , seName = val_ "Primary"
       , seAnalysisMethodId = val_ theOnlyAnalysisMethodId
       , seExperimentId = val_ experimentId
       , seIsSuspicious = val_ False
-      , seResult = val_ (PgJSON 10)  -- stub value, will be computed later
+      , seResult = val_ (PgJSON res)
+      }
+    ])
+
+-- | Insert given pair of IDs into the table with primary sub-experiments, i. e.
+-- mark sub-experiment with given ID as the primary one for experiment with
+-- given ID.
+insertPrimarySubExperiment :: ExperimentId -> SubExperimentId -> Edna ()
+insertPrimarySubExperiment (SqlId experimentId) (SqlId subExpId) =
+  runInsert' (insert (esPrimarySubExperiment ednaSchema) $
+  insertValues
+    [ PrimarySubExperimentRec
+      { pseExperimentId = experimentId
+      , pseSubExperimentId = subExpId
       }
     ])
 

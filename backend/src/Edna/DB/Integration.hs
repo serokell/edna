@@ -8,6 +8,7 @@ module Edna.DB.Integration
   , runInsertReturningOne'
   , runUpdateAffected'
   , runDelete'
+  , runDeleteReturningList'
   , runSelectReturningOne'
   , runSelectReturningList'
   ) where
@@ -20,6 +21,7 @@ import Data.Pool (withResource)
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Backend.SQL.Row (FromBackendRow)
 import Database.Beam.Postgres (Connection, Pg, Postgres, runBeamPostgres, runBeamPostgresDebug)
+import Database.Beam.Postgres.Full (PgDeleteReturning, runPgDeleteReturningList)
 import Database.Beam.Query
   (SqlDelete, SqlInsert, SqlSelect, SqlUpdate, runDelete, runInsert, runSelectReturningList,
   runSelectReturningOne, runUpdate)
@@ -76,6 +78,11 @@ runUpdateAffected' pg = withConnection $ \conn -> liftIO $ C.runUpdate conn pg
 
 runDelete' :: SqlDelete Postgres tbl -> Edna ()
 runDelete' = runPg . runDelete
+
+runDeleteReturningList' ::
+  ( FromBackendRow Postgres a
+  ) => PgDeleteReturning a -> Edna [a]
+runDeleteReturningList' = runPg . runPgDeleteReturningList
 
 runSelectReturningOne' :: FromBackendRow Postgres a => SqlSelect Postgres a -> Edna (Maybe a)
 runSelectReturningOne' = runPg . runSelectReturningOne

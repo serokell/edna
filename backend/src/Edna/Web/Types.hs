@@ -34,7 +34,7 @@ import Edna.Util (SqlId(..), ednaAesonWebOptions)
 data WithId k t = WithId
   { wiId :: SqlId k
   , wItem :: t
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable t => Buildable (WithId k t) where
   build wi = build (wiId wi) <> " " <> build (wItem wi)
