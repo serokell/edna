@@ -126,10 +126,13 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test.DashboardSpec
       Test.DB.DBSpec
       Test.DB.Gen
       Test.Gen
+      Test.Orphans
       Test.ParserSpec
+      Test.SampleData
       Test.Setup
       Test.SMT.SMTSpec
       Test.SMT.State

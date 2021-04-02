@@ -75,7 +75,7 @@ data SubExperimentResp = SubExperimentResp
   -- incorrect points).
   , serResult :: Params4PL
   -- ^ 4PL parameters computed for this sub-experiment.
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable SubExperimentResp where
   build = genericF
@@ -91,7 +91,7 @@ data MeasurementResp = MeasurementResp
   -- ^ Something that is measured.
   , mrIsEnabled :: Bool
   -- ^ Whether this point is enabled.
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable MeasurementResp where
   build MeasurementResp {..}
