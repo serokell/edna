@@ -117,7 +117,8 @@ updateMethodology mId@(SqlId methodologyId) tm@MethodologyReqResp{..} = do
 
 deleteMethodology :: SqlId 'MethodologyId -> Edna NoContent
 deleteMethodology methodologySqlId =
-  Q.deleteMethodology methodologySqlId >> pure NoContent
+  NoContent <$ unlessM (Q.deleteMethodology methodologySqlId)
+  (throwM $ LEMethodologyNotFound methodologySqlId)
 
 getProject :: SqlId 'ProjectId -> Edna (WithId 'ProjectId ProjectResp)
 getProject projectSqlId =
