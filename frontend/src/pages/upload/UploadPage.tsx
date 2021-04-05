@@ -3,7 +3,6 @@ import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
 import Api from "../../api/api";
 import "../../components/Spinner/Spinner.scss";
-import MeasurementsCharts from "./MeasurementsCharts";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
 import { excelFileAtom } from "../../store/atoms";
@@ -181,18 +180,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           </Form>
         )}
       </Formik>
-
-      <div className="uploadResult">
-        {isParsed(excelFile) && <MeasurementsCharts experiments={excelFile.experiments} />}
-
-        {(excelFile?.state === "uploading" || excelFile?.state === "verifying") && (
-          <div className="spinner">Uploading...</div>
-        )}
-
-        {(excelFile?.state === "failed-to-parse" || excelFile?.state === "failed-to-add") && (
-          <span className="uploadResult__fail">{excelFile.reason}</span>
-        )}
-      </div>
     </PageLayout>
   );
 };

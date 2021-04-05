@@ -1,10 +1,8 @@
 @import "src/styles/variables";
+@import "src/components/Table/Table";
 
 .uploadPreviewTableContainer {
   max-height: 300 * $px;
-  overflow-y: scroll;
-  border: $px solid #9ba5a1;
-  border-radius: 8 * $px;
 }
 
 .uploadPreviewTable {
@@ -13,5 +11,6 @@
   &__actions {
     display: flex;
     justify-content: center;
+    padding: (10 * $px) 0 (10 * $px) $cell-indent !important;
   }
 }

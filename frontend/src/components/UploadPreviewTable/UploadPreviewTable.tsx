@@ -1,9 +1,11 @@
 import React from "react";
 import "./UploadPreviewTable.scss";
 import cx from "classnames";
+import { Column } from "react-table";
 import { Button } from "../Button/Button";
 import { ParsedExcelDto } from "../../api/types";
 import { Table } from "../Table/Table";
+import "../Table/Table.scss";
 
 interface UploadTableProps {
   className?: string;
@@ -12,9 +14,10 @@ interface UploadTableProps {
 }
 
 interface PreviewRow {
-  compound: string;
-  target: string;
-  actions: React.ReactNode;
+  compoundId?: number;
+  compoundName: string;
+  targetId?: number;
+  targetName: string;
 }
 
 export function UploadPreviewTable({
@@ -22,44 +25,55 @@ export function UploadPreviewTable({
   targets,
   viewEnabled,
 }: UploadTableProps): React.ReactElement {
-  const previewColumns = React.useMemo(
+  const previewColumns: Column<PreviewRow>[] = React.useMemo(
     () => [
       {
         Header: "Compound",
-        accessor: "compound" as const, // accessor is the "key" in the data
+        accessor: (p: PreviewRow) => `${p.compoundName} ${p.compoundId ? "" : "*"}`,
       },
       {
         Header: "Target",
-        accessor: "target" as const,
+        accessor: (p: PreviewRow) => `${p.targetName} ${p.targetId ? "" : "*"}`,
       },
 
       {
-        accessor: "actions" as const,
+        id: "actions",
+        accessor: () => (
+          // TODO add link
+          <td className="ednaTable__cell uploadPreviewTable__actions">
+            <Button type="link" disabled={!viewEnabled}>
+              View
+            </Button>
+          </td>
+        ),
       },
     ],
-    []
+    [viewEnabled]
   );
 
   const data: PreviewRow[] = [];
   targets.forEach(ex =>
     ex.compounds.forEach(compound => {
       data.push({
-        compound: `${compound.name} ${compound.id ? "" : "*"}`,
-        target: `${ex.target.name} ${ex.target.id ? "" : "*"}`,
-        actions: (
-          <div className="uploadPreviewTable__actions">
-            <Button type="link" disabled={!viewEnabled}>
-              View
-            </Button>
-          </div>
-        ),
+        compoundName: compound.name,
+        compoundId: compound.id,
+        targetName: ex.target.name,
+        targetId: ex.target.id,
       });
     })
   );
 
   return (
-    <div className={cx(["uploadPreviewTableContainer", className])}>
-      <Table small data={data} columns={previewColumns} className="uploadPreviewTable" />
+    <div className={cx(["tableContainer", "uploadPreviewTableContainer", className])}>
+      <Table
+        small
+        data={data}
+        columns={previewColumns}
+        className="uploadPreviewTable"
+        columnExtras={{
+          actions: { manualCellRendering: true },
+        }}
+      />
     </div>
   );
 }

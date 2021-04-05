@@ -39,7 +39,7 @@ export function CompoundsSuspendable(): React.ReactElement {
               </td>
             );
           return (
-            <td className="ednaTable__cell cellBtn">
+            <td className="ednaTable__cell libraryTable__cellBtn">
               <Button
                 type="half-rounded"
                 size="small"

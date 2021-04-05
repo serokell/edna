@@ -1,13 +1,13 @@
 // The module might be removed if we start using open api client generator
 import { AxiosInstance, AxiosResponse } from "axios";
-import { Experiment } from "../store/types";
 import {
   CompoundDto,
-  groupCompounds,
+  ExperimentsWithMeanDto,
   MeasurementDto,
   MethodologyDto,
   ParsedExcelDto,
   ProjectDto,
+  SubExperimentDto,
   TargetDto,
 } from "./types";
 import { isDefined, Maybe, replaceEmptyWithUndefined } from "../utils/utils";
@@ -47,18 +47,13 @@ export function toCreateProjectArgsApi(form: CreateProjectForm): CreateProjectAr
 }
 
 interface EdnaApiInterface {
-  // TODO will be removed in future
-  oldParseExcelFile: (
-    excelFile: Blob,
-    onUploadProgress: (percent: number) => void
-  ) => Promise<Experiment[]>;
-
   parseExcelFile: (
     excelFile: Blob,
     onUploadProgress: (percent: number) => void
   ) => Promise<ParsedExcelDto[]>;
 
   uploadExperiments(form: UploadExperimentsArgsApi): Promise<unknown>;
+
   fetchProjects: () => Promise<ProjectDto[]>;
   createProject: (args: CreateProjectArgsApi) => Promise<ProjectDto>;
   editProject: (projId: number, args: CreateProjectArgsApi) => Promise<ProjectDto>;
@@ -69,6 +64,14 @@ interface EdnaApiInterface {
   createMethodology: (args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
   editMethodology: (methId: number, args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
   deleteMethodology: (methId: number) => Promise<any>;
+
+  fetchExperiments: (
+    projectId?: number,
+    compoundId?: number,
+    targetId?: number
+  ) => Promise<ExperimentsWithMeanDto>;
+  fetchSubExperiment: (subExperimentId: number) => Promise<SubExperimentDto>;
+  fetchMeasurements: (subExperimentId: number) => Promise<MeasurementDto[]>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -87,33 +90,6 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     fetchTargets: async (): Promise<TargetDto[]> => {
       return axios.get("/targets").then(proj => proj.data);
-    },
-
-    oldParseExcelFile: async (
-      excelFile: Blob,
-      onUploadProgress: (percent: number) => void
-    ): Promise<Experiment[]> => {
-      const formData = new FormData();
-      formData.append("file", excelFile);
-      return axios
-        .post("/experiment", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress(progressEvent) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            onUploadProgress(percentCompleted);
-          },
-        })
-        .then((response: AxiosResponse<MeasurementDto[]>) => {
-          // TODO remove this mock transformation
-          const byCompound = groupCompounds(response.data);
-          return Object.entries(byCompound).map(([cmpId, measurements]) => ({
-            target: "",
-            compoundId: cmpId,
-            measurements,
-          }));
-        });
     },
 
     parseExcelFile: async (
@@ -203,6 +179,28 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     fetchMethodologies: async () => {
       return axios.get("/methodologies").then(proj => proj.data);
+    },
+
+    fetchExperiments: async (projectId?: number, compoundId?: number, targetId?: number) => {
+      return axios
+        .get("/experiments", {
+          params: {
+            projectId,
+            compoundId,
+            targetId,
+          },
+        })
+        .then(experiments => experiments.data);
+    },
+
+    fetchSubExperiment: async (subExperimentId: number) => {
+      return axios.get(`/subExperiment/${subExperimentId}`).then(subExp => subExp.data);
+    },
+
+    fetchMeasurements: async (subExperimentId: number) => {
+      return axios
+        .get(`/subExperiment/${subExperimentId}/measurements`)
+        .then(subExp => subExp.data);
     },
   };
 }

@@ -1,11 +1,10 @@
 // The module might be removed if we start using open api client generator
 
-export interface MeasurementDto {
-  compoundId: string;
-  targetId: string;
-  concentration: number;
-  signal: number;
-  outlier: boolean;
+// Data transfer object
+interface Dto<T, Extra = undefined> {
+  id: number;
+  item: T;
+  extra?: Extra;
 }
 
 type ParsedCompoundDto = {
@@ -23,26 +22,17 @@ export type ParsedExcelDto = {
   compounds: ParsedCompoundDto[];
 };
 
-export type CompoundsMap = { [compoundId: string]: MeasurementDto[] };
+export type SubExperimentDto = Dto<{
+  name: string;
+  isSuspicious: boolean;
+  result: number[];
+}>;
 
-export function groupCompounds(mes: MeasurementDto[]): CompoundsMap {
-  const filteredCompounds = mes.filter(m => !m.outlier);
-  return filteredCompounds.reduce((groups: CompoundsMap, x) => {
-    const id = `${x.compoundId} ${x.targetId}`;
-    const group = groups[id] || [];
-    group.push(x);
-    // eslint-disable-next-line no-param-reassign
-    groups[id] = group;
-    return groups;
-  }, {});
-}
-
-// Data transfer object
-interface Dto<T, Extra = undefined> {
-  id: number;
-  item: T;
-  extra?: Extra;
-}
+export type MeasurementDto = {
+  concentration: number;
+  signal: number;
+  isEnabled: boolean;
+};
 
 interface ProjectBodyDto {
   name: string;
@@ -81,4 +71,19 @@ export type CompoundDto = {
     chemSoft?: string;
     additionDate: DateTimeDto;
   };
+};
+
+export type ExperimentDto = Dto<{
+  project: number;
+  compound: number;
+  target: number;
+  methodology: number;
+  uploadDate: DateTimeDto;
+  subExperiments: number[];
+  primarySubExperiment: number;
+}>;
+
+export type ExperimentsWithMeanDto = {
+  experiments: ExperimentDto[];
+  meanIC50?: number;
 };

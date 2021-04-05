@@ -57,7 +57,7 @@ export function MethodsSuspendable(): React.ReactElement {
         id: "description",
         accessor: (m: MethodologyDto) => {
           return (
-            <td className="ednaTable__cell cellBtn">
+            <td className="ednaTable__cell libraryTable__cellBtn">
               <Button
                 type="half-rounded"
                 size="small"

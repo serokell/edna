@@ -1,7 +1,9 @@
 // Basic state should be here
-import { atom } from "recoil";
-import { FileUploadState, ModalDialogState } from "./types";
+import { atom, atomFamily } from "recoil";
+import { ExperimentsTableSize, FileUploadState, ModalDialogState } from "./types";
 import { Maybe } from "../utils/utils";
+import Api from "../api/api";
+import { MeasurementDto, SubExperimentDto } from "../api/types";
 
 // Global
 export const modalDialogAtom = atom<ModalDialogState>({
@@ -50,4 +52,28 @@ export const compoundIdSelectedAtom = atom<Maybe<number>>({
 export const targetIdSelectedAtom = atom<Maybe<number>>({
   key: "DashboardTargetIdSelected",
   default: undefined,
+});
+
+export const experimentsTableSizeAtom = atom<ExperimentsTableSize>({
+  key: "ExperimentsTableSize",
+  default: "minimized",
+});
+
+export const selectedSubExperimentsIdsAtom = atom<Set<number>>({
+  key: "SelectedSubExperimentsIds",
+  default: new Set<number>(),
+});
+
+export const subExperimentsMeta = atomFamily<SubExperimentDto, number>({
+  key: "SubExperimentsMeta",
+  default: async subExperimentId => {
+    return Api.fetchSubExperiment(subExperimentId);
+  },
+});
+
+export const subExperimentsMeasurements = atomFamily<MeasurementDto[], number>({
+  key: "SubExperimentsMeasurements",
+  default: async subExperimentId => {
+    return Api.fetchMeasurements(subExperimentId);
+  },
 });
