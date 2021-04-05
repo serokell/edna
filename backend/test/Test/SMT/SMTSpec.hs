@@ -22,7 +22,7 @@ import Edna.ExperimentReader.Types (FileContents(..), TargetMeasurements(..))
 import Edna.Orphans ()
 import Edna.Setup (EdnaContext)
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
-import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
+import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util (MethodologyId, ProjectId, SqlId(..))
 
 import Test.Gen
@@ -72,7 +72,7 @@ correctFileSummary oldState _ (ParseFile fileContents) fileSummary =
   where
     expectedFileSummary :: EdnaReader FileSummary
     expectedFileSummary =
-      fmap (FileSummary . toList) . foldM step mempty . toPairs $
+      fmap (sortFileSummary . FileSummary . toList) . foldM step mempty . toPairs $
       fcMeasurements fileContents
 
     targetNameToId name = view (esTargetByName . at name)

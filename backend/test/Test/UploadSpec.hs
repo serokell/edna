@@ -12,7 +12,7 @@ import Test.Hspec (Spec, describe, it, shouldBe, shouldThrow, xit)
 
 import Edna.ExperimentReader.Types (FileContents(..))
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
-import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
+import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util (SqlId(..))
 
 import Test.SampleData (sampleFile, sampleMetadata)
@@ -26,11 +26,11 @@ spec = withContext $ do
       summary `shouldBe` FileSummary []
     it "returns correct summary for sample data" $ \ctx -> do
       summary <- runWithInit ctx $ parseFile' sampleFile
-      sortSummary summary `shouldBe` sortSummary sampleFileSummary
+      sortFileSummary summary `shouldBe` sortFileSummary sampleFileSummary
     -- TODO Need to be able to add projects and methodologies.
     xit "returns IDs when data is known" $ \ctx -> do
       summary <- runWithInit ctx $ uploadSampleFile >> parseFile' sampleFile
-      sortSummary summary `shouldBe` sortSummary sampleFileSummary2
+      sortFileSummary summary `shouldBe` sortFileSummary sampleFileSummary2
   describe "uploadFile'" $ do
     it "fails when referenced project does not exist" $ \ctx -> do
       runWithInit ctx uploadSampleFile `shouldThrow`
@@ -64,6 +64,3 @@ sampleFileSummary2 = FileSummary
   , FileSummaryItem (oldNAI 2 "tar2") [oldNAI 2 "comp2"]
   , FileSummaryItem (oldNAI 3 "tar3") [oldNAI 4 "tar4", oldNAI 1 "tar1"]
   ]
-
-sortSummary :: FileSummary -> FileSummary
-sortSummary (FileSummary lst) = FileSummary (sort lst)

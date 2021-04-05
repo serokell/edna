@@ -4,6 +4,8 @@ module Edna.Upload.Web.Types
   , FileSummaryItem (..)
   , FileBS (..)
   , FileUploadReq (..)
+
+  , sortFileSummary
   ) where
 
 import Universum
@@ -131,6 +133,13 @@ newtype FileSummary = FileSummary
   { unFileSummary :: [FileSummaryItem]
   } deriving stock (Generic, Show, Eq)
     deriving newtype (Buildable)
+
+-- | Deeply sort all items (targets and compounds for each target) in 'FileSummary'.
+sortFileSummary :: FileSummary -> FileSummary
+sortFileSummary (FileSummary items) = FileSummary $ sortOn fsiTarget items'
+  where
+    items' = map sortCompounds items
+    sortCompounds item = item { fsiCompounds = sort (fsiCompounds item)}
 
 instance Buildable (ForResponseLog FileSummary) where
   build (ForResponseLog (FileSummary items)) =

@@ -54,21 +54,24 @@ spec = withContext $ do
             forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
               erProject `shouldBe` SqlId 1
         it "filters by project and compound correctly" $ runTest $ do
+          let compoundId = SqlId 2
           ExperimentsResp {..} <-
-            getExperiments (Just $ SqlId 1) (Just $ SqlId 3) Nothing
+            getExperiments (Just $ SqlId 1) (Just compoundId) Nothing
           liftIO $ do
             length erExperiments `shouldBe` 2
             erMeanIC50 `shouldBe` Nothing
             forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
-              erCompound `shouldBe` SqlId 3
+              erCompound `shouldBe` compoundId
         it "filters by 3 filters correctly and returns mean IC50" $ runTest $ do
+          let compoundId = SqlId 2
+          let targetId = SqlId 2
           ExperimentsResp {..} <-
-            getExperiments (Just $ SqlId 1) (Just $ SqlId 3) (Just $ SqlId 2)
+            getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
           liftIO $ do
             length erExperiments `shouldBe` 1
             erMeanIC50 `shouldBe` Just 3
             forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
-              erTarget `shouldBe` SqlId 2
+              erTarget `shouldBe` targetId
       describe "getSubExperiment" $ do
         it "returns correct results for sub-experiments 1-6" $ runTest $ do
           resps <- forM validSubExperimentIds $ \subExpId -> do
@@ -98,14 +101,13 @@ spec = withContext $ do
               , mrIsEnabled = not mIsOutlier
               }
           -- These lists match lists in @targetMeasurementsX@ values from SampleData.
-          -- The order in which they are added depends on hashes (since we are using hashmaps).
           liftIO $ do
-            measurements1 `shouldBe` map toMeasurementResp [m3, m4, m5]
-            measurements2 `shouldBe` map toMeasurementResp [m1, m5]
-            measurements3 `shouldBe` map toMeasurementResp [m1, m2, m5]
-            measurements4 `shouldBe` map toMeasurementResp [m1, m3, m4]
-            measurements5 `shouldBe` map toMeasurementResp [m2, m4, m5]
-            measurements6 `shouldBe` map toMeasurementResp [m1, m2, m3]
+            measurements1 `shouldBe` map toMeasurementResp [m1, m2, m3]
+            measurements2 `shouldBe` map toMeasurementResp [m2, m4, m5]
+            measurements3 `shouldBe` map toMeasurementResp [m1, m3, m4]
+            measurements4 `shouldBe` map toMeasurementResp [m1, m2, m5]
+            measurements5 `shouldBe` map toMeasurementResp [m1, m5]
+            measurements6 `shouldBe` map toMeasurementResp [m3, m4, m5]
         it "returns empty list for unknown sub-experiment" $ runTest $ do
           measurements <- getMeasurements unknownSubExpId
           liftIO $ measurements `shouldBe` []
