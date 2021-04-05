@@ -9,7 +9,7 @@ module Test.SampleData
 
 import Universum
 
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Map.Strict as Map
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
@@ -17,27 +17,27 @@ import Edna.ExperimentReader.Types
 sampleFile :: FileContents
 sampleFile = FileContents {..}
   where
-    fcMeasurements = HM.fromList . map (second TargetMeasurements) $
+    fcMeasurements = Map.fromList . map (second TargetMeasurements) $
       [ ("tar1", targetMeasurements1)
       , ("tar2", targetMeasurements2)
       , ("tar3", targetMeasurements3)
       ]
     fcMetadata = sampleMetadata
 
-targetMeasurements1 :: HashMap Text [Measurement]
-targetMeasurements1 = HM.fromList
+targetMeasurements1 :: Map Text [Measurement]
+targetMeasurements1 = Map.fromList
   [ ("comp1", [m1, m2, m3])
   , ("comp2", [m2, m4, m5])
   , ("comp3", [m1, m3, m4])
   ]
 
-targetMeasurements2 :: HashMap Text [Measurement]
-targetMeasurements2 = HM.fromList
+targetMeasurements2 :: Map Text [Measurement]
+targetMeasurements2 = Map.fromList
   [ ("comp2", [m1, m2, m5])
   ]
 
-targetMeasurements3 :: HashMap Text [Measurement]
-targetMeasurements3 = HM.fromList
+targetMeasurements3 :: Map Text [Measurement]
+targetMeasurements3 = Map.fromList
   [ ("comp1", [m1, m5])
   , ("comp4", [m3, m4, m5])
   ]

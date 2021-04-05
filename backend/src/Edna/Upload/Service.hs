@@ -29,7 +29,7 @@ import Edna.Library.DB.Schema as LDB
 import Edna.Logging (logDebug, logMessage)
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
-import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
+import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util as U
   (CompoundId, ExperimentFileId, MethodologyId, ProjectId, SqlId(..), TargetId, fromSqlSerial,
   justOrThrow)
@@ -55,13 +55,13 @@ targetNameToId :: Text -> Edna (Maybe TargetId)
 targetNameToId targetName =
   (fromSqlSerial . tTargetId) <<$>> LQ.getTargetByName targetName
 
-measurementsToSummary :: HashMap Text TargetMeasurements -> Edna FileSummary
+measurementsToSummary :: Map Text TargetMeasurements -> Edna FileSummary
 measurementsToSummary =
-  fmap (FileSummary . toList) . foldM step mempty . toPairs
+  fmap (sortFileSummary . FileSummary . toList) . foldM step mempty . toPairs
   where
     step ::
-      HashMap Text FileSummaryItem -> (Text, TargetMeasurements) ->
-      Edna $ HashMap Text FileSummaryItem
+      Map Text FileSummaryItem -> (Text, TargetMeasurements) ->
+      Edna $ Map Text FileSummaryItem
     step acc (targetName, TargetMeasurements targetMeasurements) = do
       target <- NameAndId targetName <$> targetNameToId targetName
       compounds <- forM (keys targetMeasurements) $ \compoundName ->
