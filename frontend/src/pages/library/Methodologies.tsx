@@ -7,10 +7,9 @@ import { MethodologyDto } from "../../api/types";
 import { extraFormatter } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
-import EditSvg from "../../assets/svg/edit.svg";
-import DeleteSvg from "../../assets/svg/delete.svg";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Table } from "../../components/Table/Table";
+import { DeleteContextItem, EditContextItem } from "../../components/ContextActions/ContextItems";
 
 export function MethodsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -81,32 +80,22 @@ export function MethodsSuspendable(): React.ReactElement {
         accessor: (m: MethodologyDto) => (
           <ContextActions
             actions={[
-              <div
-                key="edit"
-                className="contextActions__item"
-                onMouseDown={() => {
+              <EditContextItem
+                onClick={() => {
                   setModalDialog({
                     kind: "create-edit-methodology",
                     editing: m,
                   });
                 }}
-              >
-                <EditSvg />
-                Edit
-              </div>,
-              <div
-                key="delete"
-                className="contextActions__item"
-                onMouseDown={() => {
+              />,
+              <DeleteContextItem
+                onClick={() => {
                   setModalDialog({
                     kind: "delete-methodology",
                     methodology: m,
                   });
                 }}
-              >
-                <DeleteSvg />
-                Delete
-              </div>,
+              />,
             ]}
           />
         ),

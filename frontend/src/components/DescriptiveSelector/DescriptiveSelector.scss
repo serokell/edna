@@ -1,0 +1,14 @@
+@import "src/styles/variables";
+
+.descriptiveSelector {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  // this name due to react-select classname generation
+  //&__select__control {
+  //  border: $px solid $color-gray;
+  //  border-top-left-radius: $border-radius;
+  //  border-top-right-radius: $border-radius;
+  //}
+}

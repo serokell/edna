@@ -6,9 +6,9 @@ import { modalDialogAtom } from "../../store/atoms";
 import { CompoundDto } from "../../api/types";
 import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
-import EditSvg from "../../assets/svg/edit.svg";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Table } from "../../components/Table/Table";
+import { EditContextItem } from "../../components/ContextActions/ContextItems";
 
 export function CompoundsSuspendable(): React.ReactElement {
   const compounds = useRecoilValue(compoundsQuery);
@@ -61,19 +61,14 @@ export function CompoundsSuspendable(): React.ReactElement {
         accessor: (c: CompoundDto) => (
           <ContextActions
             actions={[
-              <div
-                key="edit"
-                className="contextActions__item"
-                onMouseDown={() => {
+              <EditContextItem
+                onClick={() => {
                   setModalDialog({
                     kind: "add-edit-link",
                     target: { kind: "compound", object: c },
                   });
                 }}
-              >
-                <EditSvg />
-                Edit
-              </div>,
+              />,
             ]}
           />
         ),

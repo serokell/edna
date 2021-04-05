@@ -12,6 +12,7 @@ import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
 import { MethodologyDescriptionDialog } from "./components/dialogs/MethodologyDescriptionDialog";
 import { DeleteMethodologyDialog } from "./components/dialogs/DeleteMethodologyDialog";
 import { AddLinkDialog } from "./components/dialogs/AddLinkDialog";
+import { DashboardPage } from "./pages/dashboard/DashboardPage";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
@@ -40,6 +41,10 @@ export const App: FunctionComponent = (): ReactElement => {
         </Route>
         <Route path="/library">
           <LibraryPage />
+        </Route>
+
+        <Route path="/dashboard">
+          <DashboardPage />
         </Route>
 
         <Redirect exact from="/" to="/upload" />

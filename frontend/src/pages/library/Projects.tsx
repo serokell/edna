@@ -5,10 +5,10 @@ import { projectsQuery } from "../../store/selectors";
 import { ProjectDto } from "../../api/types";
 import { extraFormatter, formatDateTimeDto } from "../../utils/utils";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
-import EditSvg from "../../assets/svg/edit.svg";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Button } from "../../components/Button/Button";
 import { Table } from "../../components/Table/Table";
+import { EditContextItem } from "../../components/ContextActions/ContextItems";
 
 export function ProjectsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -38,19 +38,14 @@ export function ProjectsSuspendable(): React.ReactElement {
         accessor: (p: ProjectDto) => (
           <ContextActions
             actions={[
-              <div
-                key="edit"
-                className="contextActions__item"
-                onMouseDown={() =>
+              <EditContextItem
+                onClick={() =>
                   setModalDialog({
                     kind: "create-edit-project",
                     editing: p,
                   })
                 }
-              >
-                <EditSvg />
-                Edit
-              </div>,
+              />,
             ]}
           />
         ),

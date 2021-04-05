@@ -112,7 +112,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                 <CreatableSelect
                   optionsLoadable={projectsLoadable}
                   placeholder="Select a project"
-                  placeholderNo="No projects"
+                  placeholderEmpty="No projects"
                   toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
                   tabIndex="2"
                   {...field}
@@ -131,7 +131,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   {...field}
                   optionsLoadable={methodologiesLoadable}
                   placeholder="Select a methodology"
-                  placeholderNo="No methodologies"
+                  placeholderEmpty="No methodologies"
                   toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
                   tabIndex="3"
                 />
