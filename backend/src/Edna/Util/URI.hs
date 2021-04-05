@@ -3,7 +3,8 @@
 -- | Utilities to work with 'URI'.
 
 module Edna.Util.URI
-  ( renderURI
+  ( URI
+  , renderURI
   , parseURI
   ) where
 

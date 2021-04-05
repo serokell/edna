@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 -- | Tests for the Dashboard service.
 
 module Test.DashboardSpec
@@ -8,13 +6,8 @@ module Test.DashboardSpec
 
 import Universum
 
-import qualified Data.ByteString.Lazy as BSL
-
 import RIO (runRIO)
 import Test.Hspec (Spec, beforeAllWith, describe, it, shouldBe, shouldSatisfy, shouldThrow)
-
-import qualified Edna.Library.Service as Library
-import qualified Edna.Upload.Service as Upload
 
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Service
@@ -23,14 +16,12 @@ import Edna.Dashboard.Service
 import Edna.Dashboard.Web.Types
   (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (Measurement(..))
-import Edna.Library.Web.Types (MethodologyReqResp(..), ProjectReq(..))
-import Edna.Setup (Edna, EdnaContext)
 import Edna.Util (SqlId(..), SubExperimentId)
 import Edna.Web.Types (WithId(..))
 
 import Test.Orphans ()
 import Test.SampleData
-import Test.Setup (runWithInit, withContext)
+import Test.Setup (runTestEdna, runWithInit, withContext)
 
 -- TODO [EDNA-73] Add the following tests:
 -- 1. makePrimarySubExperiment
@@ -41,19 +32,19 @@ spec = withContext $ do
   beforeAllWith (\ctx -> ctx <$ runWithInit ctx addSampleData) $ do
     describe "getters" $ do
       describe "getExperiments" $ do
-        it "returns all experiments and no IC50 with no filters" $ runTest $ do
+        it "returns all experiments and no IC50 with no filters" $ runTestEdna $ do
           ExperimentsResp {..} <- getExperiments Nothing Nothing Nothing
           liftIO $ do
             length erExperiments `shouldBe` 12
             erMeanIC50 `shouldBe` Nothing
-        it "filters by project correctly" $ runTest $ do
+        it "filters by project correctly" $ runTestEdna $ do
           ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
           liftIO $ do
             length erExperiments `shouldBe` 6
             erMeanIC50 `shouldBe` Nothing
             forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
               erProject `shouldBe` SqlId 1
-        it "filters by project and compound correctly" $ runTest $ do
+        it "filters by project and compound correctly" $ runTestEdna $ do
           let compoundId = SqlId 2
           ExperimentsResp {..} <-
             getExperiments (Just $ SqlId 1) (Just compoundId) Nothing
@@ -62,7 +53,7 @@ spec = withContext $ do
             erMeanIC50 `shouldBe` Nothing
             forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
               erCompound `shouldBe` compoundId
-        it "filters by 3 filters correctly and returns mean IC50" $ runTest $ do
+        it "filters by 3 filters correctly and returns mean IC50" $ runTestEdna $ do
           let compoundId = SqlId 2
           let targetId = SqlId 2
           ExperimentsResp {..} <-
@@ -73,7 +64,7 @@ spec = withContext $ do
             forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
               erTarget `shouldBe` targetId
       describe "getSubExperiment" $ do
-        it "returns correct results for sub-experiments 1-6" $ runTest $ do
+        it "returns correct results for sub-experiments 1-6" $ runTestEdna $ do
           resps <- forM validSubExperimentIds $ \subExpId -> do
             WithId gotId gotResp <- getSubExperiment subExpId
             liftIO $ gotId `shouldBe` subExpId
@@ -85,7 +76,7 @@ spec = withContext $ do
           runRIO ctx (getSubExperiment unknownSubExpId) `shouldThrow`
             (== DESubExperimentNotFound unknownSubExpId)
       describe "getMeasurements" $ do
-        it "returns correct measurements for sub-experiments 1-6" $ runTest $ do
+        it "returns correct measurements for sub-experiments 1-6" $ runTestEdna $ do
           [ measurements1
             , measurements2
             , measurements3
@@ -108,18 +99,18 @@ spec = withContext $ do
             measurements4 `shouldBe` map toMeasurementResp [m1, m2, m5]
             measurements5 `shouldBe` map toMeasurementResp [m1, m5]
             measurements6 `shouldBe` map toMeasurementResp [m3, m4, m5]
-        it "returns empty list for unknown sub-experiment" $ runTest $ do
+        it "returns empty list for unknown sub-experiment" $ runTestEdna $ do
           measurements <- getMeasurements unknownSubExpId
           liftIO $ measurements `shouldBe` []
     describe "setNameSubExperiment" $ do
-      it "updates the name of a sub-experiment to the given one" $ runTest do
+      it "updates the name of a sub-experiment to the given one" $ runTestEdna do
         resp <- setNameSubExperiment sampleSubExpId "newName"
         getResp <- getSubExperiment sampleSubExpId
         liftIO $ do
           resp `shouldBe` getResp
           serName (wItem resp) `shouldBe` "newName"
     describe "setIsSuspiciousSubExperiment" $ do
-      it "updates 'isSuspicious' flag of a sub-experiment" $ runTest $ do
+      it "updates 'isSuspicious' flag of a sub-experiment" $ runTestEdna $ do
         resp <- setIsSuspiciousSubExperiment sampleSubExpId True
         getResp <- getSubExperiment sampleSubExpId
         liftIO $ do
@@ -130,13 +121,11 @@ spec = withContext $ do
         runRIO ctx (deleteSubExperiment sampleSubExpId) `shouldThrow`
           (== DECantDeletePrimary sampleSubExpId)
   where
-    addSampleData =
-      Library.addProject (ProjectReq "project1" (Just "First project")) *>
-      Library.addProject (ProjectReq "project2" (Just "Second project")) *>
-      Library.addMethodology (MethodologyReqResp "methodology1" Nothing Nothing) *>
-      Upload.uploadFile' (SqlId 2) (SqlId 1) "descr" "name" BSL.empty sampleFile *>
-      Upload.uploadFile' (SqlId 1) (SqlId 1) "descr" "name" BSL.empty sampleFile $>
-      ()
+    addSampleData = do
+      addSampleProjects
+      addSampleMethodologies
+      uploadFileTest (SqlId 2) (SqlId 1) sampleFile
+      uploadFileTest (SqlId 1) (SqlId 1) sampleFile
 
     sampleSubExpId, unknownSubExpId :: SubExperimentId
     sampleSubExpId = SqlId 1
@@ -144,6 +133,3 @@ spec = withContext $ do
 
     validSubExperimentIds :: [SubExperimentId]
     validSubExperimentIds = map SqlId [1 .. 6]
-
-    runTest :: Edna () -> EdnaContext -> IO ()
-    runTest = flip runRIO

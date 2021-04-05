@@ -2,6 +2,7 @@ module Test.Setup
   ( withContext
   , runWithInit
   , ednaTestMode
+  , runTestEdna
   ) where
 
 import Universum
@@ -56,3 +57,9 @@ runWithInit ctx action = runRIO ctx $ schemaInit *> action
 
 ednaTestMode :: EdnaContext -> PropertyT Edna a -> PropertyT IO ()
 ednaTestMode ctx = void . hoist (runWithInit ctx)
+
+-- | This helper is convenient to use to construct argument to 'Test.Hspec.it'
+-- inside @SpecWith EdnaContext@. You can write test's body inside the 'Edna'
+-- monad.
+runTestEdna :: Edna () -> EdnaContext -> IO ()
+runTestEdna = flip runRIO
