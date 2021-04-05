@@ -15,7 +15,7 @@ import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util (SqlId(..))
 
-import Test.SampleData (sampleFile, sampleMetadata)
+import Test.SampleData
 import Test.Setup (runWithInit, withContext)
 
 spec :: Spec
@@ -49,9 +49,11 @@ newNAI name = NameAndId name Nothing
 
 sampleFileSummary :: FileSummary
 sampleFileSummary = FileSummary
-  [ FileSummaryItem (newNAI "tar1") [newNAI "comp3", newNAI "comp2", newNAI "comp1"]
-  , FileSummaryItem (newNAI "tar2") [newNAI "comp2"]
-  , FileSummaryItem (newNAI "tar3") [newNAI "comp4", newNAI "comp1"]
+  [ FileSummaryItem (newNAI targetName1)
+      [newNAI compoundName1, newNAI compoundName2, newNAI compoundName3]
+  , FileSummaryItem (newNAI targetName2) [newNAI compoundName2]
+  , FileSummaryItem (newNAI targetName3)
+      [newNAI compoundName1, newNAI compoundName4]
   ]
 
 oldNAI :: Word32 -> Text -> NameAndId anything
@@ -59,8 +61,9 @@ oldNAI i name = NameAndId name (Just (SqlId i))
 
 sampleFileSummary2 :: FileSummary
 sampleFileSummary2 = FileSummary
-  [ FileSummaryItem (oldNAI 1 "tar1")
-      [oldNAI 3 "tar3", oldNAI 2 "tar2", oldNAI 1 "tar1"]
-  , FileSummaryItem (oldNAI 2 "tar2") [oldNAI 2 "comp2"]
-  , FileSummaryItem (oldNAI 3 "tar3") [oldNAI 4 "tar4", oldNAI 1 "tar1"]
+  [ FileSummaryItem (oldNAI 1 targetName1)
+      [oldNAI 1 compoundName1, oldNAI 2 compoundName2, oldNAI 3 compoundName3]
+  , FileSummaryItem (oldNAI 2 targetName2) [oldNAI 2 compoundName2]
+  , FileSummaryItem (oldNAI 3 targetName3)
+      [oldNAI 1 compoundName1, oldNAI 4 compoundName4]
   ]
