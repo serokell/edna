@@ -1,16 +1,19 @@
 @import "src/styles/variables";
 
+$cell-indent: 22 * $px;
+
 .ednaTable {
   $border-color: #dfe3e3;
   $head-vertical-padding: 20 * $px;
   $head-line-height: 18 * $px;
-  $cell-indent: 22 * $px;
+
   width: 100%;
   border-spacing: 0;
 
   &__columnHead {
     position: sticky;
     top: 0;
+    z-index: 4;
     padding: $head-vertical-padding 0 $head-vertical-padding $cell-indent;
 
     font-size: 14 * $px;
@@ -44,6 +47,11 @@
     font-weight: 400;
     line-height: 18 * $px;
     border-bottom: $px solid $border-color;
+
+    &_small {
+      max-height: 44 * $px;
+      padding: (13 * $px) 0 (13 * $px) $cell-indent;
+    }
   }
 
   &__row {
@@ -64,4 +72,10 @@
       }
     }
   }
+}
+
+.tableContainer {
+  overflow-y: scroll;
+  border: $px solid #9ba5a1;
+  border-radius: 8 * $px;
 }

@@ -1,0 +1,24 @@
+@import "src/styles/variables";
+
+.experimentsArea {
+  display: flex;
+  flex-direction: column;
+
+  &__controlBtns {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14 * $px;
+  }
+
+  &__showEntries {
+    display: flex;
+  }
+
+  &__showBtn + &__showBtn {
+    margin-left: 8 * $px;
+  }
+
+  &__experimentsTableContainer {
+    max-height: 522 * $px;
+  }
+}

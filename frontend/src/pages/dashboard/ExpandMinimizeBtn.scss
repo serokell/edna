@@ -1,0 +1,23 @@
+@import "src/styles/variables";
+
+.expandMinimizeBtn {
+  display: flex;
+  align-items: center;
+  color: $color-black70;
+
+  &:hover {
+    color: $color-black;
+    cursor: pointer;
+  }
+
+  &__icon {
+    margin-right: 6 * $px;
+  }
+
+  &__label {
+    font-size: 12 * $px;
+    font-style: normal;
+    font-weight: bold;
+    line-height: 15 * $px;
+  }
+}

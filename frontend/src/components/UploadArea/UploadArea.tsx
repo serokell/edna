@@ -29,12 +29,10 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
 
             setParsedFile({ state: "uploading", progress: 0 });
             try {
-              const experimentsForChart = await Api.oldParseExcelFile(file, () => {});
               const targets = await Api.parseExcelFile(file, () => {});
               setParsedFile({
                 state: "parsed",
                 targets,
-                experiments: experimentsForChart,
               });
             } catch (er) {
               setParsedFile({ state: "failed-to-parse", reason: er.message });
