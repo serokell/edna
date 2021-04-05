@@ -14,7 +14,9 @@ import RIO (runRIO)
 import System.Environment (lookupEnv)
 import Test.Hspec (Spec, SpecWith, around)
 
-import Edna.Config.Definition (DbInit(..), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb)
+import Edna.Config.Definition
+  (DbInit(..), LoggingConfig(LogNothing), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb,
+  ecLogging)
 import Edna.DB.Initialisation (schemaInit)
 import Edna.Setup (Edna, EdnaContext(..), runEdna)
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
@@ -46,7 +48,8 @@ withContext = around withContext'
       connString <- postgresTestServerConnString
       let testConfig = defaultEdnaConfig &
             ecDb . dbInitialisation ?~ DbInit EnableWithDrop "./sql/init.sql" &
-            ecDb . dbConnString .~ connString
+            ecDb . dbConnString .~ connString &
+            ecLogging .~ LogNothing
       runEdna testConfig $ do
         ctx <- ask
         liftIO $ callback ctx
