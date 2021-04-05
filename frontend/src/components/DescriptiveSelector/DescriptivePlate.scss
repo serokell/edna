@@ -1,0 +1,34 @@
+@import "src/styles/variables";
+@import "src/styles/fonts";
+
+.descriptivePlate {
+  padding: (22 * $px) (22 * $px) (18 * $px) (18 * $px);
+  border-right: $px solid $color-gray;
+  border-bottom: $px solid $color-gray;
+  border-left: $px solid $color-gray;
+  border-bottom-right-radius: $border-radius;
+  border-bottom-left-radius: $border-radius;
+
+  &__line {
+    display: flex;
+    width: 100%;
+  }
+
+  &__line + &__line {
+    margin-top: 14 * $px;
+  }
+
+  &__label {
+    @include headline3;
+    margin-right: 18 * $px;
+    color: $color-titles-gray;
+  }
+
+  &__value {
+    color: $color-black70;
+  }
+
+  &__contextActions {
+    margin-left: auto;
+  }
+}

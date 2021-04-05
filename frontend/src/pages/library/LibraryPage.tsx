@@ -19,11 +19,10 @@ import {
   targetsQuery,
 } from "../../store/selectors";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
-import EditSvg from "../../assets/svg/edit.svg";
-import DeleteSvg from "../../assets/svg/delete.svg";
 import { Button } from "../../components/Button/Button";
 import { modalDialogAtom } from "../../store/atoms";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
+import { DeleteContextItem, EditContextItem } from "../../components/ContextActions/ContextItems";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -126,19 +125,14 @@ function ProjectsSuspendable() {
         accessor: (p: ProjectDto) => (
           <ContextActions
             actions={[
-              <div
-                key="edit"
-                className="contextActions__item"
+              <EditContextItem
                 onClick={() =>
                   setModalDialog({
                     kind: "create-edit-project",
                     editing: p,
                   })
                 }
-              >
-                <EditSvg />
-                Edit
-              </div>,
+              />,
             ]}
           />
         ),
@@ -212,19 +206,14 @@ function CompoundsSuspendable() {
         accessor: (c: CompoundDto) => (
           <ContextActions
             actions={[
-              <div
-                key="edit"
-                className="contextActions__item"
+              <EditContextItem
                 onClick={() => {
                   setModalDialog({
                     kind: "add-edit-link",
                     target: { kind: "compound", object: c },
                   });
                 }}
-              >
-                <EditSvg />
-                Edit
-              </div>,
+              />,
             ]}
           />
         ),
@@ -356,32 +345,22 @@ function MethodsSuspendable() {
         accessor: (m: MethodologyDto) => (
           <ContextActions
             actions={[
-              <div
-                key="edit"
-                className="contextActions__item"
+              <EditContextItem
                 onClick={() => {
                   setModalDialog({
                     kind: "create-edit-methodology",
                     editing: m,
                   });
                 }}
-              >
-                <EditSvg />
-                Edit
-              </div>,
-              <div
-                key="delete"
-                className="contextActions__item"
+              />,
+              <DeleteContextItem
                 onClick={() => {
                   setModalDialog({
                     kind: "delete-methodology",
                     methodology: m,
                   });
                 }}
-              >
-                <DeleteSvg />
-                Delete
-              </div>,
+              />,
             ]}
           />
         ),

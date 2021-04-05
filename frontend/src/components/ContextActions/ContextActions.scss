@@ -7,7 +7,6 @@
   }
 
   &__btn {
-    padding: 0 (22 * $px);
     font-family: inherit;
     font-size: 100%;
     background-color: transparent;
@@ -25,6 +24,7 @@
     z-index: 2;
     display: none;
     flex-direction: column;
+    margin: 0 (22 * $px);
     background-color: white;
     border-radius: 4 * $px;
 
