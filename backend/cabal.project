@@ -7,7 +7,7 @@ packages:
 
 source-repository-package
     type: git
-    location: git@github.com:serokell/servant-util.git
+    location: https://github.com/serokell/servant-util
     tag: 3dff2de34cce90c4d1dab68e03d30f8939fd52ca
     subdir: servant-util
 
