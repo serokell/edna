@@ -60,3 +60,8 @@ export type ModalDialogState =
   | { kind: "create-edit-project"; editing?: ProjectDto };
 
 export type ExperimentsTableSize = "expanded" | "minimized";
+
+export function negateTableSize(size: ExperimentsTableSize): ExperimentsTableSize {
+  if (size === "expanded") return "minimized";
+  return "expanded";
+}

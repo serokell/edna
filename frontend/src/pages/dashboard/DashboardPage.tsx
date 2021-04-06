@@ -7,6 +7,9 @@ import { ExperimentsTableSuspendable } from "./ExperimentsTable";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import cn from "../../utils/bemUtils";
 import { experimentsTableSizeAtom } from "../../store/atoms";
+import PlotlyChart from "./Plotting";
+import { selectedSubExperimentsQuery } from "../../store/selectors";
+import { negateTableSize } from "../../store/types";
 
 export const DashboardPage: FunctionComponent = () => {
   const dashboardPage = cn("dashboardPage");
@@ -18,12 +21,28 @@ export const DashboardPage: FunctionComponent = () => {
         <ProjectSelector className={dashboardPage("projectSelector")} />
         <CompoundSelector className={dashboardPage("compoundSelector")} />
         <TargetSelector className={dashboardPage("targetSelector")} />
-        <SuspenseSpinner>
-          <ExperimentsTableSuspendable
-            className={dashboardPage("experiments", { size: expTableSize })}
-          />
+        <SuspenseSpinner className={dashboardPage("spinner")}>
+          <>
+            <PlotlyChartSuspendable
+              className={dashboardPage("chart", { size: negateTableSize(expTableSize) })}
+            />
+            <ExperimentsTableSuspendable
+              className={dashboardPage("experiments", { size: expTableSize })}
+            />
+          </>
         </SuspenseSpinner>
       </div>
     </PageLayout>
   );
 };
+
+interface PlotlyChartSuspendableProps {
+  className?: string;
+}
+
+export function PlotlyChartSuspendable({
+  className,
+}: PlotlyChartSuspendableProps): React.ReactElement {
+  const subExperiments = useRecoilValue(selectedSubExperimentsQuery);
+  return <PlotlyChart className={className} subExperiments={subExperiments} />;
+}
