@@ -4,6 +4,7 @@ import * as Plotly from "plotly.js-basic-dist";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import createPlotlyComponent from "react-plotly.js/factory";
+import cx from "classnames";
 import { SubExperimentWithMeasurements } from "../../store/types";
 import "./Plotting.scss";
 
@@ -13,16 +14,20 @@ const plotConfig = {
 };
 
 interface PlotlyChartProps {
+  className?: string;
   subExperiments: SubExperimentWithMeasurements[];
 }
 
-export default function PlotlyChart({ subExperiments }: PlotlyChartProps): React.ReactElement {
+export default function PlotlyChart({
+  subExperiments,
+  className,
+}: PlotlyChartProps): React.ReactElement {
   const chartKey = uuidv4();
   const Plot = createPlotlyComponent(Plotly);
   return (
     <Plot
       key={chartKey}
-      className="compoundPlot"
+      className={cx("compoundPlot", className)}
       data={subExperiments.map(ex => {
         const sorted = ex.measurements.slice().sort((x, y) => x.concentration - y.concentration);
         return {
