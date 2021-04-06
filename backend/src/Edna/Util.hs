@@ -44,6 +44,7 @@ import Database.Beam.Backend (SqlSerial(..))
 import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified GHC.Generics as G
 import Servant (FromHttpApiData(..))
+import Servant.Util ()
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Read (Read(..), read)
 import qualified Text.Show
