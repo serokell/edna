@@ -15,7 +15,7 @@ import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Dashboard.Service
   (deleteSubExperiment, getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment,
-  setIsSuspiciousSubExperiment, setNameSubExperiment)
+  newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId)
@@ -58,6 +58,15 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Capture "subExperimentId" SubExperimentId
       :> Delete '[JSON] NoContent
 
+  , -- | Create a new sub-experiment from existing one.
+    deNewSubExp :: route
+      :- "subExperiment"
+      :> Summary "Create a new sub-experiment from existing one."
+      :> Capture "subExperimentId" SubExperimentId
+      :> "new"
+      :> ReqBody '[JSON] NewSubExperimentReq
+      :> Post '[JSON] (WithId 'SubExperimentId SubExperimentResp)
+
   , -- | Get known experiments with optional pagination and sorting
     deGetExperiments :: route
       :- "experiments"
@@ -84,7 +93,7 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Summary "Get sub-experiment's measurements by ID"
       :> Capture "subExperimentId" SubExperimentId
       :> "measurements"
-      :> Get '[JSON] [MeasurementResp]
+      :> Get '[JSON] [WithId 'MeasurementId MeasurementResp]
   } deriving stock (Generic)
 
 type DashboardAPI = ToServant DashboardEndpoints AsApi
@@ -95,6 +104,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deSetNameSubExp = setNameSubExperiment
   , deSetIsSuspiciousSubExp = setIsSuspiciousSubExperiment
   , deDeleteSubExp = deleteSubExperiment
+  , deNewSubExp = newSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements

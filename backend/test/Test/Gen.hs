@@ -40,6 +40,7 @@ module Test.Gen
 import Universum
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.HashSet as HS
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
@@ -146,6 +147,12 @@ genTargetResp = do
   trProjects <- Gen.list (Range.linear 0 5) genName
   trAdditionDate <- genUTCTime
   return TargetResp {..}
+
+genNewSubExperimentReq :: MonadGen m => m NewSubExperimentReq
+genNewSubExperimentReq =
+  NewSubExperimentReq
+  <$> genName
+  <*> (HS.fromList <$> Gen.list (Range.linear 0 5) genSqlId)
 
 genExperimentsResp :: MonadGen m => m ExperimentsResp
 genExperimentsResp =
@@ -298,6 +305,9 @@ instance Arbitrary CompoundResp where
 
 instance Arbitrary TargetResp where
   arbitrary = hedgehog genTargetResp
+
+instance Arbitrary NewSubExperimentReq where
+  arbitrary = hedgehog genNewSubExperimentReq
 
 instance Arbitrary ExperimentsResp where
   arbitrary = hedgehog genExperimentsResp

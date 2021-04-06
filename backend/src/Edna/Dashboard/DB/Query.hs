@@ -5,10 +5,12 @@ module Edna.Dashboard.DB.Query
   , setNameSubExperiment
   , setIsSuspiciousSubExperiment
   , deleteSubExperiment
+  , createSubExperiment
   , getExperiments
   , getSubExperiment
   , getMeasurements
   , getRemovedMeasurements
+  , getExperimentId
   ) where
 
 import Universum
@@ -17,13 +19,17 @@ import qualified Data.List.NonEmpty as NE
 
 import Data.Time (LocalTime)
 import Database.Beam.Backend (SqlSerial(..))
+import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Postgres.Full (deleteReturning)
 import Database.Beam.Query
-  (aggregate_, all_, as_, asc_, cast_, countAll_, guard_, int, leftJoin_, lookup_, orderBy_, select,
-  subquery_, update, val_, (&&.), (<-.), (==.))
+  (QExpr, aggregate_, all_, as_, asc_, cast_, countAll_, default_, guard_, insert,
+  insertExpressions, int, leftJoin_, lookup_, orderBy_, select, subquery_, update, val_, (&&.),
+  (<-.), (==.))
 
+import Edna.Analysis.FourPL (Params4PL)
 import Edna.DB.Integration
-  (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runUpdate')
+  (runDeleteReturningList', runInsertReturningOne', runSelectReturningList', runSelectReturningOne',
+  runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
 import Edna.Dashboard.Web.Types (ExperimentResp(..))
@@ -76,6 +82,23 @@ deleteSubExperiment (SqlId subExpId) =
        pure primarySubExp)
      )
   ) seSubExperimentId
+
+-- | Create a new sub-experiment as a sibling of existing one (sharing
+-- given experiment ID).
+createSubExperiment :: ExperimentId -> Text -> Params4PL -> Edna SubExperimentRec
+createSubExperiment (SqlId experimentId) newName result =
+  runInsertReturningOne'
+    (insert (esSubExperiment ednaSchema) $ insertExpressions [newSubExpRec])
+  where
+    newSubExpRec :: SubExperimentT (QExpr Postgres s)
+    newSubExpRec = SubExperimentRec
+      { seSubExperimentId = default_
+      , seAnalysisMethodId = val_ theOnlyAnalysisMethodId
+      , seName = val_ newName
+      , seExperimentId = val_ experimentId
+      , seIsSuspicious = val_ False
+      , seResult = val_ (PgJSON result)
+      }
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
 -- compound ID and target ID.
@@ -141,13 +164,11 @@ getSubExperiment (SqlId subExperimentId) = runSelectReturningOne' $
 
 -- | Get all measurements from the given sub-experiment:
 -- both active and inactive (removed).
-getMeasurements :: SubExperimentId -> Edna [MeasurementRec]
-getMeasurements i = getSubExperiment i >>= \case
-  Nothing -> pure []
-  Just se -> runSelectReturningList' $ select $ do
-    measurement <- all_ $ esMeasurement ednaSchema
-    guard_ (mExperimentId measurement ==. val_ (seExperimentId se))
-    pure measurement
+getMeasurements :: ExperimentId -> Edna [MeasurementRec]
+getMeasurements (SqlId experimentId) = runSelectReturningList' $ select $ do
+  measurement <- all_ $ esMeasurement ednaSchema
+  guard_ (mExperimentId measurement ==. val_ experimentId)
+  pure measurement
 
 -- | Get IDs of all measurements deactivated in the sub-experiment with given ID.
 getRemovedMeasurements :: SubExperimentId -> Edna [MeasurementId]
@@ -156,3 +177,11 @@ getRemovedMeasurements (SqlId subExperimentId) =
     removedMeasurement <- all_ $ esRemovedMeasurements ednaSchema
     guard_ (rmSubExperimentId removedMeasurement ==. val_ subExperimentId)
     pure removedMeasurement
+
+-- | Get ID of experiment that stores sub-experiment with given ID.
+getExperimentId :: SubExperimentId -> Edna (Maybe ExperimentId)
+getExperimentId (SqlId subExpId) =
+  (SqlId <<$>>) . runSelectReturningOne' $ select $ do
+    subExperiment <- all_ $ esSubExperiment ednaSchema
+    guard_ (seSubExperimentId subExperiment ==. val_ (SqlSerial subExpId))
+    pure (seExperimentId subExperiment)

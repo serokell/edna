@@ -83,7 +83,7 @@ spec = withContext $ do
             , measurements4
             , measurements5
             , measurements6
-            ] <- mapM getMeasurements validSubExperimentIds
+            ] <- mapM ((wItem <<$>>) . getMeasurements) validSubExperimentIds
           let
             toMeasurementResp :: Measurement -> MeasurementResp
             toMeasurementResp Measurement {..} = MeasurementResp
@@ -99,9 +99,9 @@ spec = withContext $ do
             measurements4 `shouldBe` map toMeasurementResp [m1, m2, m5]
             measurements5 `shouldBe` map toMeasurementResp [m1, m5]
             measurements6 `shouldBe` map toMeasurementResp [m3, m4, m5]
-        it "returns empty list for unknown sub-experiment" $ runTestEdna $ do
-          measurements <- getMeasurements unknownSubExpId
-          liftIO $ measurements `shouldBe` []
+        it "fails for unknown sub-experiment" $ \ctx -> do
+          runRIO ctx (getMeasurements unknownSubExpId) `shouldThrow`
+            (== DESubExperimentNotFound unknownSubExpId)
     describe "setNameSubExperiment" $ do
       it "updates the name of a sub-experiment to the given one" $ runTestEdna do
         resp <- setNameSubExperiment sampleSubExpId "newName"

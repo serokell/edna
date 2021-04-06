@@ -1,7 +1,8 @@
 -- | Types that exist specifically for Dashboard API.
 
 module Edna.Dashboard.Web.Types
-  ( ExperimentsResp (..)
+  ( NewSubExperimentReq (..)
+  , ExperimentsResp (..)
   , ExperimentResp (..)
   , SubExperimentResp (..)
   , MeasurementResp (..)
@@ -9,7 +10,7 @@ module Edna.Dashboard.Web.Types
 
 import Universum
 
-import Data.Aeson.TH (deriveToJSON)
+import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (ToSchema(..))
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
@@ -18,9 +19,24 @@ import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, b
 
 import Edna.Analysis.FourPL (Params4PL)
 import Edna.Util
-  (CompoundId, IdType(..), MethodologyId, ProjectId, SubExperimentId, TargetId, ednaAesonWebOptions,
-  gDeclareNamedSchema, unSqlId)
+  (CompoundId, IdType(..), MeasurementId, MethodologyId, ProjectId, SubExperimentId, TargetId,
+  ednaAesonWebOptions, gDeclareNamedSchema, unSqlId)
 import Edna.Web.Types (WithId)
+
+-- | Data submitted in body to create a new sub-experiment.
+data NewSubExperimentReq = NewSubExperimentReq
+  { nserName :: Text
+  -- ^ Name of the new sub-experiment.
+  , nserChanges :: HashSet MeasurementId
+  -- ^ This list of measurements specifies which points are enabled/disabled.
+  -- If a point is disabled in the existing sub-experiment,
+  -- it will be enabled in the new one, and vice versa.
+  } deriving stock (Generic, Show)
+
+instance Buildable NewSubExperimentReq where
+  build NewSubExperimentReq {..} =
+    "new sub-experiment name: " +| nserName |+
+    ", changes: " +| toList nserChanges |+ ""
 
 -- | Experiment as response from the server.
 data ExperimentsResp = ExperimentsResp
@@ -104,10 +120,14 @@ instance Buildable (ForResponseLog MeasurementResp) where
 instance Buildable (ForResponseLog [MeasurementResp]) where
   build = buildListForResponse (take 5)
 
+deriveJSON ednaAesonWebOptions ''NewSubExperimentReq
 deriveToJSON ednaAesonWebOptions ''ExperimentsResp
 deriveToJSON ednaAesonWebOptions ''ExperimentResp
 deriveToJSON ednaAesonWebOptions ''SubExperimentResp
 deriveToJSON ednaAesonWebOptions ''MeasurementResp
+
+instance ToSchema NewSubExperimentReq where
+  declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema ExperimentsResp where
   declareNamedSchema = gDeclareNamedSchema
