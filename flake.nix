@@ -71,7 +71,11 @@
         serokell-nix.overlay
       ];
 
-      backend = pkgs.callPackage ./backend { };
+      analysis-env = pkgs.callPackage ./analysis { };
+      backend = pkgs.callPackage ./backend {
+        inherit analysis-env;
+        EDNA_ANALYSIS_DIR = ./analysis;
+      };
       docker = pkgs.callPackage ./docker.nix {
         backend = backend.server;
         inherit frontend;
@@ -88,6 +92,7 @@
     in {
       defaultPackage = self.packages.${system}.backend-server;
       packages = {
+        analysis-env = analysis-env;
         backend-lib = backend.library;
         backend-server = backend.server;
         docker-backend = docker.backend-image;
@@ -124,6 +129,7 @@
           cabal-install hpack hlint self.packages.${system}.stack2cabal
           deploy-rs.defaultPackage.${system}
           pkgs.skopeo
+          self.packages.${system}.analysis-env
         ];
       };
     }));
