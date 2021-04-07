@@ -7,6 +7,7 @@ module Edna.Dashboard.Service
   , setIsSuspiciousSubExperiment
   , deleteSubExperiment
   , newSubExperiment
+  , analyseNewSubExperiment
   , getExperiments
   , getSubExperiment
   , getMeasurements
@@ -76,16 +77,24 @@ deleteSubExperiment subExpId = NoContent <$ do
 -- | Create a new sub-experiment based on existing one.
 newSubExperiment ::
   SubExperimentId -> NewSubExperimentReq -> Edna (WithId 'SubExperimentId SubExperimentResp)
-newSubExperiment subExpId NewSubExperimentReq {..} = do
-  measurements <- getMeasurements subExpId
-  newResult <- liftIO $ analyse4PL (computeNewPoints measurements)
+newSubExperiment subExpId req = do
+  (removed, newResult) <- analyseNewSubExperiment subExpId req
   transact $ do
     expId <-
       justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
     result <- subExperimentRecToResp <$>
-      Q.createSubExperiment expId nserName newResult
-    result <$ insertRemovedMeasurements (wiId result)
-      (computeRemovedMeasurements measurements)
+      Q.createSubExperiment expId (nserName req) newResult
+    result <$ insertRemovedMeasurements (wiId result) removed
+
+-- | A version of 'newSubExperiment' that doesn't save anything to the DB.
+-- Returns IDs of all removed measurements in the new sub-experiment and
+-- 4PL parameters.
+analyseNewSubExperiment ::
+  SubExperimentId -> NewSubExperimentReq -> Edna ([MeasurementId], Params4PL)
+analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
+  measurements <- getMeasurements subExpId
+  liftIO $ (computeRemovedMeasurements measurements,) <$>
+    analyse4PL (computeNewPoints measurements)
   where
     computeNewPoints ::
       [WithId 'MeasurementId MeasurementResp] -> [(Double, Double)]
