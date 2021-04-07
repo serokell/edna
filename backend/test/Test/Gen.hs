@@ -24,6 +24,7 @@ module Test.Gen
   , genExperimentResp
   , genSubExperimentResp
   , genMeasurementResp
+  , genExperimentMetadata
   , genName
   , genURI
   , genDescription
@@ -185,6 +186,12 @@ genMeasurementResp = do
   mrIsEnabled <- Gen.bool
   return MeasurementResp {..}
 
+genExperimentMetadata :: MonadGen m => m ExperimentMetadata
+genExperimentMetadata = do
+  emDescription <- genDescription
+  FileMetadata emFileMetadata <- genFileMetadata
+  return ExperimentMetadata {..}
+
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
 genFileContents genTargetName genCompoundName = do
   fcMeasurements <- genFileMeasurements genTargetName genCompoundName
@@ -320,6 +327,9 @@ instance Arbitrary SubExperimentResp where
 
 instance Arbitrary MeasurementResp where
   arbitrary = hedgehog genMeasurementResp
+
+instance Arbitrary ExperimentMetadata where
+  arbitrary = hedgehog genExperimentMetadata
 
 -- Is needed for swagger tests
 instance Arbitrary Text where

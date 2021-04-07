@@ -6,6 +6,7 @@ module Edna.Dashboard.Web.Types
   , ExperimentResp (..)
   , SubExperimentResp (..)
   , MeasurementResp (..)
+  , ExperimentMetadata (..)
   ) where
 
 import Universum
@@ -120,11 +121,26 @@ instance Buildable (ForResponseLog MeasurementResp) where
 instance Buildable (ForResponseLog [MeasurementResp]) where
   build = buildListForResponse (take 5)
 
+-- | All metadata about an experiment.
+data ExperimentMetadata = ExperimentMetadata
+  { emDescription :: Text
+  -- ^ Description provided manually during file upload.
+  , emFileMetadata :: [Text]
+  -- ^ Metadata stored inside the corresponding file.
+  } deriving stock (Generic, Show, Eq)
+
+instance Buildable ExperimentMetadata where
+  build = genericF
+
+instance Buildable (ForResponseLog ExperimentMetadata) where
+  build = buildForResponse
+
 deriveJSON ednaAesonWebOptions ''NewSubExperimentReq
 deriveToJSON ednaAesonWebOptions ''ExperimentsResp
 deriveToJSON ednaAesonWebOptions ''ExperimentResp
 deriveToJSON ednaAesonWebOptions ''SubExperimentResp
 deriveToJSON ednaAesonWebOptions ''MeasurementResp
+deriveToJSON ednaAesonWebOptions ''ExperimentMetadata
 
 instance ToSchema NewSubExperimentReq where
   declareNamedSchema = gDeclareNamedSchema
@@ -139,4 +155,7 @@ instance ToSchema SubExperimentResp where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema MeasurementResp where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema ExperimentMetadata where
   declareNamedSchema = gDeclareNamedSchema

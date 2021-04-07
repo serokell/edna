@@ -7,6 +7,7 @@ module Edna.Dashboard.DB.Query
   , deleteSubExperiment
   , createSubExperiment
   , getExperiments
+  , getDescriptionAndMetadata
   , getSubExperiment
   , getMeasurements
   , getRemovedMeasurements
@@ -33,6 +34,7 @@ import Edna.DB.Integration
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
 import Edna.Dashboard.Web.Types (ExperimentResp(..))
+import Edna.ExperimentReader.Types (FileMetadata)
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U
@@ -156,6 +158,17 @@ getExperiments mProj mComp mTarget =
         , erPrimarySubExperiment = SqlId primary
         }
       )
+
+-- | Get description and metadata of experiment data file storing experiment
+-- with this ID.
+getDescriptionAndMetadata ::
+  ExperimentId -> Edna (Maybe (Text, PgJSON FileMetadata))
+getDescriptionAndMetadata (SqlId expId) = runSelectReturningOne' $ select $ do
+  experiment <- all_ $ esExperiment ednaSchema
+  guard_ (eExperimentId experiment ==. val_ (SqlSerial expId))
+  experimentFile <- all_ $ esExperimentFile ednaSchema
+  guard_ (eExperimentFileId experiment ==. cast_ (efExperimentFileId experimentFile) int)
+  return (efDescription experimentFile, efMeta experimentFile)
 
 -- | Get all stored data about sub-experiment with given ID.
 getSubExperiment :: SubExperimentId -> Edna (Maybe SubExperimentRec)

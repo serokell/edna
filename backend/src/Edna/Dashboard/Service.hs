@@ -9,6 +9,7 @@ module Edna.Dashboard.Service
   , newSubExperiment
   , analyseNewSubExperiment
   , getExperiments
+  , getExperimentMetadata
   , getSubExperiment
   , getMeasurements
   ) where
@@ -29,14 +30,15 @@ import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
-  (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), NewSubExperimentReq(..),
-  SubExperimentResp(..))
+  (ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..),
+  NewSubExperimentReq(..), SubExperimentResp(..))
+import Edna.ExperimentReader.Types (FileMetadata(..))
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Query (insertRemovedMeasurements)
 import Edna.Util
-  (CompoundId, IdType(..), MeasurementId, ProjectId, SubExperimentId, TargetId, fromSqlSerial,
-  justOrThrow, unSqlId)
+  (CompoundId, ExperimentId, IdType(..), MeasurementId, ProjectId, SubExperimentId, TargetId,
+  fromSqlSerial, justOrThrow, unSqlId)
 import Edna.Web.Types (WithId(..))
 
 -- | Make given sub-experiment the primary one for its parent experiment.
@@ -150,6 +152,15 @@ computeMeanIC50 resps = do
 
 unwrapResult :: PgJSON Params4PL -> Params4PL
 unwrapResult (PgJSON res) = res
+
+-- | Get all metadata about experiment data file containing experiment
+-- with this ID. "All" metadata means metadata from the file itself
+-- along with description provided by the user.
+getExperimentMetadata :: ExperimentId -> Edna ExperimentMetadata
+getExperimentMetadata expId =
+  Q.getDescriptionAndMetadata expId >>=
+  justOrThrow (DEExperimentNotFound expId) <&>
+  \(description, PgJSON (FileMetadata meta)) -> ExperimentMetadata description meta
 
 -- | Get sub-experiment with given ID.
 getSubExperiment :: SubExperimentId -> Edna (WithId 'SubExperimentId SubExperimentResp)

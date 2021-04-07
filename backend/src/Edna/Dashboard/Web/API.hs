@@ -15,11 +15,12 @@ import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Analysis.FourPL (Params4PL)
 import Edna.Dashboard.Service
-  (analyseNewSubExperiment, deleteSubExperiment, getExperiments, getMeasurements, getSubExperiment,
-  makePrimarySubExperiment, newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
+  (analyseNewSubExperiment, deleteSubExperiment, getExperimentMetadata, getExperiments,
+  getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
+  setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
-import Edna.Util (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId)
+import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
 import Edna.Web.Types (StubSortBy, WithId)
 
 -- TODO: pagination and sorting are just stubs for now.
@@ -91,6 +92,14 @@ data DashboardEndpoints route = DashboardEndpoints
       :> QueryParam "sortby" StubSortBy
       :> Get '[JSON] ExperimentsResp
 
+  , -- | Get experiment's metadata by ID
+    deGetExperimentMetadata :: route
+      :- "experiment"
+      :> Summary "Get experiment's metadata by ID"
+      :> Capture "experimentId" ExperimentId
+      :> "metadata"
+      :> Get '[JSON] ExperimentMetadata
+
   , -- | Get sub-experiment's (meta-)data by ID.
     deGetSubExperiment :: route
       :- "subExperiment"
@@ -118,6 +127,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deNewSubExp = newSubExperiment
   , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
+  , deGetExperimentMetadata = getExperimentMetadata
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements
   }
