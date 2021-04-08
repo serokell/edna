@@ -11,6 +11,7 @@
   &__columnHead {
     position: sticky;
     top: 0;
+    z-index: 1;
     padding: $head-vertical-padding 0 $head-vertical-padding $cell-indent;
 
     font-size: 14 * $px;
@@ -47,8 +48,7 @@
   }
 
   &__row {
-    &_odd {
-      background-color: #fafafa;
+    &:nth-child(even) {
       border: 0;
 
       &:hover {
@@ -56,7 +56,8 @@
       }
     }
 
-    &_even {
+    &:nth-child(odd) {
+      background-color: #fafafa;
       border: 0;
 
       &:hover {

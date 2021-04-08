@@ -50,15 +50,10 @@ export function Table<T extends object>({
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
-        {rows.map((row, i) => {
+        {rows.map(row => {
           prepareRow(row);
           return (
-            <tr
-              {...row.getRowProps()}
-              className={`ednaTable__row ${
-                i % 2 === 0 ? "ednaTable__row_odd" : "ednaTable__row_even"
-              }`}
-            >
+            <tr {...row.getRowProps()} className="ednaTable__row">
               {row.cells.map(cell => {
                 const manualCell =
                   cell.column.id &&

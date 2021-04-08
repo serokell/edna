@@ -1,15 +1,11 @@
 @import "src/styles/variables";
 
 .contextActions {
-  &__wrapper {
-    position: relative;
-    display: flex;
-  }
+  position: relative;
+  display: flex;
 
   &__btn {
     padding: 0 (22 * $px);
-    font-family: inherit;
-    font-size: 100%;
     background-color: transparent;
     border: 0;
     outline: none;
@@ -21,40 +17,28 @@
 
   &__content {
     position: absolute;
-    left: 50%;
-    z-index: 2;
+    right: 100 * $px;
     display: none;
     flex-direction: column;
     background-color: white;
     border-radius: 4 * $px;
 
     box-shadow: 0 0 (5 * $px) rgba(151, 151, 151, 0.3);
-  }
 
-  &__btn:focus ~ &__content,
-  &__btn ~ &__content:active {
-    display: flex;
+    &_visible {
+      display: flex;
+    }
   }
 
   &__item {
     display: flex;
     align-items: center;
-    min-width: 126 * $px;
+    width: 100%;
     padding: (6 * $px) (12 * $px);
     color: rgba($color-black, 0.7);
 
     svg {
       margin-right: 14 * $px;
-    }
-
-    &:first-child {
-      border-top-left-radius: 4 * $px;
-      border-top-right-radius: 4 * $px;
-    }
-
-    &:last-child {
-      border-bottom-right-radius: 4 * $px;
-      border-bottom-left-radius: 4 * $px;
     }
 
     &:hover {
