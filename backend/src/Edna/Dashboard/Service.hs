@@ -73,9 +73,13 @@ setIsSuspiciousSubExperiment subExpId isSuspicious = do
 -- primary.
 deleteSubExperiment :: SubExperimentId -> Edna NoContent
 deleteSubExperiment subExpId = NoContent <$ do
-  logMessage $ fmt $ "Deleting sub-experiment " +| subExpId |+ ""
-  unlessM (Q.deleteSubExperiment subExpId) $
-    throwM $ DECantDeletePrimary subExpId
+  -- Using @transact@ to avoid concurrent deletion between existence check and deletion
+  transact $ do
+    -- Check existence (not the optimal way, but it likely doesn't matter)
+    void $ getMeasurements subExpId
+    logMessage $ fmt $ "Deleting sub-experiment " +| subExpId |+ ""
+    unlessM (Q.deleteSubExperiment subExpId) $
+      throwM $ DECantDeletePrimary subExpId
 
 -- | Create a new sub-experiment based on existing one.
 newSubExperiment ::

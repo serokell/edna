@@ -72,8 +72,8 @@ setIsSuspiciousSubExperiment (SqlId subExpId) isSuspicious =
 -- entries for this sub-experiment.
 --
 -- Does not delete primary sub-experiments.
--- Returns @True@ iff sub-experiment was successfully deleted (i. e. is not
--- primary).
+-- Returns @True@ iff sub-experiment was successfully deleted (i. e. is known and
+-- not primary).
 deleteSubExperiment :: SubExperimentId -> Edna Bool
 deleteSubExperiment (SqlId subExpId) =
   fmap (not . null) $ runDeleteReturningList' $
