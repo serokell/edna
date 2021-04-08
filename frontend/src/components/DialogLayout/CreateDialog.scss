@@ -6,13 +6,8 @@
     resize: vertical;
   }
 
-  &__footer {
-    display: flex;
-    align-items: center;
-  }
-
-  &__submitBtn {
-    margin-right: 20 * $px;
+  &__footerBtn {
+    margin-left: 36 * $px;
   }
 
   &__errorMsg {

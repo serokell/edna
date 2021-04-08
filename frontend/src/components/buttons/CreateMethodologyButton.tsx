@@ -14,9 +14,9 @@ export function CreateMethodologyButton({
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   return (
     <Button
-      type="secondary"
+      type="rounded"
       className={className}
-      onClick={() => setModalDialog("create-methodology")}
+      onClick={() => setModalDialog({ kind: "create-edit-methodology" })}
     >
       <PlusSvg /> methodology
     </Button>

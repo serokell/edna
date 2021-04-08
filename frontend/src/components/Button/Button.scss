@@ -33,7 +33,7 @@
   position: relative;
   display: flex;
 
-  padding: (16 * $px) (36 * $px);
+  padding: (16 * $px) (22 * $px);
   color: white;
   background-color: $color-green;
   border: 0;
@@ -41,7 +41,7 @@
 
   &:disabled {
     pointer-events: none;
-    background-color: #c4dad5;
+    background-color: rgba($color-green, 0.3);
   }
 
   &:active {
@@ -54,54 +54,88 @@
   }
 }
 
-.outlinedButton {
+.textButton {
   @include main-btn();
 
-  padding: (16 * $px) (36 * $px);
+  padding: (16 * $px) (22 * $px);
+
+  font-size: 18 * $px;
+  font-weight: 500;
+  line-height: 24 * $px;
   color: $color-green;
   background-color: white;
-  border: $px solid $color-green;
-  border-radius: $border-radius;
+  border: 0;
 
-  &:disabled {
-    color: #c4dad5;
-    pointer-events: none;
-    border-color: #c4dad5;
+  &:hover {
+    color: #206c58;
+    cursor: pointer;
   }
 
   &:active {
     color: #175a49;
   }
 
-  &:hover {
-    color: #206c58;
-    cursor: pointer;
+  &:disabled {
+    color: #c4dad5;
+    pointer-events: none;
+  }
+
+  &_delete {
+    color: $color-help-red;
+
+    &:hover {
+      color: #bf6060;
+    }
+
+    &:active {
+      color: #af5656;
+    }
+  }
+
+  &_gray {
+    color: $color-gray;
+
+    &:hover {
+      color: #7a847f;
+    }
+
+    &:active {
+      color: #6e7571;
+    }
   }
 }
 
-.secondaryButton {
+.roundedButton {
   @include snd-btn();
 
   padding: (9 * $px) (20 * $px);
+  font-size: 14 * $px;
   font-weight: 700;
+  line-height: 18 * $px;
   color: $color-green;
-  background-color: $color-disabled-green;
+  background-color: $color-light-green;
   border: 0;
   border-radius: 50 * $px;
 
   &:hover {
-    background-color: #9ac3b9;
+    background-color: #def4e9;
   }
 
   &:active {
-    color: white;
-    background-color: $color-green;
+    background-color: #bfe5d2;
   }
 
   &:disabled {
-    color: $color-green;
     pointer-events: none;
-    background: $color-light-green;
+    background: rgba($color-light-green, 0.3);
+  }
+
+  &_halfRounding {
+    border-radius: 4 * $px;
+  }
+
+  &_size-small {
+    padding: (6 * $px) (8 * $px);
   }
 }
 
@@ -123,6 +157,7 @@
   }
 
   &:hover {
+    cursor: pointer;
     background-color: #206c58;
   }
 }

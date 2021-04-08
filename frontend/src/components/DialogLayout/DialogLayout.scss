@@ -1,28 +1,57 @@
 @import "src/styles/variables";
 @import "src/styles/fonts";
 
+
+.dialogBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(35, 50, 46, 0.7);
+}
+
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+}
+
+.closeDialogBtn {
+  color: #9ba5a1;
+
+  &:hover {
+    color: #818a86;
+    cursor: pointer;
+  }
+}
+
 .dialogWindow {
   position: relative;
   display: flex;
   flex-direction: column;
-  max-width: 720 * $px;
-  padding: 50 * $px;
   margin: (100 * $px) auto 0 auto;
-
   background-color: white;
-  border-radius: 10 * $px;
 
-  &__close {
-    position: absolute;
-    top: 40 * $px;
-    right: 40 * $px;
-    color: #9ba5a1;
-
-    &:hover {
-      color: #818a86;
-      cursor: pointer;
-    }
+  &_size_small {
+    max-width: 485 * $px;
+    padding: (26 * $px) (30 * $px) 0 (26 * $px);
   }
+
+  &_size_medium {
+    max-width: 648 * $px;
+    padding: 36 * $px;
+  }
+
+  &_size_large {
+    max-width: 695 * $px;
+    padding: (26 * $px) (30 * $px) 0 (26 * $px);
+  }
+}
+
+.primaryDialogWindow {
+  border-radius: 10 * $px;
 
   &__title {
     @include headline1;
@@ -34,17 +63,39 @@
   }
 
   &__spacer {
-    margin-bottom: 40 * $px;
+    margin-bottom: 30 * $px;
   }
 
-  &__background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(35, 50, 46, 0.7);
+  }
+}
+
+.secondaryDialogWindow {
+  border-radius: 6 * $px;
+
+  &__title {
+    @include headline2;
+  }
+
+  &__description {
+    @include paragraph-p1;
+    margin-top: 20 * $px;
+  }
+
+  &__spacer {
+    margin-bottom: 6 * $px;
+  }
+
+  &__footer {
+    position: relative;
+    right: -22 * $px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
   }
 }

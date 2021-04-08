@@ -158,8 +158,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             <div className="uploadingForm__buttons">
               <Button
+                type="primary"
                 disabled={!isParsed(excelFile)}
-                type="submit"
+                isSubmit
                 className="uploadingForm__submitBtn"
                 tabIndex={4}
               >
@@ -167,7 +168,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               </Button>
 
               <Button
-                type="outlined"
+                type="text"
                 tabIndex={5}
                 onClick={() => {
                   setExcelFile(undefined);

@@ -1,6 +1,12 @@
 // Types used for global storage is here
 
-import { MeasurementDto, ParsedExcelDto } from "../api/types";
+import {
+  CompoundDto,
+  MeasurementDto,
+  MethodologyDto,
+  ParsedExcelDto,
+  ProjectDto,
+} from "../api/types";
 
 export interface Experiment {
   target: string;
@@ -23,4 +29,15 @@ export function isParsed(
   return !!st && st.state === "parsed";
 }
 
-export type ModalDialogState = undefined | "create-methodology" | "create-project";
+export type ModalDialogState =
+  | undefined
+  | {
+      kind: "add-edit-link";
+      target:
+        | { kind: "methodology"; object: MethodologyDto }
+        | { kind: "compound"; object: CompoundDto };
+    }
+  | { kind: "delete-methodology"; methodology: MethodologyDto }
+  | { kind: "methodology-description"; methodology: MethodologyDto }
+  | { kind: "create-edit-methodology"; editing?: MethodologyDto }
+  | { kind: "create-edit-project"; editing?: ProjectDto };

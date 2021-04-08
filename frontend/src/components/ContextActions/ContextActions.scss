@@ -1,0 +1,48 @@
+@import "src/styles/variables";
+
+.contextActions {
+  position: relative;
+  display: flex;
+
+  &__btn {
+    padding: 0 (22 * $px);
+    background-color: transparent;
+    border: 0;
+    outline: none;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &__content {
+    position: absolute;
+    right: 100 * $px;
+    display: none;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 4 * $px;
+
+    box-shadow: 0 0 (5 * $px) rgba(151, 151, 151, 0.3);
+
+    &_visible {
+      display: flex;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: (6 * $px) (12 * $px);
+    color: rgba($color-black, 0.7);
+
+    svg {
+      margin-right: 14 * $px;
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}

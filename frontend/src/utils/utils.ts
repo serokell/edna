@@ -27,3 +27,8 @@ export function formatDateTimeDto(t: DateTimeDto): string {
 export function replaceEmptyWithUndefined(x: string): Maybe<string> {
   return x || undefined;
 }
+
+export function extraFormatter(items: string[]): string {
+  if (items.length <= 4) return items.join(", ");
+  return `${items.slice(0, 4).join(", ")} and ${items.length - 4} more`;
+}

@@ -1,85 +1,80 @@
 import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
-import { Form, Formik } from "formik";
-import { DialogLayout } from "../DialogLayout/DialogLayout";
+import { FormikErrors } from "formik";
 import { modalDialogAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
-import "./CreateDialog.scss";
+import "../DialogLayout/CreateDialog.scss";
 import Api from "../../api/api";
 import "../RoundSpinner.scss";
-import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
-import { CreateProjectArgsApi } from "../../api/EdnaApi";
-import { replaceEmptyWithUndefined } from "../../utils/utils";
+import { CreateDialogFooter, FormState } from "../DialogLayout/CreateDialogFooter";
+import { toCreateProjectArgsApi } from "../../api/EdnaApi";
 import { useProjectRefresher } from "../../store/updaters";
+import { CreateProjectForm, toCreateProjectForm } from "./types";
+import { ProjectDto } from "../../api/types";
+import { DialogLayout } from "../DialogLayout/DialogLayout";
 
-interface CreateProjectForm {
-  name: string;
-  description: string;
+interface CreateProjectDialogProps {
+  editing?: ProjectDto;
 }
 
-function toApiArgs(form: CreateProjectForm): CreateProjectArgsApi {
-  return {
-    name: form.name,
-    description: replaceEmptyWithUndefined(form.description.trim()),
-  };
-}
-
-export function CreateProjectDialog(): React.ReactElement {
+export function CreateProjectDialog({ editing }: CreateProjectDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const refreshProjects = useProjectRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
-    <DialogLayout title="Create project" onClose={() => setModalDialog(undefined)}>
-      <Formik<CreateProjectForm>
-        initialValues={{
-          name: "",
-          description: "",
-        }}
-        validate={values => {
-          const errors: any = {};
+    <DialogLayout<CreateProjectForm>
+      dialogClass="primaryDialogWindow"
+      size="medium"
+      title={editing ? "Edit project" : "Create project"}
+      onClose={() => setModalDialog(undefined)}
+      footer={<CreateDialogFooter formState={formState} editing={!!editing} cancelBtn />}
+      formik={{
+        initialValues: toCreateProjectForm(editing),
+        validate: values => {
+          const errors: FormikErrors<CreateProjectForm> = {};
           if (!values.name) {
             errors.name = "Name required";
           }
           return errors;
-        }}
-        onSubmit={async form => {
+        },
+
+        onSubmit: async form => {
           setFormState({ kind: "submitting" });
           try {
-            await Api.createProject(toApiArgs(form));
+            if (editing) {
+              await Api.editProject(editing.id, toCreateProjectArgsApi(form));
+            } else {
+              await Api.createProject(toCreateProjectArgsApi(form));
+            }
             setModalDialog(undefined);
             refreshProjects();
-            // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
           }
-        }}
-      >
-        <Form>
-          <FormField<string> required name="name" label="Name">
-            {field => (
-              <input
-                className="ednaInput"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
+        },
+      }}
+    >
+      <FormField<string> required name="name" label="Name">
+        {field => (
+          <input
+            className="ednaInput"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
 
-          <FormField<string> name="description" label="Description">
-            {field => (
-              <textarea
-                className="ednaTextarea createDialog__description"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <CreateDialogFooter formState={formState} />
-        </Form>
-      </Formik>
+      <FormField<string> name="description" label="Description">
+        {field => (
+          <textarea
+            className="ednaTextarea createDialog__description"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
     </DialogLayout>
   );
 }

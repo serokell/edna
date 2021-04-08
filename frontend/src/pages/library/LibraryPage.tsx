@@ -1,23 +1,15 @@
 import React, { FunctionComponent, useState } from "react";
-import { useRecoilValue } from "recoil";
 import cx from "classnames";
-import { Table } from "../../components/Table/Table";
 import "./LibraryPage.scss";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
 import { CreateProjectButton } from "../../components/buttons/CreateProjectButton";
-import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
-import { formatDateTimeDto } from "../../utils/utils";
-import DotsSvg from "../../assets/svg/dots.svg";
-import { MethodologyPlate } from "../../components/MethodologyPlate/MethodologyPlate";
 import { ErrorPlaceholder } from "../../components/Error/ErrorPlaceholder";
-import {
-  compoundsQuery,
-  methodologiesQuery,
-  projectsQuery,
-  targetsQuery,
-} from "../../store/selectors";
+import { ProjectsSuspendable } from "./Projects";
+import { CompoundsSuspendable } from "./Compounds";
+import { MethodsSuspendable } from "./Methodologies";
+import { TargetsSuspendable } from "./Targets";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
@@ -83,115 +75,6 @@ function EntitiesTab({ render, renderAddButton }: EntitiesTabProps) {
         {renderAddButton(entityTab)}
       </div>
       {render(entityTab)}
-    </>
-  );
-}
-
-const extraFormatter = (compounds: string[]) => {
-  if (compounds.length <= 4) return compounds.join(", ");
-  return `${compounds.slice(0, 4).join(", ")} and ${compounds.length - 4} more`;
-};
-
-function ProjectsSuspendable() {
-  const projects = useRecoilValue(projectsQuery);
-  const projectColumns = React.useMemo(
-    () => [
-      {
-        Header: "Project",
-        accessor: (p: ProjectDto) => p.item.name,
-      },
-      {
-        Header: "Compounds",
-        accessor: (p: ProjectDto) => (
-          <span className="project__compounds">{extraFormatter(p.item.compoundNames)}</span>
-        ),
-      },
-      {
-        Header: "Creation date",
-        accessor: (p: ProjectDto) => formatDateTimeDto(p.item.creationDate),
-      },
-      {
-        Header: "Last update",
-        accessor: (p: ProjectDto) => formatDateTimeDto(p.item.lastUpdate),
-      },
-      {
-        id: "actions",
-        accessor: () => (
-          <div className="contextActions">
-            <DotsSvg />
-          </div>
-        ),
-      },
-    ],
-    []
-  );
-  return <Table mode="bordered" data={projects} columns={projectColumns} />;
-}
-
-function CompoundsSuspendable() {
-  const projects = useRecoilValue(compoundsQuery);
-  const projectColumns = React.useMemo(
-    () => [
-      {
-        Header: "Compounds",
-        accessor: (c: CompoundDto) => c.item.name,
-      },
-      {
-        Header: "MDe link",
-        // TODO form MDe link
-        accessor: (c: CompoundDto) => <a href={c.item.name}>mde.io</a>,
-      },
-      {
-        id: "actions",
-        accessor: () => (
-          <div className="contextActions">
-            <DotsSvg />
-          </div>
-        ),
-      },
-    ],
-    []
-  );
-  return <Table mode="bordered" data={projects} columns={projectColumns} />;
-}
-
-function TargetsSuspendable() {
-  const projects = useRecoilValue(targetsQuery);
-  const projectColumns = React.useMemo(
-    () => [
-      {
-        Header: "Target",
-        accessor: (t: TargetDto) => t.item.name,
-      },
-      {
-        Header: "Projects",
-        accessor: (t: TargetDto) => extraFormatter(t.item.projects),
-      },
-      {
-        Header: "Addition date",
-        accessor: (t: TargetDto) => formatDateTimeDto(t.item.additionDate),
-      },
-      {
-        id: "actions",
-        accessor: () => (
-          <div className="contextActions">
-            <DotsSvg />
-          </div>
-        ),
-      },
-    ],
-    []
-  );
-  return <Table mode="bordered" data={projects} columns={projectColumns} />;
-}
-
-function MethodsSuspendable() {
-  const methodologies = useRecoilValue(methodologiesQuery);
-  return (
-    <>
-      {methodologies.map(m => (
-        <MethodologyPlate key={m.item.name} title={m.item.name} description={m.item?.description} />
-      ))}
     </>
   );
 }

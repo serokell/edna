@@ -1,97 +1,91 @@
 import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
-import { Form, Formik } from "formik";
-import { DialogLayout } from "../DialogLayout/DialogLayout";
+import { FormikErrors } from "formik";
 import { modalDialogAtom } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
-import "./CreateDialog.scss";
+import "../DialogLayout/CreateDialog.scss";
 import Api from "../../api/api";
-import { CreateDialogFooter, FormState } from "./CreateDialogFooter";
-import { CreateMethodologyArgsApi } from "../../api/EdnaApi";
-import { replaceEmptyWithUndefined } from "../../utils/utils";
+import { CreateDialogFooter, FormState } from "../DialogLayout/CreateDialogFooter";
 import { useMethodologiesRefresher } from "../../store/updaters";
+import { CreateMethodologyForm, toCreateMethodologyForm } from "./types";
+import { toCreateMethodologyArgsApi } from "../../api/EdnaApi";
+import { MethodologyDto } from "../../api/types";
+import { DialogLayout } from "../DialogLayout/DialogLayout";
 
-interface CreateMethodologyForm {
-  name: string;
-  description: string;
-  confluence: string;
+interface CreateMethodologyDialogProps {
+  editing?: MethodologyDto;
 }
 
-function toApiArgs(form: CreateMethodologyForm): CreateMethodologyArgsApi {
-  return {
-    name: form.name,
-    description: replaceEmptyWithUndefined(form.description.trim()),
-    confluence: replaceEmptyWithUndefined(form.confluence.trim()),
-  };
-}
-
-export function CreateMethodologyDialog(): React.ReactElement {
+export function CreateMethodologyDialog({
+  editing,
+}: CreateMethodologyDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const refreshMethodologies = useMethodologiesRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
-    <DialogLayout title="Create methodology" onClose={() => setModalDialog(undefined)}>
-      <Formik<CreateMethodologyForm>
-        initialValues={{
-          name: "",
-          description: "",
-          confluence: "",
-        }}
-        validate={values => {
-          const errors: any = {};
+    <DialogLayout<CreateMethodologyForm>
+      dialogClass="primaryDialogWindow"
+      size="medium"
+      title={editing ? "Edit methodology" : "Create methodology"}
+      onClose={() => setModalDialog(undefined)}
+      footer={<CreateDialogFooter formState={formState} editing={!!editing} cancelBtn />}
+      formik={{
+        initialValues: toCreateMethodologyForm(editing),
+        validate: values => {
+          const errors: FormikErrors<CreateMethodologyForm> = {};
           if (!values.name) {
             errors.name = "Name required";
           }
           return errors;
-        }}
-        onSubmit={async form => {
+        },
+
+        onSubmit: async form => {
           setFormState({ kind: "submitting" });
           try {
-            await Api.createMethodology(toApiArgs(form));
+            if (editing) {
+              await Api.editMethodology(editing.id, toCreateMethodologyArgsApi(form));
+            } else {
+              await Api.createMethodology(toCreateMethodologyArgsApi(form));
+            }
             setModalDialog(undefined);
             refreshMethodologies();
-            // TODO update list here
           } catch (ex) {
             setFormState({ kind: "error", errorMsg: ex.message });
           }
-        }}
-      >
-        <Form>
-          <FormField<string> required name="name" label="Name">
-            {field => (
-              <input
-                className="ednaInput"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
+        },
+      }}
+    >
+      <FormField<string> required name="name" label="Name">
+        {field => (
+          <input
+            className="ednaInput"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
 
-          <FormField<string> name="description" label="Description">
-            {field => (
-              <textarea
-                className="ednaTextarea createDialog__description"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
+      <FormField<string> name="description" label="Description">
+        {field => (
+          <textarea
+            className="ednaTextarea createDialog__description"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
 
-          <FormField<string> name="confluence" label="Confluence link">
-            {field => (
-              <input
-                className="ednaInput"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <CreateDialogFooter formState={formState} />
-        </Form>
-      </Formik>
+      <FormField<string> name="confluence" label="Confluence link">
+        {field => (
+          <input
+            className="ednaInput"
+            value={field.value}
+            onChange={e => field.onChange(e.target.value)}
+          />
+        )}
+      </FormField>
     </DialogLayout>
   );
 }

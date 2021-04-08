@@ -9,13 +9,31 @@ import { NotFound } from "./components/NotFound/NotFound";
 import { modalDialogAtom } from "./store/atoms";
 import { CreateMethodologyDialog } from "./components/dialogs/CreateMethodologyDialog";
 import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
+import { MethodologyDescriptionDialog } from "./components/dialogs/MethodologyDescriptionDialog";
+import { DeleteMethodologyDialog } from "./components/dialogs/DeleteMethodologyDialog";
+import { AddLinkDialog } from "./components/dialogs/AddLinkDialog";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
+
   return (
     <>
-      {modalDialog === "create-methodology" && <CreateMethodologyDialog />}
-      {modalDialog === "create-project" && <CreateProjectDialog />}
+      {modalDialog?.kind === "add-edit-link" && <AddLinkDialog target={modalDialog.target} />}
+
+      {modalDialog?.kind === "delete-methodology" && (
+        <DeleteMethodologyDialog methodology={modalDialog.methodology} />
+      )}
+
+      {modalDialog?.kind === "methodology-description" && (
+        <MethodologyDescriptionDialog methodology={modalDialog.methodology} />
+      )}
+
+      {modalDialog?.kind === "create-edit-methodology" && (
+        <CreateMethodologyDialog editing={modalDialog.editing} />
+      )}
+      {modalDialog?.kind === "create-edit-project" && (
+        <CreateProjectDialog editing={modalDialog.editing} />
+      )}
       <Switch>
         <Route path="/upload">
           <UploadPage />

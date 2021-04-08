@@ -3,12 +3,16 @@ import { Column, useTable } from "react-table";
 import "./Table.scss";
 import cx from "classnames";
 
+interface ColumnExtra {
+  manualCellRendering?: boolean;
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 interface LibraryTableProps<T extends object> {
   data: T[];
   columns: Column<T>[];
+  columnExtras?: { [id: string]: ColumnExtra };
   className?: string;
-  mode: "bordered" | "alternate";
   small?: boolean;
 }
 
@@ -16,9 +20,9 @@ interface LibraryTableProps<T extends object> {
 export function Table<T extends object>({
   data,
   columns,
+  columnExtras,
   className,
   small,
-  mode,
 }: LibraryTableProps<T>): React.ReactElement {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
     columns,
@@ -32,38 +36,36 @@ export function Table<T extends object>({
       <thead>
         {headerGroups.map(headerGroup => (
           <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column, i) => (
-              <th {...column.getHeaderProps()} className="ednaTable__columnHead">
-                {column.render("Header")}
-                {i <= lastColumnWithRightBorder && <span className="ednaTable__headRightBorder" />}
-              </th>
-            ))}
+            {headerGroup.headers.map((column, i) => {
+              return (
+                <th {...column.getHeaderProps()} className="ednaTable__columnHead">
+                  {column.render("Header")}
+                  {i <= lastColumnWithRightBorder && (
+                    <span className="ednaTable__headRightBorder" />
+                  )}
+                </th>
+              );
+            })}
           </tr>
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
-        {rows.map((row, i) => {
+        {rows.map(row => {
           prepareRow(row);
           return (
-            <tr
-              {...row.getRowProps()}
-              className={cx({ ednaTable__row_withHover: mode === "bordered" })}
-            >
+            <tr {...row.getRowProps()} className="ednaTable__row">
               {row.cells.map(cell => {
-                return (
+                const manualCell =
+                  cell.column.id &&
+                  columnExtras &&
+                  columnExtras[cell.column.id] &&
+                  columnExtras[cell.column.id].manualCellRendering;
+                return manualCell ? (
+                  cell.render("Cell", cell.getCellProps())
+                ) : (
                   <td
                     {...cell.getCellProps()}
-                    className={`ednaTable__cell
-                    ${
-                      mode === "alternate"
-                        ? i % 2 === 1
-                          ? "ednaTable__cell_odd"
-                          : i % 2 === 0
-                          ? "ednaTable__cell_even"
-                          : ""
-                        : ""
-                    }
-                      ${small ? "ednaTable__cell_small" : ""}`}
+                    className={`ednaTable__cell ${cx({ ednaTable__cell_small: small })}`}
                   >
                     {cell.render("Cell")}
                   </td>

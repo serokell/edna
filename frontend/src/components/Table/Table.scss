@@ -3,14 +3,15 @@
 .ednaTable {
   $border-color: #dfe3e3;
   $head-vertical-padding: 20 * $px;
-  $head-line-height: 17 * $px;
-  $cell-indent: 20 * $px;
+  $head-line-height: 18 * $px;
+  $cell-indent: 22 * $px;
   width: 100%;
   border-spacing: 0;
 
   &__columnHead {
     position: sticky;
     top: 0;
+    z-index: 1;
     padding: $head-vertical-padding 0 $head-vertical-padding $cell-indent;
 
     font-size: 14 * $px;
@@ -37,48 +38,31 @@
     background-color: #eaeaea;
   }
 
+  &__cell {
+    max-height: 50 * $px;
+    padding: (16 * $px) 0 (16 * $px) $cell-indent;
+    font-size: 14 * $px;
+    font-weight: 400;
+    line-height: 18 * $px;
+    border-bottom: $px solid $border-color;
+  }
+
   &__row {
-    &_withHover {
+    &:nth-child(even) {
+      border: 0;
+
       &:hover {
         background-color: $color-light-green;
       }
     }
-  }
 
-  &__cell {
-    padding: (16 * $px) 0 (16 * $px) $cell-indent;
-    border-bottom: $px solid $border-color;
-  }
-
-  &__cell {
-    &_odd {
-      background-color: $color-light-green;
+    &:nth-child(odd) {
+      background-color: #fafafa;
       border: 0;
 
-      &:first-child {
-        border-bottom-left-radius: 8 * $px;
+      &:hover {
+        background-color: $color-light-green;
       }
-
-      &:last-child {
-        border-bottom-right-radius: 8 * $px;
-      }
-    }
-
-    &_even {
-      border: 0;
-
-      &:first-child {
-        border-bottom-left-radius: 8 * $px;
-      }
-
-      &:last-child {
-        border-bottom-right-radius: 8 * $px;
-      }
-    }
-
-    &_small {
-      padding-top: 11 * $px;
-      padding-bottom: 11 * $px;
     }
   }
 }
