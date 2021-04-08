@@ -8,6 +8,7 @@ module Edna.Dashboard.DB.Query
   , createSubExperiment
   , getExperiments
   , getDescriptionAndMetadata
+  , getFileNameAndBlob
   , getSubExperiment
   , getMeasurements
   , getRemovedMeasurements
@@ -23,7 +24,7 @@ import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Postgres.Full (deleteReturning)
 import Database.Beam.Query
-  (QExpr, aggregate_, all_, as_, asc_, cast_, countAll_, default_, guard_, insert,
+  (Q, QExpr, aggregate_, all_, as_, asc_, cast_, countAll_, default_, guard_, insert,
   insertExpressions, int, leftJoin_, lookup_, orderBy_, select, subquery_, update, val_, (&&.),
   (<-.), (==.))
 
@@ -163,12 +164,23 @@ getExperiments mProj mComp mTarget =
 -- with this ID.
 getDescriptionAndMetadata ::
   ExperimentId -> Edna (Maybe (Text, PgJSON FileMetadata))
-getDescriptionAndMetadata (SqlId expId) = runSelectReturningOne' $ select $ do
+getDescriptionAndMetadata expId = runSelectReturningOne' $ select $ do
+  experimentFile <- getExperimentFile expId
+  return (efDescription experimentFile, efMeta experimentFile)
+
+-- | Get name of the file with experiment along with its binary contents.
+getFileNameAndBlob :: ExperimentId -> Edna (Maybe (Text, LByteString))
+getFileNameAndBlob expId = runSelectReturningOne' $ select $ do
+  experimentFile <- getExperimentFile expId
+  return (efName experimentFile, efContents experimentFile)
+
+getExperimentFile :: ExperimentId -> Q Postgres EdnaSchema s $ ExperimentFileT $ QExpr Postgres s
+getExperimentFile (SqlId expId) = do
   experiment <- all_ $ esExperiment ednaSchema
   guard_ (eExperimentId experiment ==. val_ (SqlSerial expId))
   experimentFile <- all_ $ esExperimentFile ednaSchema
   guard_ (eExperimentFileId experiment ==. cast_ (efExperimentFileId experimentFile) int)
-  return (efDescription experimentFile, efMeta experimentFile)
+  return experimentFile
 
 -- | Get all stored data about sub-experiment with given ID.
 getSubExperiment :: SubExperimentId -> Edna (Maybe SubExperimentRec)

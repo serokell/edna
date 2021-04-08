@@ -7,15 +7,18 @@ module Edna.Dashboard.Web.Types
   , SubExperimentResp (..)
   , MeasurementResp (..)
   , ExperimentMetadata (..)
+  , ExperimentFileBlob (..)
   ) where
 
 import Universum
 
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
-import Data.Swagger (ToSchema(..))
+import Data.Swagger (NamedSchema(..), ToSchema(..), binarySchema)
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
+import Servant.API (Header, Headers, getHeaders, getResponse)
+import Servant.API.ContentTypes (MimeRender, OctetStream)
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Analysis.FourPL (Params4PL)
@@ -135,6 +138,34 @@ instance Buildable ExperimentMetadata where
 instance Buildable (ForResponseLog ExperimentMetadata) where
   build = buildForResponse
 
+newtype ExperimentFileBlob = ExperimentFileBlob
+  { unExperimentFileBlob :: LByteString
+  } deriving stock (Generic, Show, Eq)
+    deriving newtype (MimeRender OctetStream)
+
+instance Buildable ExperimentFileBlob where
+  build (ExperimentFileBlob blob) =
+    build (length blob) <> " bytes of ExperimentFileBlob"
+
+instance Buildable (ForResponseLog ExperimentFileBlob) where
+  build = buildForResponse
+
+instance Buildable
+  (Headers '[Header "Content-Disposition" Text] ExperimentFileBlob) where
+  build headers =
+    build (getResponse headers) <>
+    ", with Content-Disposition " <> build name
+    where
+      untypedHeaders = getHeaders headers
+      name = case untypedHeaders of
+        [(_, nameBS)] -> show @String nameBS
+        -- Must not happen because there is exactly one header in the type
+        _ -> error "unexpected number of headers"
+
+instance Buildable (ForResponseLog $
+  Headers '[Header "Content-Disposition" Text] ExperimentFileBlob) where
+  build = buildForResponse
+
 deriveJSON ednaAesonWebOptions ''NewSubExperimentReq
 deriveToJSON ednaAesonWebOptions ''ExperimentsResp
 deriveToJSON ednaAesonWebOptions ''ExperimentResp
@@ -159,3 +190,7 @@ instance ToSchema MeasurementResp where
 
 instance ToSchema ExperimentMetadata where
   declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema ExperimentFileBlob where
+  declareNamedSchema _ =
+    pure (NamedSchema (Just "ExperimentFileBlob") binarySchema)

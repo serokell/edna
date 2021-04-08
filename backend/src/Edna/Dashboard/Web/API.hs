@@ -8,15 +8,17 @@ module Edna.Dashboard.Web.API
 
 import Universum
 
-import Servant (ReqBody)
-import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary, (:>))
+import Servant (ReqBody, addHeader)
+import Servant.API
+  (Capture, Delete, Get, Header, Headers, JSON, NoContent, OctetStream, Post, Put, QueryParam,
+  Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Analysis.FourPL (Params4PL)
 import Edna.Dashboard.Service
-  (analyseNewSubExperiment, deleteSubExperiment, getExperimentMetadata, getExperiments,
-  getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
+  (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
+  getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
   setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
@@ -100,6 +102,15 @@ data DashboardEndpoints route = DashboardEndpoints
       :> "metadata"
       :> Get '[JSON] ExperimentMetadata
 
+  , -- | Download experiment data file that stores experiment with given ID
+    deGetExperimentFile :: route
+      :- "experiment"
+      :> Summary "Download experiment data file that stores experiment with given ID"
+      :> Capture "experimentId" ExperimentId
+      :> "file"
+      :> Get '[OctetStream]
+        (Headers '[Header "Content-Disposition" Text] ExperimentFileBlob)
+
   , -- | Get sub-experiment's (meta-)data by ID.
     deGetSubExperiment :: route
       :- "subExperiment"
@@ -128,6 +139,8 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
   , deGetExperimentMetadata = getExperimentMetadata
+  , deGetExperimentFile = \i -> getExperimentFile i <&>
+      \(name, blob) -> addHeader ("attachment;filename=" <> name) blob
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements
   }

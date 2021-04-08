@@ -10,6 +10,7 @@ module Edna.Dashboard.Service
   , analyseNewSubExperiment
   , getExperiments
   , getExperimentMetadata
+  , getExperimentFile
   , getSubExperiment
   , getMeasurements
   ) where
@@ -30,8 +31,8 @@ import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
-  (ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..),
-  NewSubExperimentReq(..), SubExperimentResp(..))
+  (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..),
+  MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileMetadata(..))
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
@@ -161,6 +162,14 @@ getExperimentMetadata expId =
   Q.getDescriptionAndMetadata expId >>=
   justOrThrow (DEExperimentNotFound expId) <&>
   \(description, PgJSON (FileMetadata meta)) -> ExperimentMetadata description meta
+
+-- | Get contents of experiment file that stores experiment with given ID.
+-- File name is also returned.
+getExperimentFile :: ExperimentId -> Edna (Text, ExperimentFileBlob)
+getExperimentFile expId =
+  Q.getFileNameAndBlob expId >>=
+  justOrThrow (DEExperimentNotFound expId) <&>
+  second ExperimentFileBlob
 
 -- | Get sub-experiment with given ID.
 getSubExperiment :: SubExperimentId -> Edna (WithId 'SubExperimentId SubExperimentResp)
