@@ -19,6 +19,9 @@ module Test.SampleData
   , sampleFile
   , sampleFile2
   , sampleMetadata
+  , sampleDescription
+  , sampleFileName
+  , sampleFileBlob
   -- ↓ Violating style guide a bit, hopefully that's ok ↓
   , targetName1, targetName2, targetName3, targetName4
   , compoundName1, compoundName2, compoundName3, compoundName4, compoundName5
@@ -158,6 +161,15 @@ m5 = Measurement
 sampleMetadata :: FileMetadata
 sampleMetadata = FileMetadata ["foo", "room", "mood"]
 
+sampleDescription :: Text
+sampleDescription = "descr"
+
+sampleFileName :: Text
+sampleFileName = "file"
+
+sampleFileBlob :: LByteString
+sampleFileBlob = BSL.singleton 228
+
 ----------------
 -- Miscellaneous
 ----------------
@@ -192,4 +204,5 @@ addSampleMethodologies =
 -- | Upload file with dummy metadata, bytes and description.
 uploadFileTest :: ProjectId -> MethodologyId -> FileContents -> Edna ()
 uploadFileTest projectId methodologyId =
-  void . Upload.uploadFile' projectId methodologyId "descr" "name" BSL.empty
+  void . Upload.uploadFile' projectId methodologyId sampleDescription
+  sampleFileName sampleFileBlob
