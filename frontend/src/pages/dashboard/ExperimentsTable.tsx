@@ -1,5 +1,5 @@
 import "./DashboardPage.scss";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, waitForAll } from "recoil";
 import React, { useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
@@ -12,9 +12,11 @@ import { Experiment } from "../../store/types";
 import "../../components/Table/Table.scss";
 import { Button } from "../../components/Button/Button";
 import "./ExperimentsTable.scss";
-import { experimentsTableSizeAtom } from "../../store/atoms";
+import { experimentsTableSizeAtom, subExperimentsMetaAtom } from "../../store/atoms";
 import { useAddSubExperiment, useRemoveSubExperiments } from "../../store/updaters";
 import { ExpandMinimizeButton } from "./ExpandMinimizeButton";
+import { SubexperimentPlate } from "./SubexperimentPlate";
+import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -124,6 +126,11 @@ export function ExperimentsTableSuspendable({
                 ? experiments
                 : experiments.filter(e => selectedExperiments.has(e.id))
             }
+            collapsible={e => (
+              <SuspenseSpinner>
+                <ExperimentsCollapse experiment={e} />
+              </SuspenseSpinner>
+            )}
           />
         )}
       </div>
@@ -166,6 +173,20 @@ function ShowEntriesSwitch({
       >
         Show selected
       </Button>
+    </div>
+  );
+}
+
+function ExperimentsCollapse({ experiment }: { experiment: Experiment }) {
+  const subExperiments = useRecoilValue(
+    waitForAll(experiment.subExperiments.map(subId => subExperimentsMetaAtom(subId)))
+  );
+
+  return (
+    <div className="experimentsTable__subexperiments">
+      {subExperiments.map(s => (
+        <SubexperimentPlate subexperiment={s} />
+      ))}
     </div>
   );
 }

@@ -15,7 +15,7 @@ const plotConfig = {
 
 interface PlotlyChartProps {
   className?: string;
-  subExperiments: SubExperimentWithMeasurements[];
+  subExperiments: [SubExperimentWithMeasurements, string][];
 }
 
 export default function PlotlyChart({
@@ -24,20 +24,21 @@ export default function PlotlyChart({
 }: PlotlyChartProps): React.ReactElement {
   const chartKey = uuidv4();
   const Plot = createPlotlyComponent(Plotly);
+
   return (
     <Plot
       key={chartKey}
       className={cx("compoundPlot", className)}
-      data={subExperiments.map(ex => {
-        const sorted = ex.measurements.slice().sort((x, y) => x.concentration - y.concentration);
+      data={subExperiments.map(([sex, color]) => {
+        const sorted = sex.measurements.slice().sort((x, y) => x.concentration - y.concentration);
         return {
-          name: ex.meta.item.name,
+          name: sex.meta.item.name,
           x: sorted.map(a => a.concentration),
           y: sorted.map(a => a.signal),
           type: "scatter",
           "xaxis.type": "log",
           mode: "lines+markers",
-          marker: { color: colors[Math.abs(hashCode(`${ex.meta.id}`)) % colors.length] },
+          marker: { color },
         };
       })}
       layout={{
@@ -49,21 +50,4 @@ export default function PlotlyChart({
       config={plotConfig}
     />
   );
-}
-
-const colors = ["red", "blue", "green", "yellow", "pink", "aqua", "chartreuse"];
-
-// To determine compound color by its name.
-// We want to have a compound the same color
-// regardless of chart where it's plotted.
-function hashCode(str: string) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const chr = str.charCodeAt(i);
-    // eslint-disable-next-line no-bitwise
-    hash = (hash << 5) - hash + chr;
-    // eslint-disable-next-line no-bitwise
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
 }

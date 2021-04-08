@@ -55,21 +55,31 @@ $cell-indent: 22 * $px;
   }
 
   &__row {
-    &:nth-child(even) {
-      border: 0;
+    border: 0;
 
-      &:hover {
-        background-color: $color-light-green;
-      }
+    &_striped {
+      background-color: #fafafa;
     }
 
-    &:nth-child(odd) {
-      background-color: #fafafa;
-      border: 0;
+    &:hover {
+      background-color: $color-light-green;
+    }
 
+    &_collapsible {
       &:hover {
-        background-color: $color-light-green;
+        cursor: pointer;
       }
+    }
+  }
+
+  &__rowShownCollapse {
+    display: none;
+    height: 0;
+    border-bottom: $px solid $border-color;
+
+    &_shown {
+      display: table-cell;
+      height: 100%;
     }
   }
 }

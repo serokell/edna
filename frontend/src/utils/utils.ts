@@ -32,3 +32,7 @@ export function extraFormatter(items: string[]): string {
   if (items.length <= 4) return items.join(", ");
   return `${items.slice(0, 4).join(", ")} and ${items.length - 4} more`;
 }
+
+export function zip<A, B>(a: A[], b: B[]): [A, B][] {
+  return a.map((e, i) => [e, b[i]]);
+}

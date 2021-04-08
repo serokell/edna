@@ -22,3 +22,10 @@
     max-height: 522 * $px;
   }
 }
+
+.experimentsTable {
+  &__subexperiments {
+    display: flex;
+    padding: 16 * $px;
+  }
+}

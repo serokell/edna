@@ -64,7 +64,7 @@ export const selectedSubExperimentsIdsAtom = atom<Set<number>>({
   default: new Set<number>(),
 });
 
-export const subExperimentsMeta = atomFamily<SubExperimentDto, number>({
+export const subExperimentsMetaAtom = atomFamily<SubExperimentDto, number>({
   key: "SubExperimentsMeta",
   default: async subExperimentId => {
     return Api.fetchSubExperiment(subExperimentId);
@@ -76,4 +76,14 @@ export const subExperimentsMeasurements = atomFamily<MeasurementDto[], number>({
   default: async subExperimentId => {
     return Api.fetchMeasurements(subExperimentId);
   },
+});
+
+export const colorsCounterAtom = atomFamily<number, string>({
+  key: "SelectedSubExperimentsColors",
+  default: 0,
+});
+
+export const selectedSubExperimentsColorAtom = atomFamily<Maybe<string>, number>({
+  key: "SelectedSubExperimentsColor",
+  default: undefined,
 });

@@ -1,0 +1,52 @@
+@import "src/styles/variables";
+@import "src/styles/fonts";
+
+.subexperimentPlate {
+  display: flex;
+  flex-direction: column;
+  min-width: 165 * $px;
+  padding: (10 * $px) (16 * $px);
+  border: (2 * $px) solid $color-stroke2;
+  border-radius: 3 * $px;
+
+  &__head {
+    @include paragraph-p2;
+    margin-bottom: 7 * $px;
+  }
+
+  &__satisfactoryStatus {
+    margin-right: 11 * $px;
+  }
+
+  &:hover {
+    background-color: #fafafa;
+  }
+
+  &__ic50 {
+    display: flex;
+  }
+
+  &__ic50label {
+    margin-right: 9 * $px;
+    font-size: 12 * $px;
+    font-weight: 400;
+    line-height: 15 * $px;
+    color: $color-titles-gray;
+  }
+
+  &__ic50value {
+    @include paragraph-p2;
+  }
+}
+
+.satisfactoryStatus {
+  color: $color-stroke;
+
+  &__ok {
+    color: $color-help-green;
+  }
+
+  &__bad {
+    color: $color-help-red;
+  }
+}

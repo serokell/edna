@@ -1,6 +1,7 @@
 // Derived state should be placed here
 import { selector, selectorFamily, waitForAll } from "recoil";
 import {
+  colorsCounterAtom,
   compoundIdSelectedAtom,
   compoundsReqIdAtom,
   methodologiesRequestIdAtom,
@@ -8,7 +9,7 @@ import {
   projectsRequestIdAtom,
   selectedSubExperimentsIdsAtom,
   subExperimentsMeasurements,
-  subExperimentsMeta,
+  subExperimentsMetaAtom,
   targetIdSelectedAtom,
   targetsRequestIdAtom,
 } from "./atoms";
@@ -88,7 +89,10 @@ export const subExperimentsWithMeasurementsQuery = selectorFamily<
   key: "SubExperiments",
   get: subExperimentId => async ({ get }) => {
     const [meta, measurements] = get(
-      waitForAll([subExperimentsMeta(subExperimentId), subExperimentsMeasurements(subExperimentId)])
+      waitForAll([
+        subExperimentsMetaAtom(subExperimentId),
+        subExperimentsMeasurements(subExperimentId),
+      ])
     );
     return { meta, measurements };
   },
@@ -133,7 +137,7 @@ export const filteredExperimentsQuery = selector<ExperimentsWithMean>({
           methodologyName,
           uploadDate: e.item.uploadDate,
           subExperiments: e.item.subExperiments,
-          primarySubExperiment: get(subExperimentsMeta(e.item.primarySubExperiment)),
+          primarySubExperiment: get(subExperimentsMetaAtom(e.item.primarySubExperiment)),
         };
       })
       .filter(
@@ -167,5 +171,27 @@ export const selectedExperimentsQuery = selector<Set<number>>({
     return new Set(
       filtered.filter(e => isDefined(e.subExperiments.find(x => subs.has(x)))).map(x => x.id)
     );
+  },
+});
+
+export const minAmountColor = selector<string>({
+  key: "MinAmountColor",
+  get: ({ get }) => {
+    const chartColors = [
+      "#C6E294",
+      "#8E95D5",
+      "#E6D85D",
+      "#3D9C97",
+      "#C15959",
+      "#53AC62",
+      "#A26BC4",
+      "#6076E0",
+      "#374275",
+      "#BF5688",
+    ];
+
+    const amounts = chartColors.map(col => get(colorsCounterAtom(col)));
+    const minColorIdx = amounts.reduce((mnIdx, v, i) => (v < amounts[mnIdx] ? i : mnIdx), 0);
+    return chartColors[minColorIdx];
   },
 });

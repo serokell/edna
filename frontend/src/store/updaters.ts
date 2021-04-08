@@ -4,12 +4,15 @@
 
 import { RecoilState, useRecoilCallback, useSetRecoilState } from "recoil";
 import {
+  colorsCounterAtom,
   compoundsReqIdAtom,
   methodologiesRequestIdAtom,
   projectsRequestIdAtom,
+  selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
   targetsRequestIdAtom,
 } from "./atoms";
+import { minAmountColor } from "./selectors";
 
 function useQueryRefresher(reqId: RecoilState<number>): () => void {
   const setReqId = useSetRecoilState(reqId);
@@ -34,7 +37,10 @@ export function useMethodologiesRefresher(): () => void {
 
 export function useAddSubExperiment(): (subExp: number) => void {
   return useRecoilCallback(
-    ({ set }) => (id: number) => {
+    ({ set, snapshot }) => async (id: number) => {
+      const newCol = await snapshot.getPromise(minAmountColor);
+      set(colorsCounterAtom(newCol), prevAm => prevAm + 1);
+      set(selectedSubExperimentsColorAtom(id), newCol);
       set(selectedSubExperimentsIdsAtom, old => new Set(old.add(id)));
     },
     [selectedSubExperimentsIdsAtom]
@@ -43,7 +49,12 @@ export function useAddSubExperiment(): (subExp: number) => void {
 
 export function useRemoveSubExperiments(): (subExps: number[]) => void {
   return useRecoilCallback(
-    ({ set }) => (ids: number[]) => {
+    ({ set, snapshot }) => (ids: number[]) => {
+      ids.forEach(async id => {
+        const curCol = await snapshot.getPromise(selectedSubExperimentsColorAtom(id));
+        if (curCol) set(colorsCounterAtom(curCol), prevAm => prevAm - 1);
+        set(selectedSubExperimentsColorAtom(id), undefined);
+      });
       set(selectedSubExperimentsIdsAtom, old => {
         ids.forEach(id => old.delete(id));
         return new Set(old);
