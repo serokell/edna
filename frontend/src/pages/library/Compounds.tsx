@@ -62,6 +62,7 @@ export function CompoundsSuspendable(): React.ReactElement {
           <ContextActions
             actions={[
               <EditContextItem
+                key="edit"
                 onClick={() => {
                   setModalDialog({
                     kind: "add-edit-link",

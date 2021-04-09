@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Column, useTable } from "react-table";
+import { v4 as uuidv4 } from "uuid";
 import "./Table.scss";
 import cn from "../../utils/bemUtils";
 
@@ -57,7 +58,7 @@ export function Table<T extends object>({
         {rows.map((row, i) => {
           prepareRow(row);
           return (
-            <>
+            <React.Fragment key={uuidv4()}>
               <tr
                 {...row.getRowProps()}
                 className={ednaTable("row", { collapsible: isCollapsible, striped: i % 2 === 0 })}
@@ -95,7 +96,7 @@ export function Table<T extends object>({
                   </td>
                 </tr>
               )}
-            </>
+            </React.Fragment>
           );
         })}
       </tbody>

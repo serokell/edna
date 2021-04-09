@@ -15,6 +15,8 @@ import { isDefined, zip } from "../../utils/utils";
 export const DashboardPage: FunctionComponent = () => {
   const dashboardPage = cn("dashboardPage");
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
+  const plotlyClassName = dashboardPage("chart", { size: negateTableSize(expTableSize) });
+  const experimentsClassName = dashboardPage("experiments", { size: expTableSize });
 
   return (
     <PageLayout>
@@ -22,15 +24,13 @@ export const DashboardPage: FunctionComponent = () => {
         <ProjectSelector className={dashboardPage("projectSelector")} />
         <CompoundSelector className={dashboardPage("compoundSelector")} />
         <TargetSelector className={dashboardPage("targetSelector")} />
-        <SuspenseSpinner className={dashboardPage("spinner")}>
-          <>
-            <PlotlyChartSuspendable
-              className={dashboardPage("chart", { size: negateTableSize(expTableSize) })}
-            />
-            <ExperimentsTableSuspendable
-              className={dashboardPage("experiments", { size: expTableSize })}
-            />
-          </>
+
+        <SuspenseSpinner className={plotlyClassName}>
+          <PlotlyChartSuspendable className={plotlyClassName} />
+        </SuspenseSpinner>
+
+        <SuspenseSpinner className={experimentsClassName}>
+          <ExperimentsTableSuspendable className={experimentsClassName} />
         </SuspenseSpinner>
       </div>
     </PageLayout>

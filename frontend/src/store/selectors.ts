@@ -16,7 +16,12 @@ import {
 import Api from "../api/api";
 import { isDefined, Maybe } from "../utils/utils";
 import { CompoundDto, ExperimentsWithMeanDto, ProjectDto, TargetDto } from "../api/types";
-import { Experiment, ExperimentsWithMean, SubExperimentWithMeasurements } from "./types";
+import {
+  chartColors,
+  Experiment,
+  ExperimentsWithMean,
+  SubExperimentWithMeasurements,
+} from "./types";
 
 // Library page
 export const projectsQuery = selector({
@@ -128,7 +133,9 @@ export const filteredExperimentsQuery = selector<ExperimentsWithMean>({
         const projectName = findName(projects, e.item.project);
         const compoundName = findName(compounds, e.item.compound);
         const targetName = findName(targets, e.item.target);
-        const methodologyName = findName(methodologies, e.item.methodology);
+        const methodologyName = e.item.methodology
+          ? findName(methodologies, e.item.methodology)
+          : undefined;
         return {
           id: e.id,
           projectName,
@@ -141,11 +148,7 @@ export const filteredExperimentsQuery = selector<ExperimentsWithMean>({
         };
       })
       .filter(
-        e =>
-          isDefined(e.projectName) &&
-          isDefined(e.compoundName) &&
-          isDefined(e.targetName) &&
-          isDefined(e.methodologyName)
+        e => isDefined(e.projectName) && isDefined(e.compoundName) && isDefined(e.targetName)
       ) as Experiment[];
 
     return {
@@ -166,8 +169,8 @@ export const selectedSubExperimentsQuery = selector<SubExperimentWithMeasurement
 export const selectedExperimentsQuery = selector<Set<number>>({
   key: "SelectedExperiments",
   get: ({ get }) => {
-    const subs = get(selectedSubExperimentsIdsAtom);
     const filtered = get(filteredExperimentsQuery).experiments;
+    const subs = get(selectedSubExperimentsIdsAtom);
     return new Set(
       filtered.filter(e => isDefined(e.subExperiments.find(x => subs.has(x)))).map(x => x.id)
     );
@@ -177,19 +180,6 @@ export const selectedExperimentsQuery = selector<Set<number>>({
 export const minAmountColor = selector<string>({
   key: "MinAmountColor",
   get: ({ get }) => {
-    const chartColors = [
-      "#C6E294",
-      "#8E95D5",
-      "#E6D85D",
-      "#3D9C97",
-      "#C15959",
-      "#53AC62",
-      "#A26BC4",
-      "#6076E0",
-      "#374275",
-      "#BF5688",
-    ];
-
     const amounts = chartColors.map(col => get(colorsCounterAtom(col)));
     const minColorIdx = amounts.reduce((mnIdx, v, i) => (v < amounts[mnIdx] ? i : mnIdx), 0);
     return chartColors[minColorIdx];

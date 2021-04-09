@@ -39,6 +39,7 @@ export function ProjectsSuspendable(): React.ReactElement {
           <ContextActions
             actions={[
               <EditContextItem
+                key="edit"
                 onClick={() =>
                   setModalDialog({
                     kind: "create-edit-project",

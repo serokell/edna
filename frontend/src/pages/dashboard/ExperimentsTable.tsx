@@ -3,6 +3,7 @@ import { useRecoilValue, waitForAll } from "recoil";
 import React, { useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
+import { v4 as uuidv4 } from "uuid";
 import { Table } from "../../components/Table/Table";
 import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../store/selectors";
 import { formatDateTimeDto } from "../../utils/utils";
@@ -12,7 +13,11 @@ import { Experiment } from "../../store/types";
 import "../../components/Table/Table.scss";
 import { Button } from "../../components/Button/Button";
 import "./ExperimentsTable.scss";
-import { experimentsTableSizeAtom, subExperimentsMetaAtom } from "../../store/atoms";
+import {
+  experimentsTableSizeAtom,
+  selectedSubExperimentsIdsAtom,
+  subExperimentsMetaAtom,
+} from "../../store/atoms";
 import { useAddSubExperiment, useRemoveSubExperiments } from "../../store/updaters";
 import { ExpandMinimizeButton } from "./ExpandMinimizeButton";
 import { SubexperimentPlate } from "./SubexperimentPlate";
@@ -27,6 +32,7 @@ export function ExperimentsTableSuspendable({
 }: ExperimentsTableSuspendableProps): React.ReactElement {
   const { experiments } = useRecoilValue(filteredExperimentsQuery);
   const [showEntries, setShowEntries] = useState<ShowEntries>("all");
+  const selectedSubexperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
   const addSubExperiment = useAddSubExperiment();
   const removeSubExperiments = useRemoveSubExperiments();
   const selectedExperiments = useRecoilValue(selectedExperimentsQuery);
@@ -67,13 +73,16 @@ export function ExperimentsTableSuspendable({
             if (e.target.checked) {
               addSubExperiment(exp.primarySubExperiment.id);
             } else {
+              if (selectedSubexperiments.size === 1) {
+                setShowEntries("all");
+              }
               removeSubExperiments(exp.subExperiments);
             }
           }}
         />
       ),
     }),
-    [selectedExperiments, addSubExperiment, removeSubExperiments]
+    [selectedSubexperiments, selectedExperiments, addSubExperiment, removeSubExperiments]
   );
 
   const minimizedColumns: Column<Experiment>[] = React.useMemo(
@@ -105,35 +114,36 @@ export function ExperimentsTableSuspendable({
 
   return (
     <div className={cx("experimentsArea", className)}>
-      <div className="experimentsArea__controlBtns">
-        <ShowEntriesSwitch
-          value={showEntries}
-          onChange={setShowEntries}
-          disabledSelected={selectedExperiments.size === 0}
-        />
-        <ExpandMinimizeButton targetSize="expanded" />
-      </div>
-
-      <div className="tableContainer experimentsArea__experimentsTableContainer">
-        {experiments.length === 0 ? (
-          <EmptyPlaceholder title="No experiments match" />
-        ) : (
-          <Table<Experiment>
-            small
-            columns={expTableSize === "minimized" ? minimizedColumns : expandedColumns}
-            data={
-              showEntries === "all"
-                ? experiments
-                : experiments.filter(e => selectedExperiments.has(e.id))
-            }
-            collapsible={e => (
-              <SuspenseSpinner>
-                <ExperimentsCollapse experiment={e} />
-              </SuspenseSpinner>
-            )}
-          />
-        )}
-      </div>
+      {experiments.length === 0 ? (
+        <EmptyPlaceholder title="No experiments match" />
+      ) : (
+        <>
+          <div className="experimentsArea__controlBtns">
+            <ShowEntriesSwitch
+              value={showEntries}
+              onChange={setShowEntries}
+              disabledSelected={selectedExperiments.size === 0}
+            />
+            <ExpandMinimizeButton targetSize="expanded" />
+          </div>
+          <div className="tableContainer experimentsArea__experimentsTableContainer">
+            <Table<Experiment>
+              small
+              columns={expTableSize === "minimized" ? minimizedColumns : expandedColumns}
+              data={
+                showEntries === "all"
+                  ? experiments
+                  : experiments.filter(e => selectedExperiments.has(e.id))
+              }
+              collapsible={e => (
+                <SuspenseSpinner>
+                  <ExperimentsCollapse experiment={e} />
+                </SuspenseSpinner>
+              )}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -185,7 +195,7 @@ function ExperimentsCollapse({ experiment }: { experiment: Experiment }) {
   return (
     <div className="experimentsTable__subexperiments">
       {subExperiments.map(s => (
-        <SubexperimentPlate subexperiment={s} />
+        <SubexperimentPlate key={uuidv4()} subexperiment={s} />
       ))}
     </div>
   );

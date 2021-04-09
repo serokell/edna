@@ -81,6 +81,7 @@ export function MethodsSuspendable(): React.ReactElement {
           <ContextActions
             actions={[
               <EditContextItem
+                key="edit"
                 onClick={() => {
                   setModalDialog({
                     kind: "create-edit-methodology",
@@ -89,6 +90,7 @@ export function MethodsSuspendable(): React.ReactElement {
                 }}
               />,
               <DeleteContextItem
+                key="delete"
                 onClick={() => {
                   setModalDialog({
                     kind: "delete-methodology",

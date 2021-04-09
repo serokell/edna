@@ -15,7 +15,7 @@ export interface Experiment {
   projectName: string;
   compoundName: string;
   targetName: string;
-  methodologyName: string;
+  methodologyName?: string;
   uploadDate: DateTimeDto;
   subExperiments: number[];
   primarySubExperiment: SubExperimentDto;
@@ -65,3 +65,16 @@ export function negateTableSize(size: ExperimentsTableSize): ExperimentsTableSiz
   if (size === "expanded") return "minimized";
   return "expanded";
 }
+
+export const chartColors = [
+  "#C6E294",
+  "#8E95D5",
+  "#E6D85D",
+  "#3D9C97",
+  "#C15959",
+  "#53AC62",
+  "#A26BC4",
+  "#6076E0",
+  "#374275",
+  "#BF5688",
+];

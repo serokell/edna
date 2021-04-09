@@ -28,11 +28,11 @@ export type SubExperimentDto = Dto<{
   result: number[];
 }>;
 
-export type MeasurementDto = {
+export type MeasurementDto = Dto<{
   concentration: number;
   signal: number;
   isEnabled: boolean;
-};
+}>;
 
 interface ProjectBodyDto {
   name: string;
@@ -77,7 +77,7 @@ export type ExperimentDto = Dto<{
   project: number;
   compound: number;
   target: number;
-  methodology: number;
+  methodology?: number;
   uploadDate: DateTimeDto;
   subExperiments: number[];
   primarySubExperiment: number;
