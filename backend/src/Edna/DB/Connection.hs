@@ -7,6 +7,8 @@ module Edna.DB.Connection
 
 import Universum
 
+import Control.Concurrent (threadDelay)
+import Control.Exception.Safe (catchIOError)
 import Data.Pool (Pool, createPool, destroyAllResources)
 import Data.Time.Clock (nominalDay)
 import Database.Beam.Postgres (Connection, close, connectPostgreSQL)
@@ -36,11 +38,23 @@ createConnPool
   -> m ConnPool
 createConnPool (ConnString connStr) maxConnsNum = liftIO $ ConnPool <$>
   createPool
-  (connectPostgreSQL connStr)   -- connection creation action
-  close                         -- connection destroy action
-  1                             -- number of individual pools (just one is fine)
-  nominalDay                    -- maximum time the connection should remain open while unused
-  maxConnsNum                   -- maximum number of DB connections.
+  (withRetry 8 $ connectPostgreSQL connStr)  -- connection creation action
+  close        -- connection destroy action
+  1            -- number of individual pools (just one is fine)
+  nominalDay   -- maximum time the connection should remain open while unused
+  maxConnsNum  -- maximum number of DB connections.
+  where
+    aSecond = 1e6
+    -- We try to reconnect in case of an error because if we launch postgres
+    -- and edna-server at nearly the same time, edna-server may try to connect
+    -- before postgres starts accepting connections.
+    -- It may happen if you deploy using @docker-compose@ for example.
+    withRetry :: Word -> IO a -> IO a
+    withRetry n action = action `catchIOError` \e -> do
+      when (n == 0) $ throwM e
+      hPutStrLn @Text stderr "Trying to connect to the DB…"
+      threadDelay aSecond
+      withRetry (n - 1) action
 
 -- | Destroys a @ConnPool@.
 destroyConnPool :: MonadIO m => ConnPool -> m ()

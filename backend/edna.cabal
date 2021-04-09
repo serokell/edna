@@ -91,6 +91,7 @@ library
     postgresql-simple,
     resource-pool,
     rio,
+    safe-exceptions,
     servant,
     servant-multipart,
     servant-server,
