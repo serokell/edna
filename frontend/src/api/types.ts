@@ -60,6 +60,7 @@ interface MethodologyBodyDto {
   name: string;
   description?: string;
   confluence?: string;
+  projects: string[];
 }
 
 export type MethodologyDto = Dto<MethodologyBodyDto>;

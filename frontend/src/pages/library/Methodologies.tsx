@@ -4,6 +4,7 @@ import React from "react";
 import { modalDialogAtom } from "../../store/atoms";
 import { methodologiesQuery } from "../../store/selectors";
 import { MethodologyDto } from "../../api/types";
+import { extraFormatter } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import EditSvg from "../../assets/svg/edit.svg";
@@ -21,8 +22,8 @@ export function MethodsSuspendable(): React.ReactElement {
         accessor: (t: MethodologyDto) => t.item.name,
       },
       {
-        Header: "Project",
-        accessor: () => "project1, project2",
+        Header: "Projects",
+        accessor: (t: MethodologyDto) => extraFormatter(t.item.projects),
       },
       {
         Header: "Confluence link",
