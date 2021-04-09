@@ -53,4 +53,4 @@ instance ToSchema Params4PL where
 --
 -- TODO [EDNA-71] Implement!
 analyse4PL :: [(Double, Double)] -> IO Params4PL
-analyse4PL _ = pure (Params4PL 1 2 3 4)
+analyse4PL _ = pure (Params4PL 36404 1.14 33 -2552)

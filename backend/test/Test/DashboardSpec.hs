@@ -158,7 +158,7 @@ gettersSpec = do
           getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
         liftIO $ do
           length erExperiments `shouldBe` 1
-          erMeanIC50 `shouldBe` Just 3
+          erMeanIC50 `shouldBe` Just 33
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erTarget `shouldBe` targetId
     describe "getExperimentMetadata" $ do
