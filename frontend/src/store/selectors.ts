@@ -4,6 +4,7 @@ import {
   colorsCounterAtom,
   compoundIdSelectedAtom,
   compoundsReqIdAtom,
+  filteredExperimentsReqIdAtom,
   methodologiesRequestIdAtom,
   projectSelectedIdAtom,
   projectsRequestIdAtom,
@@ -106,6 +107,7 @@ export const subExperimentsWithMeasurementsQuery = selectorFamily<
 const filteredExperimentsDtoQuery = selector<ExperimentsWithMeanDto>({
   key: "FilteredExperimentsDtoQuery",
   get: async ({ get }) => {
+    get(filteredExperimentsReqIdAtom);
     const projectId = get(projectSelectedIdAtom);
     const compoundId = get(compoundIdSelectedAtom);
     const targetId = get(targetIdSelectedAtom);

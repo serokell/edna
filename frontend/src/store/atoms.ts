@@ -39,6 +39,11 @@ export const excelFileAtom = atom<FileUploadState>({
 });
 
 // Dashboard page
+export const filteredExperimentsReqIdAtom = atom<number>({
+  key: "filteredExperimentsReqId",
+  default: 0,
+});
+
 export const projectSelectedIdAtom = atom<Maybe<number>>({
   key: "DashboardProjectIdSelected",
   default: undefined,

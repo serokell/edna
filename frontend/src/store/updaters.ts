@@ -6,6 +6,7 @@ import { RecoilState, useRecoilCallback, useSetRecoilState } from "recoil";
 import {
   colorsCounterAtom,
   compoundsReqIdAtom,
+  filteredExperimentsReqIdAtom,
   methodologiesRequestIdAtom,
   projectsRequestIdAtom,
   selectedSubExperimentsColorAtom,
@@ -33,6 +34,10 @@ export function useTargetsRefresher(): () => void {
 
 export function useMethodologiesRefresher(): () => void {
   return useQueryRefresher(methodologiesRequestIdAtom);
+}
+
+export function useFilteredExperimentsRefresher(): () => void {
+  return useQueryRefresher(filteredExperimentsReqIdAtom);
 }
 
 export function useAddSubExperiment(): (subExp: number) => void {

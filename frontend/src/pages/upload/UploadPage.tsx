@@ -21,6 +21,7 @@ import { MethodologyDto, ProjectDto } from "../../api/types";
 import { methodologiesQuery, projectsQuery } from "../../store/selectors";
 import {
   useCompoundsRefresher,
+  useFilteredExperimentsRefresher,
   useProjectRefresher,
   useTargetsRefresher,
 } from "../../store/updaters";
@@ -32,6 +33,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const projectsRefresher = useProjectRefresher();
   const targetsRefresher = useTargetsRefresher();
   const compoundsRefresher = useCompoundsRefresher();
+  const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
 
   return (
     <PageLayout>
@@ -64,6 +66,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               projectsRefresher();
               targetsRefresher();
               compoundsRefresher();
+              filteredExperimentsRefresher();
             }
           } catch (ex) {
             setExcelFile({ state: "failed-to-add", reason: ex.message });
