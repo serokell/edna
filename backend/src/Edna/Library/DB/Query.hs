@@ -16,6 +16,7 @@ module Edna.Library.DB.Query
   , getProjectsWithCompounds
   , insertProject
   , updateProject
+  , touchProject
   , insertTarget
   , getTargetByName
   , getCompoundByName
@@ -29,7 +30,7 @@ import qualified Data.List.NonEmpty as NE
 import qualified Database.Beam.Postgres.Full as Pg
 
 import Database.Beam.Backend (SqlSerial(..))
-import Database.Beam.Postgres (pgNubBy_)
+import Database.Beam.Postgres (now_, pgNubBy_)
 import Database.Beam.Query
   (all_, asc_, cast_, default_, filter_, guard_, insert, insertExpressions, int, just_, leftJoin_,
   lookup_, orderBy_, select, update, val_, (<-.), (==.))
@@ -318,12 +319,19 @@ insertProject ProjectReq{..} = runInsertReturningOne' $
       }
     ]
 
--- | Update project bu its ID
+-- | Update project by its ID
 updateProject :: ProjectId -> ProjectReq -> Edna ()
 updateProject (SqlId projectId) ProjectReq{..} =
   runUpdate' $ update (esProject ednaSchema)
     (\p -> mconcat
       [ LDB.pName p <-. val_ prqName
       , LDB.pDescription p <-. val_ prqDescription
-      , LDB.pLastUpdate p <-. default_])
+      , LDB.pLastUpdate p <-. now_])
+    (\p -> pProjectId p ==. val_ (SqlSerial projectId))
+
+-- | Update timestamp of last modification of the project
+touchProject :: ProjectId -> Edna ()
+touchProject (SqlId projectId) =
+  runUpdate' $ update (esProject ednaSchema)
+    (\p -> LDB.pLastUpdate p <-. now_)
     (\p -> pProjectId p ==. val_ (SqlSerial projectId))
