@@ -24,7 +24,7 @@ import Hedgehog (Concrete, Test)
 import Lens.Micro.Platform (makeLenses)
 
 import Edna.ExperimentReader.Types (FileContents)
-import Edna.Library.Web.Types (MethodologyReqResp, ProjectReq)
+import Edna.Library.Web.Types (MethodologyReq, ProjectReq)
 import Edna.Util (CompoundId, MethodologyId, ProjectId, TargetId)
 
 -- It's currently incomplete (just like everything in this file),
@@ -40,7 +40,7 @@ data EdnaState (v :: Type -> Type) = EdnaState
   -- ^ A way to quickly find compound ID by its name.
   , _esProjects :: HashMap ProjectId ProjectState
   -- ^ All projects added so far.
-  , _esTestMethodologies :: HashMap MethodologyId MethodologyReqResp
+  , _esTestMethodologies :: HashMap MethodologyId MethodologyReq
   -- ^ All test methodologies added so far.
   } deriving stock (Show, Eq)
 

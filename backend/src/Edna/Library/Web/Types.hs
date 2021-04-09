@@ -3,7 +3,8 @@
 module Edna.Library.Web.Types
   ( TargetResp (..)
   , CompoundResp (..)
-  , MethodologyReqResp (..)
+  , MethodologyReq (..)
+  , MethodologyResp (..)
   , ProjectReq (..)
   , ProjectResp (..)
   ) where
@@ -61,23 +62,42 @@ instance ToSchema ProjectResp where
   declareNamedSchema = gDeclareNamedSchema
 
 -- | Test methodology as submitted by end users.
-data MethodologyReqResp = MethodologyReqResp
-  { mrpName :: Text
-  , mrpDescription :: Maybe Text
-  , mrpConfluence :: Maybe URI
+data MethodologyReq = MethodologyReq
+  { mrqName :: Text
+  , mrqDescription :: Maybe Text
+  , mrqConfluence :: Maybe URI
   } deriving stock (Generic, Show, Eq)
 
-instance Buildable MethodologyReqResp where
+instance Buildable MethodologyReq where
   build = genericF
 
-instance Buildable (ForResponseLog MethodologyReqResp) where
+instance Buildable (ForResponseLog MethodologyReq) where
   build = buildForResponse
 
-deriveJSON ednaAesonWebOptions ''MethodologyReqResp
+deriveJSON ednaAesonWebOptions ''MethodologyReq
 
 -- We define @ToSchema URI@ elsewhere to have less modules
 -- with orphans.
-instance ToSchema URI => ToSchema MethodologyReqResp where
+instance ToSchema URI => ToSchema MethodologyReq where
+  declareNamedSchema = gDeclareNamedSchema
+
+-- | Test methodology as response from the server.
+data MethodologyResp = MethodologyResp
+  { mrName :: Text
+  , mrDescription :: Maybe Text
+  , mrConfluence :: Maybe URI
+  , mrProjects :: [Text]
+  } deriving stock (Generic, Show, Eq)
+
+instance Buildable MethodologyResp where
+  build = genericF
+
+instance Buildable (ForResponseLog MethodologyResp) where
+  build = buildForResponse
+
+deriveJSON ednaAesonWebOptions ''MethodologyResp
+
+instance ToSchema URI => ToSchema MethodologyResp where
   declareNamedSchema = gDeclareNamedSchema
 
 -- | Targets are not submitted directly by users, so for now

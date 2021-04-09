@@ -48,7 +48,7 @@ import qualified Edna.Upload.Service as Upload
 
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
-import Edna.Library.Web.Types (MethodologyReqResp(..), ProjectReq(ProjectReq))
+import Edna.Library.Web.Types (MethodologyReq(..), ProjectReq(ProjectReq))
 import Edna.Setup (Edna)
 import Edna.Util (MethodologyId, ProjectId, SqlId(..))
 import Edna.Util.URI (URI, parseURI)
@@ -201,9 +201,9 @@ addSampleProjects =
 -- | Add sample methodologies from this module one by one. IDs are assigned from 1.
 addSampleMethodologies :: Edna ()
 addSampleMethodologies =
-  Library.addMethodology (MethodologyReqResp methodologyName1
+  Library.addMethodology (MethodologyReq methodologyName1
     methodologyDescription1 methodologyConfluence1) *>
-  Library.addMethodology (MethodologyReqResp methodologyName2
+  Library.addMethodology (MethodologyReq methodologyName2
     methodologyDescription2 methodologyConfluence2) $>
   ()
 
