@@ -22,6 +22,7 @@ import qualified Edna.Upload.DB.Query as UQ
 
 import Edna.Analysis.FourPL (analyse4PL)
 import Edna.DB.Integration (transact)
+import Edna.Dashboard.DB.Schema (SubExperimentT(..))
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Library.DB.Query (getMethodologyById, getProjectById)
@@ -128,7 +129,10 @@ insertExperiment experimentFileId compoundId targetId measurements = do
   expId <- UQ.insertExperiment experimentFileId compoundId targetId
   -- TODO [EDNA-71] Pass actual points.
   analysisRes <- liftIO $ analyse4PL []
-  subExpId <- UQ.insertSubExperiment expId analysisRes
+  let defaultSubExpName = "Primary"
+  subExpId <-
+    fromSqlSerial . seSubExperimentId <$>
+    UQ.insertSubExperiment expId defaultSubExpName analysisRes
   UQ.insertPrimarySubExperiment expId subExpId
   measurementIds <- UQ.insertMeasurements expId measurements
   let removedIds = map fst . filter (EReader.mIsOutlier . snd) $ zip measurementIds measurements

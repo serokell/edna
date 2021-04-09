@@ -25,6 +25,7 @@ import Fmt (fmt, (+|), (|+))
 import Servant.API (NoContent(..))
 
 import qualified Edna.Dashboard.DB.Query as Q
+import qualified Edna.Upload.DB.Query as UQ
 
 import Edna.Analysis.FourPL (Params4PL(..), analyse4PL)
 import Edna.DB.Integration (transact)
@@ -90,7 +91,7 @@ newSubExperiment subExpId req = do
     expId <-
       justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
     result <- subExperimentRecToResp <$>
-      Q.createSubExperiment expId (nserName req) newResult
+      UQ.insertSubExperiment expId (nserName req) newResult
     result <$ insertRemovedMeasurements (wiId result) removed
 
 -- | A version of 'newSubExperiment' that doesn't save anything to the DB.
