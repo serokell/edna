@@ -44,6 +44,7 @@ import Database.Beam.Backend (SqlSerial(..))
 import Fmt (Buildable(..), pretty, (+|), (|+))
 import qualified GHC.Generics as G
 import Servant (FromHttpApiData(..))
+import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Read (Read(..), read)
 import qualified Text.Show
@@ -188,6 +189,9 @@ newtype SqlId (t :: IdType) = SqlId
 
 instance Buildable (SqlId t) where
   build (SqlId n) = "ID#" <> build n
+
+instance Buildable (ForResponseLog (SqlId t)) where
+  build = buildForResponse
 
 instance ToParamSchema (SqlId t) where
   toParamSchema = gToParamSchema

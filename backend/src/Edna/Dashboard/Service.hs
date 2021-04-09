@@ -6,7 +6,11 @@ module Edna.Dashboard.Service
   , setNameSubExperiment
   , setIsSuspiciousSubExperiment
   , deleteSubExperiment
+  , newSubExperiment
+  , analyseNewSubExperiment
   , getExperiments
+  , getExperimentMetadata
+  , getExperimentFile
   , getSubExperiment
   , getMeasurements
   ) where
@@ -21,16 +25,22 @@ import Fmt (fmt, (+|), (|+))
 import Servant.API (NoContent(..))
 
 import qualified Edna.Dashboard.DB.Query as Q
+import qualified Edna.Upload.DB.Query as UQ
 
-import Edna.Analysis.FourPL (Params4PL(..))
-import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentT(..))
+import Edna.Analysis.FourPL (Params4PL(..), analyse4PL)
+import Edna.DB.Integration (transact)
+import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
-  (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), SubExperimentResp(..))
+  (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..),
+  MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
+import Edna.ExperimentReader.Types (FileMetadata(..))
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
+import Edna.Upload.DB.Query (insertRemovedMeasurements)
 import Edna.Util
-  (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId, justOrThrow, unSqlId)
+  (CompoundId, ExperimentId, IdType(..), MeasurementId, ProjectId, SubExperimentId, TargetId,
+  fromSqlSerial, justOrThrow, unSqlId)
 import Edna.Web.Types (WithId(..))
 
 -- | Make given sub-experiment the primary one for its parent experiment.
@@ -64,9 +74,56 @@ setIsSuspiciousSubExperiment subExpId isSuspicious = do
 -- primary.
 deleteSubExperiment :: SubExperimentId -> Edna NoContent
 deleteSubExperiment subExpId = NoContent <$ do
-  logMessage $ fmt $ "Deleting sub-experiment " +| subExpId |+ ""
-  unlessM (Q.deleteSubExperiment subExpId) $
-    throwM $ DECantDeletePrimary subExpId
+  -- Using @transact@ to avoid concurrent deletion between existence check and deletion
+  transact $ do
+    -- Check existence (not the optimal way, but it likely doesn't matter)
+    void $ getMeasurements subExpId
+    logMessage $ fmt $ "Deleting sub-experiment " +| subExpId |+ ""
+    unlessM (Q.deleteSubExperiment subExpId) $
+      throwM $ DECantDeletePrimary subExpId
+
+-- | Create a new sub-experiment based on existing one.
+newSubExperiment ::
+  SubExperimentId -> NewSubExperimentReq -> Edna (WithId 'SubExperimentId SubExperimentResp)
+newSubExperiment subExpId req = do
+  (removed, newResult) <- analyseNewSubExperiment subExpId req
+  transact $ do
+    expId <-
+      justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
+    result <- subExperimentRecToResp <$>
+      UQ.insertSubExperiment expId (nserName req) newResult
+    result <$ insertRemovedMeasurements (wiId result) removed
+
+-- | A version of 'newSubExperiment' that doesn't save anything to the DB.
+-- Returns IDs of all removed measurements in the new sub-experiment and
+-- 4PL parameters.
+analyseNewSubExperiment ::
+  SubExperimentId -> NewSubExperimentReq -> Edna ([MeasurementId], Params4PL)
+analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
+  measurements <- getMeasurements subExpId
+  liftIO $ (computeRemovedMeasurements measurements,) <$>
+    analyse4PL (computeNewPoints measurements)
+  where
+    computeNewPoints ::
+      [WithId 'MeasurementId MeasurementResp] -> [(Double, Double)]
+    computeNewPoints = mapMaybe stepActive
+
+    stepActive ::
+      WithId 'MeasurementId MeasurementResp -> Maybe (Double, Double)
+    stepActive wi@WithId {..} =
+      (mrConcentration wItem, mrSignal wItem) <$ guard (not $ isRemoved wi)
+
+    computeRemovedMeasurements ::
+      [WithId 'MeasurementId MeasurementResp] -> [MeasurementId]
+    computeRemovedMeasurements = mapMaybe stepRemoved
+
+    stepRemoved ::
+      WithId 'MeasurementId MeasurementResp -> Maybe MeasurementId
+    stepRemoved wi = wiId wi <$ guard (isRemoved wi)
+
+    isRemoved ::
+      WithId 'MeasurementId MeasurementResp -> Bool
+    isRemoved WithId {..} = mrIsEnabled wItem == HS.member wiId nserChanges
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
 -- compound ID and target ID. If filters by compound and target are specified,
@@ -102,25 +159,48 @@ computeMeanIC50 resps = do
 unwrapResult :: PgJSON Params4PL -> Params4PL
 unwrapResult (PgJSON res) = res
 
+-- | Get all metadata about experiment data file containing experiment
+-- with this ID. "All" metadata means metadata from the file itself
+-- along with description provided by the user.
+getExperimentMetadata :: ExperimentId -> Edna ExperimentMetadata
+getExperimentMetadata expId =
+  Q.getDescriptionAndMetadata expId >>=
+  justOrThrow (DEExperimentNotFound expId) <&>
+  \(description, PgJSON (FileMetadata meta)) -> ExperimentMetadata description meta
+
+-- | Get contents of experiment file that stores experiment with given ID.
+-- File name is also returned.
+getExperimentFile :: ExperimentId -> Edna (Text, ExperimentFileBlob)
+getExperimentFile expId =
+  Q.getFileNameAndBlob expId >>=
+  justOrThrow (DEExperimentNotFound expId) <&>
+  second ExperimentFileBlob
+
 -- | Get sub-experiment with given ID.
 getSubExperiment :: SubExperimentId -> Edna (WithId 'SubExperimentId SubExperimentResp)
-getSubExperiment subExpId = do
-  SubExperimentRec {..} <-
-    justOrThrow (DESubExperimentNotFound subExpId) =<<
-    Q.getSubExperiment subExpId
-  return $ WithId subExpId SubExperimentResp
+getSubExperiment subExpId =
+  justOrThrow (DESubExperimentNotFound subExpId) =<<
+  subExperimentRecToResp <<$>> Q.getSubExperiment subExpId
+
+subExperimentRecToResp ::
+  SubExperimentRec -> WithId 'SubExperimentId SubExperimentResp
+subExperimentRecToResp SubExperimentRec {..} =
+  WithId (fromSqlSerial seSubExperimentId) SubExperimentResp
     { serName = seName
     , serIsSuspicious = seIsSuspicious
     , serResult = unwrapResult seResult
     }
 
 -- | Get all measurements from sub-experiment with given ID.
-getMeasurements :: SubExperimentId -> Edna [MeasurementResp]
+getMeasurements :: SubExperimentId -> Edna [WithId 'MeasurementId MeasurementResp]
 getMeasurements subExpId = do
-  measurementRecs <- Q.getMeasurements subExpId
+  expId <-
+    justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
+  measurementRecs <- Q.getMeasurements expId
   removedSet <- HS.fromList . map unSqlId <$> Q.getRemovedMeasurements subExpId
   let
-    convert MeasurementRec {..} = MeasurementResp
+    convert MeasurementRec {..} =
+      WithId (fromSqlSerial mMeasurementId) $ MeasurementResp
       { mrConcentration = mConcentration
       , mrSignal = mSignal
       , mrIsEnabled = not $ unSerial mMeasurementId `HS.member` removedSet

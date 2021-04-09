@@ -10,6 +10,7 @@ import Universum
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Swagger (ToSchema(..))
 import Fmt (Buildable(..), tupleF)
+import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
 
 -- | Parameters of 4PL function, analysis outcome of this analysis method.
 -- The function is defined as follows:
@@ -31,6 +32,9 @@ toTuple Params4PL {..} = (p4plA, p4plB, p4plC, p4plD)
 instance Buildable Params4PL where
   build = tupleF . toTuple
 
+instance Buildable (ForResponseLog Params4PL) where
+  build = buildForResponse
+
 -- Serializing as a tuple for brevity.
 instance ToJSON Params4PL where
   toJSON = toJSON . toTuple
@@ -49,4 +53,4 @@ instance ToSchema Params4PL where
 --
 -- TODO [EDNA-71] Implement!
 analyse4PL :: [(Double, Double)] -> IO Params4PL
-analyse4PL _ = pure (Params4PL 1 2 3 4)
+analyse4PL _ = pure (Params4PL 36404 1.14 33 -2552)

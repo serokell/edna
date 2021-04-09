@@ -18,7 +18,7 @@ import Edna.DB.Integration (runInsert', runInsertReturningList', runInsertReturn
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
   (ExperimentT(..), MeasurementT(..), PrimarySubExperimentT(..), RemovedMeasurementsT(..),
-  SubExperimentT(..), theOnlyAnalysisMethodId)
+  SubExperimentRec, SubExperimentT(..), theOnlyAnalysisMethodId)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
@@ -39,21 +39,21 @@ insertExperiment (SqlId experimentFileId) (SqlId compoundId) (SqlId targetId) =
         }
       ])
 
--- | Insert primary sub-experiment and return its ID
---
--- TODO [EDNA-73] Support non-primary sub-experiments
-insertSubExperiment :: ExperimentId -> Params4PL -> Edna SubExperimentId
-insertSubExperiment (SqlId experimentId) res = fromSqlSerial . seSubExperimentId <$>
-  runInsertReturningOne' (insert (esSubExperiment ednaSchema) $ insertExpressions
-    [ SubExperimentRec
+-- | Insert a new sub-experiment as a child of existing experiment.
+insertSubExperiment :: ExperimentId -> Text -> Params4PL -> Edna SubExperimentRec
+insertSubExperiment (SqlId experimentId) newName result =
+  runInsertReturningOne'
+    (insert (esSubExperiment ednaSchema) $ insertExpressions [newSubExpRec])
+  where
+    newSubExpRec :: SubExperimentT (QExpr Postgres s)
+    newSubExpRec = SubExperimentRec
       { seSubExperimentId = default_
-      , seName = val_ "Primary"
       , seAnalysisMethodId = val_ theOnlyAnalysisMethodId
+      , seName = val_ newName
       , seExperimentId = val_ experimentId
       , seIsSuspicious = val_ False
-      , seResult = val_ (PgJSON res)
+      , seResult = val_ (PgJSON result)
       }
-    ])
 
 -- | Insert given pair of IDs into the table with primary sub-experiments, i. e.
 -- mark sub-experiment with given ID as the primary one for experiment with

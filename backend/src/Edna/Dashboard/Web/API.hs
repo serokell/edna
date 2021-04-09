@@ -8,17 +8,21 @@ module Edna.Dashboard.Web.API
 
 import Universum
 
-import Servant (ReqBody)
-import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary, (:>))
+import Servant (ReqBody, addHeader)
+import Servant.API
+  (Capture, Delete, Get, Header, Headers, JSON, NoContent, OctetStream, Post, Put, QueryParam,
+  Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
 
+import Edna.Analysis.FourPL (Params4PL)
 import Edna.Dashboard.Service
-  (deleteSubExperiment, getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment,
+  (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
+  getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
   setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
-import Edna.Util (CompoundId, IdType(..), ProjectId, SubExperimentId, TargetId)
+import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
 import Edna.Web.Types (StubSortBy, WithId)
 
 -- TODO: pagination and sorting are just stubs for now.
@@ -58,6 +62,25 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Capture "subExperimentId" SubExperimentId
       :> Delete '[JSON] NoContent
 
+  , -- | Create a new sub-experiment from existing one.
+    deNewSubExp :: route
+      :- "subExperiment"
+      :> Summary "Create a new sub-experiment from existing one."
+      :> Capture "subExperimentId" SubExperimentId
+      :> "new"
+      :> ReqBody '[JSON] NewSubExperimentReq
+      :> Post '[JSON] (WithId 'SubExperimentId SubExperimentResp)
+
+  , -- | Analyse a new sub-experiment that is not created yet.
+    deAnalyseNewSubExp :: route
+      :- "subExperiment"
+      :> Summary "Analyse a new sub-experiment that is not created yet."
+      :> Capture "subExperimentId" SubExperimentId
+      :> "new"
+      :> "analyse"
+      :> ReqBody '[JSON] NewSubExperimentReq
+      :> Post '[JSON] Params4PL
+
   , -- | Get known experiments with optional pagination and sorting
     deGetExperiments :: route
       :- "experiments"
@@ -70,6 +93,23 @@ data DashboardEndpoints route = DashboardEndpoints
       :> QueryParam "size" Word
       :> QueryParam "sortby" StubSortBy
       :> Get '[JSON] ExperimentsResp
+
+  , -- | Get experiment's metadata by ID
+    deGetExperimentMetadata :: route
+      :- "experiment"
+      :> Summary "Get experiment's metadata by ID"
+      :> Capture "experimentId" ExperimentId
+      :> "metadata"
+      :> Get '[JSON] ExperimentMetadata
+
+  , -- | Download experiment data file that stores experiment with given ID
+    deGetExperimentFile :: route
+      :- "experiment"
+      :> Summary "Download experiment data file that stores experiment with given ID"
+      :> Capture "experimentId" ExperimentId
+      :> "file"
+      :> Get '[OctetStream]
+        (Headers '[Header "Content-Disposition" Text] ExperimentFileBlob)
 
   , -- | Get sub-experiment's (meta-)data by ID.
     deGetSubExperiment :: route
@@ -84,7 +124,7 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Summary "Get sub-experiment's measurements by ID"
       :> Capture "subExperimentId" SubExperimentId
       :> "measurements"
-      :> Get '[JSON] [MeasurementResp]
+      :> Get '[JSON] [WithId 'MeasurementId MeasurementResp]
   } deriving stock (Generic)
 
 type DashboardAPI = ToServant DashboardEndpoints AsApi
@@ -95,7 +135,12 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deSetNameSubExp = setNameSubExperiment
   , deSetIsSuspiciousSubExp = setIsSuspiciousSubExperiment
   , deDeleteSubExp = deleteSubExperiment
+  , deNewSubExp = newSubExperiment
+  , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
+  , deGetExperimentMetadata = getExperimentMetadata
+  , deGetExperimentFile = \i -> getExperimentFile i <&>
+      \(name, blob) -> addHeader ("attachment;filename=" <> name) blob
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements
   }

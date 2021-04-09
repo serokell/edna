@@ -24,6 +24,7 @@ module Test.Gen
   , genExperimentResp
   , genSubExperimentResp
   , genMeasurementResp
+  , genExperimentMetadata
   , genName
   , genURI
   , genDescription
@@ -40,6 +41,7 @@ module Test.Gen
 import Universum
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.HashSet as HS
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
@@ -147,6 +149,12 @@ genTargetResp = do
   trAdditionDate <- genUTCTime
   return TargetResp {..}
 
+genNewSubExperimentReq :: MonadGen m => m NewSubExperimentReq
+genNewSubExperimentReq =
+  NewSubExperimentReq
+  <$> genName
+  <*> (HS.fromList <$> Gen.list (Range.linear 0 5) genSqlId)
+
 genExperimentsResp :: MonadGen m => m ExperimentsResp
 genExperimentsResp =
   ExperimentsResp
@@ -177,6 +185,12 @@ genMeasurementResp = do
   mrSignal <- genDoubleSmallPrec
   mrIsEnabled <- Gen.bool
   return MeasurementResp {..}
+
+genExperimentMetadata :: MonadGen m => m ExperimentMetadata
+genExperimentMetadata = do
+  emDescription <- genDescription
+  FileMetadata emFileMetadata <- genFileMetadata
+  return ExperimentMetadata {..}
 
 genFileContents :: MonadGen m => m Text -> m Text -> m FileContents
 genFileContents genTargetName genCompoundName = do
@@ -299,6 +313,9 @@ instance Arbitrary CompoundResp where
 instance Arbitrary TargetResp where
   arbitrary = hedgehog genTargetResp
 
+instance Arbitrary NewSubExperimentReq where
+  arbitrary = hedgehog genNewSubExperimentReq
+
 instance Arbitrary ExperimentsResp where
   arbitrary = hedgehog genExperimentsResp
 
@@ -310,6 +327,9 @@ instance Arbitrary SubExperimentResp where
 
 instance Arbitrary MeasurementResp where
   arbitrary = hedgehog genMeasurementResp
+
+instance Arbitrary ExperimentMetadata where
+  arbitrary = hedgehog genExperimentMetadata
 
 -- Is needed for swagger tests
 instance Arbitrary Text where
