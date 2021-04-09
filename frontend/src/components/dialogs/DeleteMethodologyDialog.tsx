@@ -5,7 +5,7 @@ import { modalDialogAtom } from "../../store/atoms";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
 import { Button } from "../Button/Button";
 import Api from "../../api/api";
-import { useProjectRefresher } from "../../store/updaters";
+import { useMethodologiesRefresher } from "../../store/updaters";
 
 interface DeleteMethodologyDialogProps {
   methodology: MethodologyDto;
@@ -15,7 +15,7 @@ export function DeleteMethodologyDialog({
   methodology,
 }: DeleteMethodologyDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const refreshProjects = useProjectRefresher();
+  const refreshMethodologies = useMethodologiesRefresher();
 
   return (
     <DialogLayout
@@ -48,7 +48,7 @@ export function DeleteMethodologyDialog({
           try {
             await Api.deleteMethodology(methodology.id);
             setModalDialog(undefined);
-            refreshProjects();
+            refreshMethodologies();
           } catch (ex) {
             console.log("Error on methodology delete", ex.message);
           }
