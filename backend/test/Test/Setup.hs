@@ -2,6 +2,7 @@ module Test.Setup
   ( withContext
   , runWithInit
   , ednaTestMode
+  , runTestEdna
   ) where
 
 import Universum
@@ -13,7 +14,9 @@ import RIO (runRIO)
 import System.Environment (lookupEnv)
 import Test.Hspec (Spec, SpecWith, around)
 
-import Edna.Config.Definition (DbInit(..), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb)
+import Edna.Config.Definition
+  (DbInit(..), LoggingConfig(LogNothing), dbConnString, dbInitialisation, defaultEdnaConfig, ecDb,
+  ecLogging)
 import Edna.DB.Initialisation (schemaInit)
 import Edna.Setup (Edna, EdnaContext(..), runEdna)
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
@@ -45,7 +48,8 @@ withContext = around withContext'
       connString <- postgresTestServerConnString
       let testConfig = defaultEdnaConfig &
             ecDb . dbInitialisation ?~ DbInit EnableWithDrop "./sql/init.sql" &
-            ecDb . dbConnString .~ connString
+            ecDb . dbConnString .~ connString &
+            ecLogging .~ LogNothing
       runEdna testConfig $ do
         ctx <- ask
         liftIO $ callback ctx
@@ -56,3 +60,9 @@ runWithInit ctx action = runRIO ctx $ schemaInit *> action
 
 ednaTestMode :: EdnaContext -> PropertyT Edna a -> PropertyT IO ()
 ednaTestMode ctx = void . hoist (runWithInit ctx)
+
+-- | This helper is convenient to use to construct argument to 'Test.Hspec.it'
+-- inside @SpecWith EdnaContext@. You can write test's body inside the 'Edna'
+-- monad.
+runTestEdna :: Edna () -> EdnaContext -> IO ()
+runTestEdna = flip runRIO

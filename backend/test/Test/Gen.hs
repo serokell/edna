@@ -189,13 +189,13 @@ genFileMetadata :: MonadGen m => m FileMetadata
 genFileMetadata = FileMetadata <$> Gen.list (Range.constant 0 50) genDescription
 
 -- Common logic of 'genFileMeasurements' and 'genTargetMeasurements'.
-genHashMap ::
+genMap ::
   forall m k v. (MonadGen m, Text ~ k) =>
-  m k -> Int -> m v -> m (HashMap k v)
-genHashMap genK minSize genV = do
+  m k -> Int -> m v -> m (Map k v)
+genMap genK minSize genV = do
   names <- Gen.set (Range.linear minSize 10) genK
   let
-    step :: HashMap k v -> k -> m (HashMap k v)
+    step :: Map k v -> k -> m (Map k v)
     step acc name = do
       v <- genV
       return $ acc & at name ?~ v
@@ -203,14 +203,14 @@ genHashMap genK minSize genV = do
   foldM step mempty names
 
 genFileMeasurements ::
-  MonadGen m => m Text -> m Text -> m (HashMap Text TargetMeasurements)
+  MonadGen m => m Text -> m Text -> m (Map Text TargetMeasurements)
 genFileMeasurements genTargetName genCompoundName =
-  genHashMap genTargetName 0 (genTargetMeasurements genCompoundName)
+  genMap genTargetName 0 (genTargetMeasurements genCompoundName)
 
 genTargetMeasurements :: MonadGen m => m Text -> m TargetMeasurements
 genTargetMeasurements genCompoundName =
   TargetMeasurements <$>
-  genHashMap genCompoundName 1 (Gen.list (Range.linear 1 50) genMeasurement)
+  genMap genCompoundName 1 (Gen.list (Range.linear 1 50) genMeasurement)
 
 genMeasurement :: MonadGen m => m Measurement
 genMeasurement = do

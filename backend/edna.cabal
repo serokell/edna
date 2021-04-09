@@ -130,6 +130,7 @@ test-suite edna-test
       Test.DB.DBSpec
       Test.DB.Gen
       Test.Gen
+      Test.LibrarySpec
       Test.Orphans
       Test.ParserSpec
       Test.SampleData

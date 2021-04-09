@@ -7,9 +7,9 @@ module Edna.ExperimentReader.Parser
 import Universum
 
 import qualified Data.ByteString.Lazy as L
-import qualified Data.HashMap.Strict as HM
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
+import qualified Data.Map.Strict as Map
 
 import Codec.Xlsx (CellValue(..), Worksheet(..), cellValue, ixCell, toXlsxEither, wsCells, xlSheets)
 import Data.List.Split (wordsBy)
@@ -120,10 +120,10 @@ processWorkSheet workSheet = do
     pure PlateUnit{..}
 
   let
-    groupToMap :: (Semigroup s, Container s) => [(Text, s)] -> HashMap Text s
+    groupToMap :: (Semigroup s, Container s) => [(Text, s)] -> Map Text s
     groupToMap =
-      flip foldr HM.empty $ \(key, val) ->
-        if null (toList val) then id else HM.insertWith (<>) key val
+      flip foldr Map.empty $ \(key, val) ->
+        if null (toList val) then id else Map.insertWith (<>) key val
 
     ignoreEmptyCell :: Either ExperimentParsingError a -> Bool
     ignoreEmptyCell = either (\case {EmptyCell _ -> False; _ -> True}) (const True)

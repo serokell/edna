@@ -19,7 +19,7 @@ module Edna.ExperimentReader.Types
 import Universum
 
 import Data.Aeson (FromJSON, ToJSON)
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Map.Strict as Map
 import qualified GHC.Show as S
 
 import Codec.Xlsx (CellValue(..))
@@ -43,13 +43,13 @@ data Measurement = Measurement
 -- Keys are compound names, corresponding values are measurements for
 -- this compound.
 newtype TargetMeasurements = TargetMeasurements
-  { unTargetMeasurements :: HashMap Text [Measurement]
+  { unTargetMeasurements :: Map Text [Measurement]
   } deriving stock (Show, Eq)
     deriving newtype (Container)
 
 instance Semigroup TargetMeasurements where
   TargetMeasurements tm1 <> TargetMeasurements tm2 =
-    TargetMeasurements $ HM.unionWith mappend tm1 tm2
+    TargetMeasurements $ Map.unionWith mappend tm1 tm2
 
 instance Monoid TargetMeasurements where
   mempty = TargetMeasurements mempty
@@ -64,7 +64,7 @@ newtype FileMetadata = FileMetadata
 
 -- | All data that we read from a single experiment data file.
 data FileContents = FileContents
-  { fcMeasurements :: HashMap Text TargetMeasurements
+  { fcMeasurements :: Map Text TargetMeasurements
   -- ^ All measumerents in a file.
   -- Keys are target names, corresponding values are measurements for
   -- this target.

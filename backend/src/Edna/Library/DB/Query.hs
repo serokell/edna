@@ -30,12 +30,12 @@ import qualified Database.Beam.Postgres.Full as Pg
 import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (pgNubBy_)
 import Database.Beam.Query
-  (all_, asc_, cast_, default_, delete, filter_, guard_, insert, insertExpressions, int, just_,
-  leftJoin_, lookup_, orderBy_, select, update, val_, (<-.), (==.))
+  (all_, asc_, cast_, default_, filter_, guard_, insert, insertExpressions, int, just_, leftJoin_,
+  lookup_, orderBy_, select, update, val_, (<-.), (==.))
 
 import Edna.DB.Integration
-  (runDelete', runInsert', runInsertReturningOne', runSelectReturningList', runSelectReturningOne',
-  runUpdate')
+  (runDeleteReturningList', runInsert', runInsertReturningOne', runSelectReturningList',
+  runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema (ExperimentT(..))
 import Edna.Library.DB.Schema as LDB
@@ -204,11 +204,14 @@ updateMethodology (SqlId methodologyId) MethodologyReqResp{..} =
       , LDB.tmConfluenceLink tm <-. val_ (renderURI <$> mrpConfluence)])
     (\tm -> tmTestMethodologyId tm ==. val_ (SqlSerial methodologyId))
 
--- | Delete methodology by its ID
-deleteMethodology :: MethodologyId -> Edna ()
+-- | Delete methodology by its ID. Returns whether something was actually
+-- deleted (i. e. methodology with given ID existed before this function call).
+deleteMethodology :: MethodologyId -> Edna Bool
 deleteMethodology (SqlId methodologyId) =
-  runDelete' $ delete (esTestMethodology ednaSchema) $
-  \m -> tmTestMethodologyId m ==. val_ (SqlSerial methodologyId)
+  fmap (not . null) $ runDeleteReturningList' $
+  Pg.deleteReturning (esTestMethodology ednaSchema)
+  (\m -> tmTestMethodologyId m ==. val_ (SqlSerial methodologyId))
+  tmTestMethodologyId
 
 --------------------------
 -- Project

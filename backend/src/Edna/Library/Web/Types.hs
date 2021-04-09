@@ -44,7 +44,7 @@ data ProjectResp = ProjectResp
   , prLastUpdate :: UTCTime
   , prCompoundNames :: [Text]
   -- ^ Names of all compounds involved in this project.
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable ProjectResp where
   build ProjectResp {..} =
@@ -114,7 +114,7 @@ data CompoundResp = CompoundResp
   -- ^ Link to ChemSoft.
   , crAdditionDate :: UTCTime
   -- ^ Timestamp when this compound was added to the system (by uploading a file).
-  } deriving stock (Generic, Show)
+  } deriving stock (Generic, Show, Eq)
 
 instance Buildable CompoundResp where
   build = genericF
