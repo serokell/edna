@@ -2,7 +2,7 @@
 @import "src/styles/variables";
 
 .ednaHeader {
-  width: 100%;
+  min-width: $container-max-width;
   height: 80 * $px;
   background: white;
   box-shadow: (3*$px) (3*$px) (6*$px) rgba(#dfe2e3, 0.5);
@@ -10,7 +10,7 @@
   &__container {
     display: flex;
     align-items: center;
-    max-width: $container-max-width;
+    width: $container-max-width;
     height: 100%;
     padding-right: $container-side-padding;
     padding-left: $container-side-padding;
