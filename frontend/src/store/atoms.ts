@@ -1,6 +1,6 @@
 // Basic state should be here
 import { atom, atomFamily } from "recoil";
-import { ExperimentsTableSize, FileUploadState, ModalDialogState } from "./types";
+import { DisabledPoints, ExperimentsTableSize, FileUploadState, ModalDialogState } from "./types";
 import { Maybe } from "../utils/utils";
 import Api from "../api/api";
 import { MeasurementDto, SubExperimentDto } from "../api/types";
@@ -91,4 +91,12 @@ export const colorsCounterAtom = atomFamily<number, string>({
 export const selectedSubExperimentsColorAtom = atomFamily<Maybe<string>, number>({
   key: "SelectedSubExperimentsColor",
   default: undefined,
+});
+
+export const disabledPointsAtom = atom<DisabledPoints>({
+  key: "ClickedPoints",
+  default: {
+    points: [],
+    curveNumber: -1,
+  },
 });

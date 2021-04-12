@@ -78,3 +78,8 @@ export const chartColors = [
   "#374275",
   "#BF5688",
 ];
+
+export type DisabledPoints = {
+  curveNumber: number;
+  points: MeasurementDto[];
+};

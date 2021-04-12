@@ -44,7 +44,12 @@ interface PlotlyChartSuspendableProps {
 export function PlotlyChartSuspendable({
   className,
 }: PlotlyChartSuspendableProps): React.ReactElement {
-  const subExperiments = useRecoilValue(selectedSubExperimentsQuery);
+  const subExperiments = useRecoilValue(selectedSubExperimentsQuery).map(sex => ({
+    meta: sex.meta,
+    measurements: sex.measurements
+      .slice()
+      .sort((x, y) => x.item.concentration - y.item.concentration),
+  }));
   const colors = useRecoilValue(
     waitForAll(subExperiments.map(sub => selectedSubExperimentsColorAtom(sub.meta.id)))
   );
