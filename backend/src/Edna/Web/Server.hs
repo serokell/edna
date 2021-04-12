@@ -16,11 +16,13 @@ import Universum
 import Data.Default (def)
 import Network.Wai (Middleware)
 import qualified Network.Wai.Handler.Warp as Warp
+import Network.Wai.Middleware.Prometheus (PrometheusSettings(..), prometheus)
 import Network.Wai.Middleware.RequestLogger
   (Destination(..), IPAddrSource(..), OutputFormat(..), RequestLoggerSettings(..), mkRequestLogger)
 import RIO (BufferMode(LineBuffering), hSetBuffering, runRIO)
-import Servant
-  (Application, Handler, NoContent(..), Server, hoistServer, serve, throwError, (:<|>)(..))
+import Prometheus (register)
+import Prometheus.Metric.GHC (ghcMetrics)
+import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 import Servant.Util.Combinators.Logging (ServantLogConfig(..), serverWithLogging)
 
 import Edna.Analysis.FourPL (check4PLConfiguration)
@@ -66,7 +68,7 @@ serveWeb addr loggingConfig app = liftIO $ do
 -- | Makes the @Server@ for Edna API, given 'EdnaContext'.
 ednaServer :: EdnaContext -> Server EdnaAPI
 ednaServer ctx =
-  hoistServer ednaAPI (ednaToHandler ctx) (ednaHandlers :<|> pure NoContent)
+  hoistServer ednaAPI (ednaToHandler ctx) ednaHandlers
 
 -- | Run 'Edna' action inside 'Handler' monad.
 --
@@ -119,4 +121,10 @@ edna = do
       -- No dev logging, no docs
       | otherwise = serve ednaAPI server
 
-  serveWeb listenAddr loggingConfig app
+  _ <- register ghcMetrics
+  let promMiddleware = prometheus $
+        -- we set False for `prometheusInstrumentPrometheus`, because it
+        -- pollutes metrics with regular signal
+        def { prometheusInstrumentPrometheus = False }
+
+  serveWeb listenAddr loggingConfig $ promMiddleware app

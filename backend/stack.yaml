@@ -25,12 +25,14 @@ packages:
 
 extra-deps:
 - beam-core-0.9.0.0
-- beam-postgres-0.5.0.0
 - beam-migrate-0.5.0.0
+- beam-postgres-0.5.0.0
+- constraints-extras-0.3.0.2
 - dependent-map-0.4.0.0
 - dependent-sum-0.7.1.0
-- constraints-extras-0.3.0.2
 - network-uri-json-0.4.0.0
+- prometheus-metrics-ghc-1.0.1.1
+- wai-middleware-prometheus-1.0.0
 # servant-util is in dirty state and is not on Hackage.
 # Perhaps it should be renamed and maybe even split into multiple packages
 # with more precise goals.

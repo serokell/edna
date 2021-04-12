@@ -13,7 +13,7 @@ module Edna.Web.API
 
 import Universum
 
-import Servant.API (GetNoContent, Summary, (:<|>), (:>))
+import Servant.API ((:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 
 import qualified Edna.Dashboard.Web.API as Dashboard
@@ -32,10 +32,7 @@ data EdnaEndpoints route = EdnaEndpoints
   } deriving stock (Generic)
 
 -- | API type specification.
-type EdnaAPI =
-  ToServant EdnaEndpoints AsApi
-  :<|>
-  "health" :> Summary "Check the health of this server" :> GetNoContent
+type EdnaAPI = ToServant EdnaEndpoints AsApi
 
 ednaAPI :: Proxy EdnaAPI
 ednaAPI = Proxy
