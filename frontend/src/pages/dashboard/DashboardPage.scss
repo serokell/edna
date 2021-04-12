@@ -3,7 +3,7 @@
 .dashboardPage {
   display: grid;
   grid-template-rows: (170 * $px) auto;
-  grid-template-columns: repeat(3, 375 * $px);
+  grid-template-columns: 1fr 1fr 1fr;
   row-gap: 36 * $px;
   column-gap: 28 * $px;
 

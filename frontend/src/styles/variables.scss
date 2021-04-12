@@ -5,7 +5,7 @@ $input-border-color: #e1e1e1;
 $input-border-outlined: #2684ff;
 $elem-padding: 10 * $px;
 $container-side-padding: 20 * $px;
-$container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
+$container-max-width: 1440 * $px - 2 * 128 * $px + 2 * $container-side-padding;
 
 $color-black70: rgba(25, 28, 28, 0.7);
 $color-green: #3a8370;
