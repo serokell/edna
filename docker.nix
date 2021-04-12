@@ -43,7 +43,7 @@ in
       name = "usr/share/nginx/html";
       path = "${frontend}";
     }];
-    nginx-conf-template = writeTextDir "etc/nginx/templates/edna.conf.template" ''
+    nginx-conf-template = writeTextDir "etc/nginx/templates/default.conf.template" ''
       server {
         listen 80 default_server;
         root /usr/share/nginx/html;
