@@ -1,6 +1,6 @@
 import * as PlotlyBasic from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import React from "react";
+import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import cx from "classnames";
 import "./Plotting.scss";
@@ -9,8 +9,6 @@ import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlac
 import { SubExperimentWithMeasurements } from "../../../store/types";
 import { disabledPointsAtom } from "../../../store/atoms";
 import { isDefined, Maybe } from "../../../utils/utils";
-
-// import Plot from "react-plotly.js";
 
 const plotConfig = {
   displaylogo: false,
@@ -37,6 +35,22 @@ export default function PlotlyChart({
   const chartKey = uuidv4();
   const Plot = createPlotlyComponent(PlotlyBasic);
   const [disabledPoints, setDisabledPoints] = useRecoilState(disabledPointsAtom);
+  const [plotLayout, setPlotLayout] = useState({
+    xaxis: {
+      type: "log" as const,
+      autorange: true,
+      title: "Concentration [uM]",
+    },
+    yaxis: {
+      title: "Signal",
+    },
+    showlegend: false,
+    margin: {
+      t: 0,
+      r: 0,
+    },
+    hovermode: "closest" as const,
+  });
 
   const fourPLlines: Plotly.Data[] = subExperiments.map(([sex, color]) => {
     return {
@@ -147,24 +161,12 @@ export default function PlotlyChart({
         }
       }}
       onRelayout={newLayout => {
-        console.log("new layout", newLayout);
+        setPlotLayout(old => ({
+          ...old,
+          newLayout,
+        }));
       }}
-      layout={{
-        xaxis: {
-          type: "log",
-          autorange: true,
-          title: "Concentration [uM]",
-        },
-        yaxis: {
-          title: "Signal",
-        },
-        showlegend: false,
-        margin: {
-          t: 0,
-          r: 0,
-        },
-        hovermode: "closest",
-      }}
+      layout={plotLayout}
       config={plotConfig}
     />
   );
