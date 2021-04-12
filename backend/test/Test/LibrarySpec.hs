@@ -23,7 +23,6 @@ import Edna.Setup (EdnaContext)
 import Edna.Util (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId)
 import Edna.Web.Types (WithId(..))
 
-import Test.Orphans ()
 import Test.SampleData
 import Test.Setup (runTestEdna, runWithInit, withContext)
 

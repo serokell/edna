@@ -20,9 +20,8 @@ import Lens.Micro.Platform (at, (?~))
 import qualified Edna.Library.DB.Query as LQ
 import qualified Edna.Upload.DB.Query as UQ
 
-import Edna.Analysis.FourPL (analyse4PL)
+import Edna.Analysis.FourPL (Params4PLReq(..), analyse4PL)
 import Edna.DB.Integration (transact)
-import Edna.Dashboard.DB.Schema (SubExperimentT(..))
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Library.DB.Query (getMethodologyById, getProjectById)
@@ -32,8 +31,8 @@ import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util as U
-  (CompoundId, ExperimentFileId, MethodologyId, ProjectId, SqlId(..), TargetId, fromSqlSerial,
-  justOrThrow)
+  (CompoundId, ExperimentFileId, ExperimentId, MethodologyId, ProjectId, SqlId(..), SubExperimentId,
+  TargetId, fromSqlSerial, justOrThrow)
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
 -- Uses database to determine which targets are new.
@@ -103,18 +102,20 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
       expFileId <- UQ.insertExperimentFile projId methodId (fcMetadata fc)
         description fileName fileBytes
 
-      forM_ (toPairs fileMeasurements) $
-        \(targetName, TargetMeasurements targetMeasurements) ->
-          forM_ (toPairs targetMeasurements) $ \(compoundName, measurements) -> do
-            let
-              getId :: HasCallStack => Text -> HashMap Text (SqlId a) -> SqlId a
-              getId name =
-                fromMaybe (error $ "unexpected name: " <> name) .
-                view (at name)
-            let targetId = getId targetName targetToId
-            let compoundId = getId compoundName compoundToId
-            insertExperiment expFileId compoundId targetId measurements
+      experiments <- sortWith (\a -> (a ^. _1 . _2, a ^. _1 . _3)) <$>
+        (concat <$> (forM (toPairs fileMeasurements) $
+          \(targetName, TargetMeasurements targetMeasurements) ->
+            forM (toPairs targetMeasurements) $ \(compoundName, measurements) -> do
+              let
+                getId :: HasCallStack => Text -> HashMap Text (SqlId a) -> SqlId a
+                getId name =
+                  fromMaybe (error $ "unexpected name: " <> name) .
+                  view (at name)
+              let targetId = getId targetName targetToId
+              let compoundId = getId compoundName compoundToId
+              pure ((expFileId, compoundId, targetId), measurements)))
 
+      insertExperiments experiments
       measurementsToSummary fileMeasurements
 
 insertTarget :: Text -> Edna (Text, TargetId)
@@ -124,16 +125,19 @@ insertCompound :: Text -> Edna (Text, CompoundId)
 insertCompound compoundName =
   (compoundName,) . fromSqlSerial . cCompoundId <$> LQ.insertCompound compoundName
 
-insertExperiment :: ExperimentFileId -> CompoundId -> TargetId -> [Measurement] -> Edna ()
-insertExperiment experimentFileId compoundId targetId measurements = do
-  expId <- UQ.insertExperiment experimentFileId compoundId targetId
-  -- TODO [EDNA-71] Pass actual points.
-  analysisRes <- liftIO $ analyse4PL []
-  let defaultSubExpName = "Primary"
-  subExpId <-
-    fromSqlSerial . seSubExperimentId <$>
-    UQ.insertSubExperiment expId defaultSubExpName analysisRes
-  UQ.insertPrimarySubExperiment expId subExpId
+insertExperiments :: [((ExperimentFileId, CompoundId, TargetId), [Measurement])] -> Edna ()
+insertExperiments experiments = do
+  expIds <- UQ.insertExperiments $ map fst experiments
+  let experimentsWithIds = sortWith fst $ zip expIds $ map snd experiments
+  analysisResults <- analyse4PL $ flip map experimentsWithIds $ \(eId, ms) -> Params4PLReq eId $
+    map (\m -> (mConcentration m, mSignal m)) $ filter (not . EReader.mIsOutlier) ms
+  subExpIds <- UQ.insertSubExperiments analysisResults
+  UQ.insertPrimarySubExperiments $ zip expIds subExpIds
+  mapM_ (\ ((expId, measurements), subExpId) -> insertMeasurements expId subExpId measurements) $
+    zip experimentsWithIds subExpIds
+
+insertMeasurements :: ExperimentId -> SubExperimentId -> [Measurement] -> Edna ()
+insertMeasurements expId subExpId measurements = do
   measurementIds <- UQ.insertMeasurements expId measurements
   let removedIds = map fst . filter (EReader.mIsOutlier . snd) $ zip measurementIds measurements
   UQ.insertRemovedMeasurements subExpId removedIds

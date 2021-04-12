@@ -24,11 +24,13 @@ module Edna.Util
   , fromSqlSerial
   , rightOrThrow
   , localToUTC
+  , buildFromJSON
+  , oneOrError
   ) where
 
 import Universum
 
-import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), withText)
+import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), encode, withText)
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Casing as AC
 import Data.Swagger (ToParamSchema, ToSchema)
@@ -41,7 +43,7 @@ import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
 import Data.Swagger.SchemaOptions (SchemaOptions, fromAesonOptions)
 import Data.Time (LocalTime, UTCTime, localTimeToUTC, utc)
 import Database.Beam.Backend (SqlSerial(..))
-import Fmt (Buildable(..), pretty, (+|), (|+))
+import Fmt (Buildable(..), Builder, pretty, (+|), (|+))
 import qualified GHC.Generics as G
 import Servant (FromHttpApiData(..))
 import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
@@ -170,8 +172,16 @@ ensureOrThrow e b
 rightOrThrow :: (MonadThrow m, Exception e) => (b -> e) -> Either b a -> m a
 rightOrThrow f = either (throwM . f) pure
 
+oneOrError :: Monad m => Text -> [a] -> m a
+oneOrError t = \case
+  [x] -> pure x
+  _ -> error t
+
 localToUTC :: LocalTime -> UTCTime
 localToUTC = localTimeToUTC utc
+
+buildFromJSON :: ToJSON a => a -> Builder
+buildFromJSON x = "" +| decodeUtf8 @Text (encode x) |+ ""
 
 ----------------
 -- SqlId

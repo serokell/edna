@@ -2,15 +2,28 @@
 
 module Edna.Analysis.FourPL
   ( Params4PL (..)
+  , AnalysisResult
+  , Params4PLResp (..)
+  , Params4PLReq (..)
   , analyse4PL
   ) where
 
 import Universum
 
-import Data.Aeson (FromJSON(..), ToJSON(..))
+import Data.Aeson (FromJSON(..), ToJSON(..), eitherDecode, encode)
+import Data.Aeson.TH (deriveJSON)
 import Data.Swagger (ToSchema(..))
-import Fmt (Buildable(..), tupleF)
+import Fmt (Buildable(..), genericF, tupleF)
 import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
+import System.Environment (lookupEnv)
+import System.Exit (ExitCode(..))
+import System.FilePath ((</>))
+import System.Process (StdStream(..), cwd, proc, readCreateProcessWithExitCode, std_err, std_out)
+
+import Edna.Logging (logDebug)
+import Edna.Orphans ()
+import Edna.Setup (Edna)
+import Edna.Util (ExperimentId, ednaAesonWebOptions)
 
 -- | Parameters of 4PL function, analysis outcome of this analysis method.
 -- The function is defined as follows:
@@ -49,8 +62,47 @@ instance ToSchema Params4PL where
   declareNamedSchema Proxy =
     declareNamedSchema @Params4PLTuple Proxy
 
+type AnalysisResult = Either Text Params4PL
+
+instance Buildable AnalysisResult where
+  build = genericF
+
+instance Buildable (ForResponseLog AnalysisResult) where
+  build = buildForResponse
+
+data Params4PLReq = Params4PLReq
+  { plreqExperiment :: ExperimentId
+  , plreqData :: [(Double, Double)]
+  } deriving stock (Generic, Show, Eq)
+
+deriveJSON ednaAesonWebOptions ''Params4PLReq
+
+data Params4PLResp = Params4PLResp
+  { plrspExperiment :: ExperimentId
+  , plrspData :: AnalysisResult
+  } deriving stock (Generic, Show, Eq)
+
+deriveJSON ednaAesonWebOptions ''Params4PLResp
+
+callPythonAnalysis :: String -> Edna (Either String [Params4PLResp])
+callPythonAnalysis request = do
+  logDebug $ toText $ "Python data request: " <> request
+  analysisDir <- liftIO $ fromMaybe (".." </> "analysis") <$> (lookupEnv "EDNA_ANALYSIS_DIR")
+  (exitCode, out, err) <- liftIO $ readCreateProcessWithExitCode
+    (proc "python3" ["analysis" </> "ic50.py", request])
+    { cwd = Just analysisDir, std_out = CreatePipe, std_err = CreatePipe}
+    ""
+  unless (null err) $ logDebug $ "Unexpected python errors: " <> toText err
+  pure $ do
+    unless (exitCode == ExitSuccess) $
+      Left $ "python call exited with " <>
+      show exitCode <> ", stderr: " <> err
+    eitherDecode $ encodeUtf8 $ toString out
+
 -- | This function performs actual analysis and finds the best parameters.
---
--- TODO [EDNA-71] Implement!
-analyse4PL :: [(Double, Double)] -> IO Params4PL
-analyse4PL _ = pure (Params4PL 36404 1.14 33 -2552)
+analyse4PL :: [Params4PLReq] -> Edna [Params4PLResp]
+analyse4PL experiments = do
+  analysisResults <- callPythonAnalysis $ decodeUtf8 $ encode experiments
+  case analysisResults of
+    Left parsingError -> error $ toText parsingError
+    Right params -> pure params

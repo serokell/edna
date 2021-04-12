@@ -27,7 +27,8 @@ import Servant.API (NoContent(..))
 import qualified Edna.Dashboard.DB.Query as Q
 import qualified Edna.Upload.DB.Query as UQ
 
-import Edna.Analysis.FourPL (Params4PL(..), analyse4PL)
+import Edna.Analysis.FourPL
+  (AnalysisResult, Params4PL(..), Params4PLReq(..), Params4PLResp, analyse4PL)
 import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
@@ -40,7 +41,7 @@ import Edna.Setup (Edna)
 import Edna.Upload.DB.Query (insertRemovedMeasurements)
 import Edna.Util
   (CompoundId, ExperimentId, IdType(..), MeasurementId, ProjectId, SubExperimentId, TargetId,
-  fromSqlSerial, justOrThrow, unSqlId)
+  fromSqlSerial, justOrThrow, oneOrError, unSqlId)
 import Edna.Web.Types (WithId(..))
 
 -- | Make given sub-experiment the primary one for its parent experiment.
@@ -98,11 +99,12 @@ newSubExperiment subExpId req = do
 -- Returns IDs of all removed measurements in the new sub-experiment and
 -- 4PL parameters.
 analyseNewSubExperiment ::
-  SubExperimentId -> NewSubExperimentReq -> Edna ([MeasurementId], Params4PL)
+  SubExperimentId -> NewSubExperimentReq -> Edna ([MeasurementId], Params4PLResp)
 analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
+  expId <- justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
   measurements <- getMeasurements subExpId
-  liftIO $ (computeRemovedMeasurements measurements,) <$>
-    analyse4PL (computeNewPoints measurements)
+  result <- analyse4PL [Params4PLReq expId $ computeNewPoints measurements] >>= oneOrError "invalid analysis"
+  pure (computeRemovedMeasurements measurements, result)
   where
     computeNewPoints ::
       [WithId 'MeasurementId MeasurementResp] -> [(Double, Double)]
@@ -110,8 +112,8 @@ analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
 
     stepActive ::
       WithId 'MeasurementId MeasurementResp -> Maybe (Double, Double)
-    stepActive wi@WithId {..} =
-      (mrConcentration wItem, mrSignal wItem) <$ guard (not $ isRemoved wi)
+    stepActive wi@WithId {wItem = MeasurementResp{..}} =
+      (mrConcentration, mrSignal) <$ guard (not $ isRemoved wi)
 
     computeRemovedMeasurements ::
       [WithId 'MeasurementId MeasurementResp] -> [MeasurementId]
@@ -144,19 +146,20 @@ getExperiments mProj mComp mTarget = do
 -- but let's not optimize prematurely.
 computeMeanIC50 :: [ExperimentResp] -> Edna Double
 computeMeanIC50 resps = do
-  avg <$> mapM (getDefaultIC50 . erPrimarySubExperiment) resps
+  avg . mapMaybe (rightToMaybe . second p4plC) <$>
+    mapM (getDefaultResult . erPrimarySubExperiment) resps
   where
     avg :: [Double] -> Double
     avg items = sum items / fromIntegral (length items)
 
-    getDefaultIC50 :: SubExperimentId -> Edna Double
-    getDefaultIC50 subExpId = do
+    getDefaultResult :: SubExperimentId -> Edna AnalysisResult
+    getDefaultResult subExpId = do
       SubExperimentRec {..} <-
         justOrThrow (DESubExperimentNotFound subExpId) =<<
         Q.getSubExperiment subExpId
-      return $ p4plC $ unwrapResult seResult
+      return $ unwrapResult seResult
 
-unwrapResult :: PgJSON Params4PL -> Params4PL
+unwrapResult :: PgJSON AnalysisResult -> AnalysisResult
 unwrapResult (PgJSON res) = res
 
 -- | Get all metadata about experiment data file containing experiment

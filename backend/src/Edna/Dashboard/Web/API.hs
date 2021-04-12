@@ -15,7 +15,7 @@ import Servant.API
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
 
-import Edna.Analysis.FourPL (Params4PL)
+import Edna.Analysis.FourPL (AnalysisResult, Params4PLResp(..))
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
   getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
@@ -79,7 +79,7 @@ data DashboardEndpoints route = DashboardEndpoints
       :> "new"
       :> "analyse"
       :> ReqBody '[JSON] NewSubExperimentReq
-      :> Post '[JSON] Params4PL
+      :> Post '[JSON] AnalysisResult
 
   , -- | Get known experiments with optional pagination and sorting
     deGetExperiments :: route
@@ -136,7 +136,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deSetIsSuspiciousSubExp = setIsSuspiciousSubExperiment
   , deDeleteSubExp = deleteSubExperiment
   , deNewSubExp = newSubExperiment
-  , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
+  , deAnalyseNewSubExp = fmap (plrspData . snd) ... analyseNewSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
   , deGetExperimentMetadata = getExperimentMetadata
   , deGetExperimentFile = \i -> getExperimentFile i <&>

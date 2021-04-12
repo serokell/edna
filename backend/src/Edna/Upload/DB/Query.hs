@@ -1,10 +1,11 @@
 module Edna.Upload.DB.Query
   ( insertExperimentFile
-  , insertExperiment
-  , insertSubExperiment
-  , insertPrimarySubExperiment
   , insertMeasurements
   , insertRemovedMeasurements
+  , insertExperiments
+  , insertSubExperiments
+  , insertPrimarySubExperiments
+  , insertSubExperiment
   ) where
 
 import Universum
@@ -13,7 +14,7 @@ import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Query (default_, insert, insertExpressions, insertValues, val_)
 import Database.Beam.Query.Internal (QExpr)
 
-import Edna.Analysis.FourPL (Params4PL)
+import Edna.Analysis.FourPL (Params4PLResp(..))
 import Edna.DB.Integration (runInsert', runInsertReturningList', runInsertReturningOne')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.Dashboard.DB.Schema
@@ -26,21 +27,38 @@ import Edna.Util
   (CompoundId, ExperimentFileId, ExperimentId, MeasurementId, MethodologyId, ProjectId, SqlId(..),
   SubExperimentId, TargetId, fromSqlSerial)
 
--- | Insert experiment and return its ID
-insertExperiment :: ExperimentFileId -> CompoundId -> TargetId -> Edna ExperimentId
-insertExperiment (SqlId experimentFileId) (SqlId compoundId) (SqlId targetId) =
-  fromSqlSerial . eExperimentId <$>
-    runInsertReturningOne' (insert (esExperiment ednaSchema) $ insertExpressions
-      [ ExperimentRec
+-- | Insert experiments and return their IDs
+-- Returned IDs are sorted by compound and target ids of experiment
+insertExperiments :: [(ExperimentFileId, CompoundId, TargetId)] -> Edna [ExperimentId]
+insertExperiments experiments = map (fromSqlSerial . eExperimentId) .
+  sortWith (\a -> (eCompoundId a, eTargetId a)) <$>
+    runInsertReturningList' (insert (esExperiment ednaSchema) $ insertExpressions $
+      flip map experiments $ \(SqlId experimentFileId, SqlId compoundId, SqlId targetId) ->
+        ExperimentRec
         { eExperimentId = default_
         , eExperimentFileId = val_ experimentFileId
         , eCompoundId = val_ compoundId
         , eTargetId = val_ targetId
-        }
-      ])
+        })
+
+-- | Insert sub-experiments and return their IDs
+-- Returned IDs are sorted by experiment ids of sub-experiment
+insertSubExperiments :: [Params4PLResp] -> Edna [SubExperimentId]
+insertSubExperiments params = map (fromSqlSerial . seSubExperimentId) .
+  sortWith seExperimentId <$>
+    runInsertReturningList' (insert (esSubExperiment ednaSchema) $ insertExpressions $
+      flip map params $ \Params4PLResp{plrspExperiment = SqlId experimentId, ..} ->
+        SubExperimentRec
+        { seSubExperimentId = default_
+        , seName = val_ "Primary"
+        , seAnalysisMethodId = val_ theOnlyAnalysisMethodId
+        , seExperimentId = val_ experimentId
+        , seIsSuspicious = val_ False
+        , seResult = val_ (PgJSON plrspData)
+        })
 
 -- | Insert a new sub-experiment as a child of existing experiment.
-insertSubExperiment :: ExperimentId -> Text -> Params4PL -> Edna SubExperimentRec
+insertSubExperiment :: ExperimentId -> Text -> Params4PLResp -> Edna SubExperimentRec
 insertSubExperiment (SqlId experimentId) newName result =
   runInsertReturningOne'
     (insert (esSubExperiment ednaSchema) $ insertExpressions [newSubExpRec])
@@ -52,21 +70,19 @@ insertSubExperiment (SqlId experimentId) newName result =
       , seName = val_ newName
       , seExperimentId = val_ experimentId
       , seIsSuspicious = val_ False
-      , seResult = val_ (PgJSON result)
+      , seResult = val_ $ PgJSON $ plrspData result
       }
 
--- | Insert given pair of IDs into the table with primary sub-experiments, i. e.
--- mark sub-experiment with given ID as the primary one for experiment with
--- given ID.
-insertPrimarySubExperiment :: ExperimentId -> SubExperimentId -> Edna ()
-insertPrimarySubExperiment (SqlId experimentId) (SqlId subExpId) =
-  runInsert' (insert (esPrimarySubExperiment ednaSchema) $
-  insertValues
-    [ PrimarySubExperimentRec
-      { pseExperimentId = experimentId
-      , pseSubExperimentId = subExpId
-      }
-    ])
+-- | Insert given pairs of IDs into the table with primary sub-experiments, i. e.
+-- mark sub-experiments with given IDs as the primary one for experiments with
+-- given IDs.
+insertPrimarySubExperiments :: [(ExperimentId, SubExperimentId)] -> Edna ()
+insertPrimarySubExperiments ids = runInsert' (insert (esPrimarySubExperiment ednaSchema) $
+  insertValues $ flip map ids $ \(SqlId experimentId, SqlId subExpId) ->
+    PrimarySubExperimentRec
+    { pseExperimentId = experimentId
+    , pseSubExperimentId = subExpId
+    })
 
 -- | Insert list of measurements for given experiment and return IDs of these measurements
 insertMeasurements :: ExperimentId -> [Measurement] -> Edna [MeasurementId]
