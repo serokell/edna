@@ -29,8 +29,10 @@ services:
       POSTGRES_PASSWORD: ednapass
       POSTGRES_DB: ednadb
     volumes:
-      - ./postgres:/var/lib/postgresql/data/
+      - edna-db-data:/var/lib/postgresql/data/
     networks:
       - edna-network
 networks:
   edna-network: { }
+volumes:
+  edna-db-data:
