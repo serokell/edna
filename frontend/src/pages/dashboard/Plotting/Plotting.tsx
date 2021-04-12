@@ -1,15 +1,16 @@
 import * as PlotlyBasic from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import * as Plotly from "plotly.js";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import cx from "classnames";
 import "./Plotting.scss";
 import { useRecoilState } from "recoil";
-import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
-import { SubExperimentWithMeasurements } from "../../store/types";
-import { disabledPointsAtom } from "../../store/atoms";
-import { isDefined, Maybe } from "../../utils/utils";
+import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
+import { SubExperimentWithMeasurements } from "../../../store/types";
+import { disabledPointsAtom } from "../../../store/atoms";
+import { isDefined, Maybe } from "../../../utils/utils";
+
+// import Plot from "react-plotly.js";
 
 const plotConfig = {
   displaylogo: false,
@@ -96,6 +97,7 @@ export default function PlotlyChart({
   }
   const disabledCurveNumber = 2 * subExperiments.length;
 
+  // TODO add disabled points from subplots
   const resultedPlotlyData = plotlyData.concat(fourPLlines);
   if (isDefined(disabledPlotlyData)) {
     resultedPlotlyData.push(disabledPlotlyData);
@@ -144,6 +146,9 @@ export default function PlotlyChart({
           });
         }
       }}
+      onRelayout={newLayout => {
+        console.log("new layout", newLayout);
+      }}
       layout={{
         xaxis: {
           type: "log",
@@ -155,6 +160,7 @@ export default function PlotlyChart({
         },
         showlegend: false,
         margin: {
+          t: 0,
           r: 0,
         },
         hovermode: "closest",

@@ -1,11 +1,14 @@
 import React from "react";
 import { useRecoilValue } from "recoil";
 import cx from "classnames";
-import { SubExperimentDto } from "../../api/types";
-import StatusSvg from "../../assets/svg/status.svg";
+import { SubExperimentDto } from "../../../api/types";
+import StatusSvg from "../../../assets/svg/status.svg";
 import "./SubexperimentPlate.scss";
-import { selectedSubExperimentsColorAtom, selectedSubExperimentsIdsAtom } from "../../store/atoms";
-import { useAddSubExperiment, useRemoveSubExperiments } from "../../store/updaters";
+import {
+  selectedSubExperimentsColorAtom,
+  selectedSubExperimentsIdsAtom,
+} from "../../../store/atoms";
+import { useAddSubExperiment, useRemoveSubExperiments } from "../../../store/updaters";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;

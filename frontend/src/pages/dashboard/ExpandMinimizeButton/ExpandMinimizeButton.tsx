@@ -1,10 +1,10 @@
 import React from "react";
 import { useRecoilState } from "recoil";
-import { ExperimentsTableSize } from "../../store/types";
-import MinimizeSvg from "../../assets/svg/minimize.svg";
-import ExpandSvg from "../../assets/svg/expand.svg";
-import "./ExpandMinimizeBtn.scss";
-import { experimentsTableSizeAtom } from "../../store/atoms";
+import { ExperimentsTableSize } from "../../../store/types";
+import MinimizeSvg from "../../../assets/svg/minimize.svg";
+import ExpandSvg from "../../../assets/svg/expand.svg";
+import "./ExpandMinimizeButton.scss";
+import { experimentsTableSizeAtom } from "../../../store/atoms";
 
 interface ExpandMinimizeButtonProps {
   targetSize: ExperimentsTableSize;

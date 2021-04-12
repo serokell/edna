@@ -1,27 +1,26 @@
-import "./DashboardPage.scss";
 import { useRecoilValue, waitForAll } from "recoil";
 import React, { useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
 import { v4 as uuidv4 } from "uuid";
-import { Table } from "../../components/Table/Table";
-import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../store/selectors";
-import { formatDateTimeDto } from "../../utils/utils";
-import { ContextActions } from "../../components/ContextActions/ContextActions";
-import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
-import { Experiment } from "../../store/types";
-import "../../components/Table/Table.scss";
-import { Button } from "../../components/Button/Button";
-import "./ExperimentsTable.scss";
 import {
   experimentsTableSizeAtom,
   selectedSubExperimentsIdsAtom,
   subExperimentsMetaAtom,
-} from "../../store/atoms";
-import { useAddSubExperiment, useRemoveSubExperiments } from "../../store/updaters";
-import { ExpandMinimizeButton } from "./ExpandMinimizeButton";
-import { SubexperimentPlate } from "./SubexperimentPlate";
-import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
+} from "../../../store/atoms";
+import { Table } from "../../../components/Table/Table";
+import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../../store/selectors";
+import { formatDateTimeDto } from "../../../utils/utils";
+import { ContextActions } from "../../../components/ContextActions/ContextActions";
+import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
+import { Experiment } from "../../../store/types";
+import "../../../components/Table/Table.scss";
+import { Button } from "../../../components/Button/Button";
+import "./ExperimentsTable.scss";
+import { useAddSubExperiment, useRemoveSubExperiments } from "../../../store/updaters";
+import { ExpandMinimizeButton } from "../ExpandMinimizeButton/ExpandMinimizeButton";
+import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
+import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
