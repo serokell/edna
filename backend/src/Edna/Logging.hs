@@ -13,8 +13,7 @@ module Edna.Logging
 import Universum
 
 import Edna.Config.Definition (LoggingConfig(..), ecLogging)
-import Edna.Config.Utils (fromConfig)
-import Edna.Setup (Edna)
+import Edna.Setup (Edna, fromConfig)
 import Edna.Util (logUnconditionally)
 
 -- | Log a debug message with low severity, only in development logging mode.

@@ -4,33 +4,36 @@
 
 module Edna.Util
   ( NetworkAddress (..)
+  , CompoundId
   , ConnString (..)
   , DatabaseInitOption (..)
-  , SqlId (..)
-  , IdType (..)
-  , TargetId
-  , CompoundId
-  , MethodologyId
-  , ProjectId
   , ExperimentFileId
   , ExperimentId
-  , SubExperimentId
+  , Host
+  , IdType (..)
   , MeasurementId
-  , ednaAesonWebOptions
+  , MethodologyId
+  , Port
+  , ProjectId
+  , SqlId (..)
+  , SubExperimentId
+  , TargetId
+  , buildFromJSON
   , ednaAesonConfigOptions
   , ednaAesonPythonOptions
-  , schemaOptions
+  , ednaAesonWebOptions
+  , ensureOrThrow
+  , fromSqlSerial
   , gDeclareNamedSchema
   , gToParamSchema
-  , justOrThrow
-  , nothingOrThrow
-  , ensureOrThrow
   , justOrError
-  , fromSqlSerial
-  , rightOrThrow
+  , justOrThrow
   , localToUTC
-  , buildFromJSON
+  , nothingOrThrow
   , oneOrError
+  , parseDatabaseInitOption
+  , rightOrThrow
+  , schemaOptions
   , uncurry3
   , logUnconditionally
   ) where
@@ -48,6 +51,7 @@ import Data.Swagger.Internal.ParamSchema (GToParamSchema, genericToParamSchema)
 import qualified Data.Swagger.Internal.Schema as S
 import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
 import Data.Swagger.SchemaOptions (SchemaOptions, fromAesonOptions)
+import qualified Data.Text as T
 import Data.Time (LocalTime, UTCTime, localTimeToUTC, utc)
 import Database.Beam.Backend (SqlSerial(..))
 import Fmt (Buildable(..), Builder, pretty, (+|), (|+))
@@ -75,14 +79,25 @@ instance ToJSON ConnString where
 instance Buildable ConnString where
   build (ConnString s) = build $ decodeUtf8 @Text s
 
+instance Semigroup ConnString where
+  ConnString a <> ConnString "" = ConnString a
+  ConnString "" <> ConnString b = ConnString b
+  ConnString a <> ConnString b = ConnString $ a <> " " <> b
+
+instance Monoid ConnString where
+  mempty = ConnString ""
+
 ----------------
 -- NetworkAddress
 ----------------
 
 -- | Datatype which contains info about socket network address
+type Host = Text
+type Port = Word16
+
 data NetworkAddress = NetworkAddress
-  { naHost :: !Text
-  , naPort :: !Word16
+  { naHost :: !Host
+  , naPort :: !Port
   } deriving stock (Eq, Ord, Generic)
 
 instance Buildable NetworkAddress where
@@ -113,11 +128,20 @@ instance ToJSON NetworkAddress where
 data DatabaseInitOption = Enable | EnableWithDrop
   deriving stock (Generic, Show)
 
+-- | Parse DatabaseInitOption
+parseDatabaseInitOption :: e -> String -> Either e DatabaseInitOption
+parseDatabaseInitOption err value =
+  case value of
+    "enable"           -> Right Enable
+    "enable-with-drop" -> Right EnableWithDrop
+    _                  -> Left err
+
 instance FromJSON DatabaseInitOption where
-  parseJSON = withText "DatabaseInitOption" $ \o -> pure case o of
-    "enable" -> Enable
-    "enable-with-drop" -> EnableWithDrop
-    _ -> error $ "Invalid config value: " <> show o
+  parseJSON = withText "DatabaseInitOption" $ \text ->
+    let value = parseDatabaseInitOption Nothing $ T.unpack text
+    in case value of
+      Right x -> return x
+      Left _  -> fail $ "Invalid config value: " <> show text
 
 instance ToJSON DatabaseInitOption where
   toJSON Enable = "enable"

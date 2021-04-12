@@ -3,17 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Config for docker-compose-based local deployment
+# NOTE: All these options can be overwritten by env variables
 api:
-  # Must match the port from `docker-compose.yml`
   listen-addr: "*:9000"
   serve-docs: true
 
 db:
   # Syntax: https://www.postgresql.org/docs/9.5/libpq-connect.html#LIBPQ-CONNSTRING
-  # Must match parameters from `docker-compose.yml`
-  # Database runs in a separate container, and container name is used as its address.
-  # So we pass `postgress` instead of `localhost`.
-  conn-string: "host=postgres dbname=ednadb user=ednauser password=ednapass"
+  # NOTE: `conn-string` is empty here, because we use env variables for
+  #       docker, so .env file have all needed variables to build this one.
+  conn-string: ""
   max-connections: 200
   # Optional value that we use to init DB on start
   initialisation:
@@ -24,5 +23,5 @@ db:
     # Inside the Docker image `init.sql` is available in the root
     init-script: "/init.sql"
 
-# Other possible values: 'Prod' and 'Nothing'.
-logging: Dev
+# Other possible values: "prod" and "nothing".
+logging: "dev"

@@ -21,3 +21,5 @@ If you run all 3 images (by not passing any image or passing `frontend`), you ca
 By default `docker-compose` will pull Edna images from GitHub Container Registry.
 However, if you import an image manually, it will be used instead.
 You can use `docker-compose pull` to update all images.
+
+Note: we use `.env` with default options, if you want to change it - create new file `.env.local` and run `docker-compose --env-file=.env.local start`

@@ -8,21 +8,18 @@ module Main
 
 import Universum
 
-import qualified Data.Yaml as Y
 import Main.Utf8 (withUtf8)
-import Options.Applicative (execParser, fullDesc, helper, info, progDesc)
+import Options.Applicative (execParser)
 
-import Edna.Config.Definition (defaultEdnaConfig)
-import Edna.Config.Utils (configPathParser)
-import Edna.Logging (logUnconditionally)
-import Edna.Setup (runEdna)
+import Edna.Config.CLA (EdnaOptions(eoDumpConfig), ednaOpts)
+import Edna.Config.Prepare (prepareConfig)
+import Edna.Setup (dumpConfig, runEdna)
 import Edna.Web.Server (edna)
+import Edna.Logging (logUnconditionally)
 
 main :: IO ()
 main = withUtf8 $ do
+  options <- execParser ednaOpts
   logUnconditionally "Edna server is started"
-  configPath <- execParser $
-    info (helper <*> configPathParser) $
-    fullDesc <> progDesc "Edna API server."
-  config <- maybe (pure defaultEdnaConfig) Y.decodeFileThrow configPath
+  config <- prepareConfig options
   runEdna config edna

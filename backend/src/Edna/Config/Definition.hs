@@ -29,12 +29,15 @@ module Edna.Config.Definition
   , dbInitialisation
 
   , LoggingConfig (..)
+  , parseLoggingConfig
   ) where
 
 import Universum
 
 import qualified Data.Aeson as Aeson
 import Data.Aeson.TH (deriveJSON)
+import qualified Data.Char as C
+import qualified Data.Text as T
 import Lens.Micro.Platform (makeLenses)
 import Text.Read (read)
 
@@ -66,17 +69,33 @@ data LoggingConfig =
   -- ^ No logging.
   deriving stock (Generic, Show, Eq)
 
+-- | Parse LoggingConfig
+parseLoggingConfig :: e -> String -> Either e LoggingConfig
+parseLoggingConfig err p =
+  case value of
+    "dev"     -> Right LogDev
+    "prod"    -> Right LogProd
+    "nothing" -> Right LogNothing
+    _         -> Left err
+  where
+    value = T.toLower (T.pack p)
+
 loggingConfigAesonOptions :: Aeson.Options
 loggingConfigAesonOptions = Aeson.defaultOptions
   { Aeson.sumEncoding = Aeson.UntaggedValue
-  , Aeson.constructorTagModifier = drop 3
+  , Aeson.constructorTagModifier = map C.toLower . drop 3
   }
 
 instance Aeson.FromJSON LoggingConfig where
-  parseJSON = Aeson.genericParseJSON loggingConfigAesonOptions
+  parseJSON = Aeson.withText "LoggingConfig" $ \text ->
+    let value = parseLoggingConfig Nothing $ T.unpack text
+    in case value of
+      Right x -> return x
+      Left _  -> fail $ "Invalid config value: " <> show text
 
 instance Aeson.ToJSON LoggingConfig where
   toEncoding = Aeson.genericToEncoding loggingConfigAesonOptions
+  toJSON = Aeson.genericToJSON loggingConfigAesonOptions
 
 data EdnaConfig = EdnaConfig
   { _ecApi :: ApiConfig

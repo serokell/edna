@@ -37,43 +37,45 @@ library
   import: common-options
   exposed-modules:
       Edna.Analysis.FourPL
+      Edna.Config.CLA
       Edna.Config.Definition
-      Edna.Config.Utils
+      Edna.Config.Environment
+      Edna.Config.Prepare
+      Edna.DB.Connection
+      Edna.DB.Initialisation
+      Edna.DB.Integration
+      Edna.DB.Schema
       Edna.Dashboard.DB.Query
       Edna.Dashboard.DB.Schema
       Edna.Dashboard.Error
       Edna.Dashboard.Service
       Edna.Dashboard.Web.API
       Edna.Dashboard.Web.Types
-      Edna.DB.Connection
-      Edna.DB.Initialisation
-      Edna.DB.Integration
-      Edna.DB.Schema
-      Edna.Logging
-      Edna.Orphans
-      Edna.Setup
-      Edna.Web.API
-      Edna.Web.Server
-      Edna.Web.Swagger
-      Edna.Web.Handlers
-      Edna.Web.Types
       Edna.ExperimentReader.Error
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
-      Edna.Library.Error
       Edna.Library.DB.Query
       Edna.Library.DB.Schema
+      Edna.Library.Error
+      Edna.Library.Service
       Edna.Library.Web.API
       Edna.Library.Web.Types
-      Edna.Library.Service
-      Edna.Upload.Web.API
-      Edna.Upload.Web.Types
+      Edna.Logging
+      Edna.Orphans
+      Edna.Setup
+      Edna.Upload.DB.Query
+      Edna.Upload.DB.Schema
       Edna.Upload.Error
       Edna.Upload.Service
-      Edna.Upload.DB.Schema
-      Edna.Upload.DB.Query
+      Edna.Upload.Web.API
+      Edna.Upload.Web.Types
       Edna.Util
       Edna.Util.URI
+      Edna.Web.API
+      Edna.Web.Handlers
+      Edna.Web.Server
+      Edna.Web.Swagger
+      Edna.Web.Types
   other-modules:
       Edna.Analysis.Infra
       Edna.Web.Error
@@ -114,7 +116,8 @@ library
     wai,
     wai-extra,
     warp,
-    xlsx
+    xlsx,
+    yaml
 
 executable edna-server
   import: common-options
@@ -124,8 +127,7 @@ executable edna-server
   build-depends:
       edna,
       optparse-applicative,
-      with-utf8,
-      yaml
+      with-utf8
 
 test-suite edna-test
   import: common-options

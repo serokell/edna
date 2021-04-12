@@ -33,8 +33,14 @@ If you use the config from this repository:
 Note that you need to also run PostgreSQL server to make backend work.
 One way to run it is to use `docker-compose.yml` provided in the [deployment](../deployment) folder.
 
-Set `EDNA_DEBUG_DB=1` to enable logging of all DB actions made.
+Set `EDNA_DB_DEBUG=1` to enable logging of all DB actions made.
 It works in tests as well.
+
+You can pass other command line arguments, to see full list run `stack exec -- edna-server -h` or `cabal run -- edna-server -h`:
+
+You can use environment variables to configure your server (available variables listed in [`.env`](../deployment/.env)).
+
+NOTE: priority of configurations is following: command line arguments, environment variables, config file.
 
 ## Tests instructions
 
