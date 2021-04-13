@@ -1,0 +1,18 @@
+@import "src/styles/fonts";
+@import "src/styles/variables";
+
+.ic50 {
+  display: flex;
+
+  &__label {
+    margin-right: 9 * $px;
+    font-size: 12 * $px;
+    font-weight: 400;
+    line-height: 15 * $px;
+    color: $color-titles-gray;
+  }
+
+  &__value {
+    @include paragraph-p2;
+  }
+}

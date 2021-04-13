@@ -1,14 +1,14 @@
 import React from "react";
 import { useRecoilValue } from "recoil";
-import cx from "classnames";
 import { SubExperimentDto } from "../../../api/types";
-import StatusSvg from "../../../assets/svg/status.svg";
 import "./SubexperimentPlate.scss";
 import {
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
 } from "../../../store/atoms";
 import { useAddSubExperiment, useRemoveSubExperiments } from "../../../store/updaters";
+import { SatisfactoryStatus } from "../../../components/SatisfactoryStatus/SatisfactoryStatus";
+import "../IC50Line.scss";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;
@@ -30,19 +30,17 @@ export function SubexperimentPlate({ subexperiment }: SubexperimentPlateProps): 
       }}
     >
       <div className="subexperimentPlate__head">
-        <StatusSvg
-          className={cx("satisfactoryStatus", "subexperimentPlate__satisfactoryStatus", {
-            satisfactoryStatus__ok: !subexperiment.item.isSuspicious,
-            satisfactoryStatus__bad: subexperiment.item.isSuspicious,
-          })}
+        <SatisfactoryStatus
+          isSuspicious={subexperiment.item.isSuspicious}
+          className="subexperimentPlate__satisfactoryStatus"
         />
         {subexperiment.item.name}
       </div>
 
-      <div className="subexperimentPlate__ic50">
-        <span className="subexperimentPlate__ic50label">IC50</span>
+      <div className="ic50">
+        <span className="ic50__label">IC50</span>
 
-        <span className="subexperimentPlate__ic50value">{subexperiment.item.result[2]}</span>
+        <span className="ic50__value">{subexperiment.item.result[2]}</span>
       </div>
     </div>
   );

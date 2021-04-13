@@ -9,7 +9,7 @@ import cn from "../../utils/bemUtils";
 import { experimentsTableSizeAtom, selectedSubExperimentsColorAtom } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
 import { selectedSubExperimentsQuery } from "../../store/selectors";
-import { negateTableSize, SubExperimentWithMeasurements } from "../../store/types";
+import { negateTableSize } from "../../store/types";
 import { isDefined, zip } from "../../utils/utils";
 
 export const DashboardPage: FunctionComponent = () => {
@@ -57,12 +57,12 @@ export function PlotlyChartSuspendable({
   return (
     <PlotlyChart
       className={className}
-      subExperiments={
-        zip(subExperiments, colors).filter(x => isDefined(x[1])) as [
-          SubExperimentWithMeasurements,
-          string
-        ][]
-      }
+      subExperiments={zip(subExperiments, colors)
+        .filter(x => isDefined(x[1]))
+        .map(([subexperiment, color]) => ({
+          subexperiment,
+          color: color!,
+        }))}
     />
   );
 }

@@ -5,19 +5,25 @@ import { v4 as uuidv4 } from "uuid";
 import cx from "classnames";
 import "./Plotting.scss";
 import { useRecoilState } from "recoil";
+import { PlotMarker } from "plotly.js-basic-dist";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { SubExperimentWithMeasurements } from "../../../store/types";
-import { disabledPointsAtom } from "../../../store/atoms";
-import { isDefined, Maybe } from "../../../utils/utils";
+import { newSubexperimentAtom } from "../../../store/atoms";
+import { isDefined } from "../../../utils/utils";
 
 const plotConfig = {
   displaylogo: false,
   // displayModeBar: false,
 };
 
+interface SubExperimentNColor {
+  subexperiment: SubExperimentWithMeasurements;
+  color: string;
+}
+
 interface PlotlyChartProps {
   className?: string;
-  subExperiments: [SubExperimentWithMeasurements, string][];
+  subExperiments: SubExperimentNColor[];
 }
 
 function fourPL(result: number[], x: number) {
@@ -34,8 +40,7 @@ export default function PlotlyChart({
 }: PlotlyChartProps): React.ReactElement {
   const chartKey = uuidv4();
   const Plot = createPlotlyComponent(PlotlyBasic);
-  const [disabledPoints, setDisabledPoints] = useRecoilState(disabledPointsAtom);
-  const [plotLayout, setPlotLayout] = useState({
+  const [plotLayout, setPlotLayout] = useState<Partial<PlotlyBasic.Layout>>({
     xaxis: {
       type: "log" as const,
       autorange: true,
@@ -51,55 +56,7 @@ export default function PlotlyChart({
     },
     hovermode: "closest" as const,
   });
-
-  const fourPLlines: Plotly.Data[] = subExperiments.map(([sex, color]) => {
-    return {
-      name: "4PL",
-      x: sex.measurements.map(a => a.item.concentration),
-      y: sex.measurements.map(a => fourPL(sex.meta.item.result, a.item.concentration)),
-      type: "scatter",
-      mode: "lines",
-      marker: { color },
-    };
-  });
-
-  const plotlyData: Plotly.Data[] = subExperiments.map(([sex, color]) => {
-    return {
-      name: `${sex.meta.item.name}`,
-      x: sex.measurements
-        // .filter(x => !isDefined(disabledPoints.points.find(z => z.id === x.id)))
-        .map(x => x.item.concentration),
-      y: sex.measurements
-        // .filter(y => !isDefined(disabledPoints.points.find(z => z.id === y.id)))
-        .map(y => y.item.signal),
-      type: "scatter",
-      mode: "markers",
-      marker: { color, size: 8 },
-    };
-  });
-
-  function buildDisabledPlotlyData(): Maybe<Plotly.Data> {
-    if (disabledPoints.curveNumber === -1) {
-      return undefined;
-    }
-    const color = subExperiments[disabledPoints.curveNumber][1];
-    return {
-      name: subExperiments[disabledPoints.curveNumber][0].meta.item.name,
-      x: disabledPoints.points.map(x => x.item.concentration),
-      y: disabledPoints.points.map(y => y.item.signal),
-      type: "scatter",
-      mode: "markers",
-      marker: {
-        color,
-        size: 8,
-        line: {
-          color: "#3a8370",
-          width: 2,
-        },
-      },
-    };
-  }
-  const disabledPlotlyData = buildDisabledPlotlyData();
+  const [newSubexperiment, setNewSubexperiment] = useRecoilState(newSubexperimentAtom);
 
   if (subExperiments.length === 0) {
     return (
@@ -109,13 +66,103 @@ export default function PlotlyChart({
       />
     );
   }
-  const disabledCurveNumber = 2 * subExperiments.length;
 
-  // TODO add disabled points from subplots
-  const resultedPlotlyData = plotlyData.concat(fourPLlines);
-  if (isDefined(disabledPlotlyData)) {
-    resultedPlotlyData.push(disabledPlotlyData);
+  const enabledTraces: Plotly.Data[] = subExperiments.map(({ subexperiment, color }) => {
+    const pointsToDraw = subexperiment.measurements.filter(
+      x => !isDefined(newSubexperiment.changedPoints.find(z => z.id === x.id)) && x.item.isEnabled
+    );
+
+    return {
+      name: `${subexperiment.meta.item.name}`,
+      x: pointsToDraw.map(x => x.item.concentration),
+      y: pointsToDraw.map(y => y.item.signal),
+      type: "scatter",
+      mode: "markers",
+      marker: { color, size: 8 },
+    };
+  });
+
+  const disabledTraces: PlotlyBasic.Data[] = subExperiments.map(({ subexperiment }) => {
+    const pointsToDraw = subexperiment.measurements.filter(
+      x => !isDefined(newSubexperiment.changedPoints.find(z => z.id === x.id)) && !x.item.isEnabled
+    );
+
+    return {
+      name: `${subexperiment.meta.item.name} (Disabled)`,
+      x: pointsToDraw.map(x => x.item.concentration),
+      y: pointsToDraw.map(y => y.item.signal),
+      type: "scatter",
+      mode: "markers",
+      marker: { color: "#AFB6B6", size: 8 },
+    };
+  });
+
+  const plTraces: Plotly.Data[] = subExperiments.map(({ subexperiment, color }) => {
+    return {
+      name: "4PL",
+      x: subexperiment.measurements.map(a => a.item.concentration),
+      y: subexperiment.measurements.map(a =>
+        fourPL(subexperiment.meta.item.result, a.item.concentration)
+      ),
+      type: "scatter",
+      mode: "lines",
+      marker: { color },
+    };
+  });
+
+  function buildNewSubexperimentTrace(): PlotlyBasic.Data[] {
+    if (newSubexperiment.subExperimentId === -1) {
+      return [];
+    }
+    const sub = subExperiments.find(
+      s => s.subexperiment.meta.id === newSubexperiment.subExperimentId
+    );
+    if (!isDefined(sub)) {
+      return [];
+    }
+
+    const buildTrace = (isEnabled: boolean, marker: Partial<PlotMarker>): PlotlyBasic.Data => {
+      const neededPoints = newSubexperiment.changedPoints.filter(
+        x => x.item.isEnabled === isEnabled
+      );
+      return {
+        name: sub.subexperiment.meta.item.name,
+        x: neededPoints.map(x => x.item.concentration),
+        y: neededPoints.map(y => y.item.signal),
+        type: "scatter",
+        mode: "markers",
+        marker,
+      };
+    };
+
+    return [
+      // Disabled trace
+      buildTrace(true, {
+        color: sub.color,
+        size: 10,
+        line: {
+          color: "#ce6c6c",
+          width: 3,
+        },
+      }),
+
+      buildTrace(false, {
+        color: "#AFB6B6",
+        size: 10,
+        line: {
+          color: "#3a8370",
+          width: 3,
+        },
+      }),
+    ];
   }
+  const newSubexperimentTrace = buildNewSubexperimentTrace();
+  const newSubCurveNumber = 3 * subExperiments.length;
+
+  const resultedPlotlyData = enabledTraces
+    .concat(disabledTraces)
+    .concat(plTraces)
+    .concat(newSubexperimentTrace);
 
   return (
     <Plot
@@ -125,39 +172,47 @@ export default function PlotlyChart({
       onClick={e => {
         const point = e.points[0];
 
-        if (point.curveNumber === disabledCurveNumber) {
-          // If clicked point is on disabled curve
-          const reEnabledPoint = disabledPoints.points[point.pointIndex];
-          const removed = disabledPoints.points.filter(x => x.id !== reEnabledPoint.id);
-          if (removed.length === 0) {
-            setDisabledPoints({
-              curveNumber: -1,
-              points: [],
-            });
-          } else {
-            setDisabledPoints(old => ({
-              curveNumber: old.curveNumber,
-              points: removed,
-            }));
-          }
+        if (
+          point.curveNumber === newSubCurveNumber ||
+          point.curveNumber === newSubCurveNumber + 1
+        ) {
+          // If clicked point is initially enabled
+          const isEnabled = point.curveNumber === newSubCurveNumber;
+          const revertedPoint = newSubexperiment.changedPoints.filter(
+            x => x.item.isEnabled === isEnabled
+          )[point.pointIndex];
+          const newChanged = newSubexperiment.changedPoints.filter(x => x.id !== revertedPoint.id);
+
+          setNewSubexperiment(old => ({
+            subExperimentId: newChanged.length === 0 ? -1 : old.subExperimentId,
+            changedPoints: newChanged,
+          }));
         }
-        if (point.curveNumber >= subExperiments.length) {
+
+        if (point.curveNumber >= 2 * subExperiments.length) {
           return;
         }
 
-        const measPoint = subExperiments[point.curveNumber][0].measurements[point.pointIndex];
-        if (disabledPoints.curveNumber === -1) {
+        const enabledTr = point.curveNumber < subExperiments.length;
+        const subExpOfClickedTrace =
+          subExperiments[point.curveNumber % subExperiments.length].subexperiment;
+        // Take rest of points on the corresponding line (enabled or disabled),
+        // which are not put in the changedSet yet.
+        const measPoint = subExpOfClickedTrace.measurements.filter(
+          p =>
+            p.item.isEnabled === enabledTr &&
+            !isDefined(newSubexperiment.changedPoints.find(pp => pp.id === p.id))
+        )[point.pointIndex];
+
+        if (
+          newSubexperiment.subExperimentId === -1 ||
+          newSubexperiment.subExperimentId === subExpOfClickedTrace.meta.id
+        ) {
           // If disabled set is empty, just add new point
-          setDisabledPoints({
-            curveNumber: point.curveNumber,
-            points: [measPoint],
-          });
-        } else if (disabledPoints.curveNumber === point.curveNumber) {
-          // If existing points belong to the same curveNumber as clicked point
-          setDisabledPoints({
-            curveNumber: point.curveNumber,
-            points: disabledPoints.points.concat(measPoint),
-          });
+          setNewSubexperiment(old => ({
+            subExperimentId: subExpOfClickedTrace.meta.id,
+            changedPoints: old.changedPoints.concat(measPoint),
+          }));
         }
       }}
       onRelayout={newLayout => {
@@ -166,6 +221,8 @@ export default function PlotlyChart({
           newLayout,
         }));
       }}
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       layout={plotLayout}
       config={plotConfig}
     />

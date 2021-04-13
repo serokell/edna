@@ -75,6 +75,7 @@ export function ExperimentsTableSuspendable({
               if (selectedSubexperiments.size === 1) {
                 setShowEntries("all");
               }
+
               removeSubExperiments(exp.subExperiments);
             }
           }}

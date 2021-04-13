@@ -79,7 +79,11 @@ export const chartColors = [
   "#BF5688",
 ];
 
-export type DisabledPoints = {
-  curveNumber: number;
-  points: MeasurementDto[];
+export type NewSubExperiment = {
+  subExperimentId: number;
+  changedPoints: MeasurementDto[];
+  analysed?: {
+    // Result of 4PL
+    result: number[];
+  };
 };

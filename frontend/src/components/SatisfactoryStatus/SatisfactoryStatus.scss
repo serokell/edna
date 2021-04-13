@@ -1,0 +1,13 @@
+@import "src/styles/variables";
+
+.satisfactoryStatus {
+  color: $color-stroke;
+
+  &__ok {
+    color: $color-help-green;
+  }
+
+  &__bad {
+    color: $color-help-red;
+  }
+}

@@ -21,32 +21,4 @@
   &:hover {
     background-color: #fafafa;
   }
-
-  &__ic50 {
-    display: flex;
-  }
-
-  &__ic50label {
-    margin-right: 9 * $px;
-    font-size: 12 * $px;
-    font-weight: 400;
-    line-height: 15 * $px;
-    color: $color-titles-gray;
-  }
-
-  &__ic50value {
-    @include paragraph-p2;
-  }
-}
-
-.satisfactoryStatus {
-  color: $color-stroke;
-
-  &__ok {
-    color: $color-help-green;
-  }
-
-  &__bad {
-    color: $color-help-red;
-  }
 }
