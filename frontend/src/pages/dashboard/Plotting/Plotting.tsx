@@ -11,8 +11,9 @@ import { SubExperimentWithMeasurements } from "../../../store/types";
 import { newSubexperimentAtom } from "../../../store/atoms";
 import { isDefined } from "../../../utils/utils";
 
-const plotConfig = {
+const plotConfig: Partial<PlotlyBasic.Config> = {
   displaylogo: false,
+  modeBarButtonsToRemove: ["select2d", "lasso2d", "resetScale2d"],
   // displayModeBar: false,
 };
 
@@ -224,6 +225,8 @@ export default function PlotlyChart({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       layout={plotLayout}
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       config={plotConfig}
     />
   );

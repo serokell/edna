@@ -1,0 +1,18 @@
+@import "src/styles/variables";
+
+.newSubexperimentPlate {
+  display: flex;
+  flex-direction: column;
+  padding: 12 * $px;
+  background: white;
+  border-radius: 4 * $px;
+  box-shadow: 0 0 (5 * $px) rgba(151, 151, 151, 0.3);
+
+  &__btns {
+    display: flex;
+  }
+
+  &__saveBtn {
+    margin-right: 8 * $px;
+  }
+}

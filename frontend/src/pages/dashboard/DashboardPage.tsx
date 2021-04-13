@@ -27,6 +27,7 @@ export const DashboardPage: FunctionComponent = () => {
 
         <SuspenseSpinner className={plotlyClassName}>
           <PlotlyChartSuspendable className={plotlyClassName} />
+          {}
         </SuspenseSpinner>
 
         <SuspenseSpinner className={experimentsClassName}>
