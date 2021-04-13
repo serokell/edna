@@ -176,7 +176,7 @@ genSubExperimentResp :: MonadGen m => m SubExperimentResp
 genSubExperimentResp = do
   serName <- genName
   serIsSuspicious <- Gen.bool
-  serResult <- genParams4PL
+  serResult <- Gen.either genName genParams4PL
   return SubExperimentResp {..}
 
 genMeasurementResp :: MonadGen m => m MeasurementResp

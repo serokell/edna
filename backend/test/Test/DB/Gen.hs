@@ -93,7 +93,7 @@ genSubExperimentRec :: Gen.MonadGen m => Word32 -> Word32 -> Word32 -> m SubExpe
 genSubExperimentRec subExperimentId seAnalysisMethodId seExperimentId = do
   seName <- genName
   seIsSuspicious <- Gen.bool
-  seResult <- PgJSON <$> genParams4PL
+  seResult <- PgJSON <$> Gen.either genName genParams4PL
   pure SubExperimentRec {seSubExperimentId = SqlSerial subExperimentId, ..}
 
 genRemovedMeasurementsRec :: Word32 -> Word32 -> RemovedMeasurementsRec

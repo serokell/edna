@@ -25,7 +25,7 @@ module Test.SampleData
   -- ↓ Violating style guide a bit, hopefully that's ok ↓
   , targetName1, targetName2, targetName3, targetName4
   , compoundName1, compoundName2, compoundName3, compoundName4, compoundName5
-  , m1, m2, m3, m4, m5
+  , m1, m2, m3, m4, m5, m5Outlier, m6, m7, m8, m9, m10
 
   -- * Other
   , sampleURI
@@ -121,42 +121,48 @@ compoundName5 = "comp5"
 
 targetMeasurements1 :: Map Text [Measurement]
 targetMeasurements1 = Map.fromList
-  [ (compoundName1, [m1, m2, m3])
-  , (compoundName2, [m2, m4, m5])
-  , (compoundName3, [m1, m3, m4])
+  [ (compoundName1, [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10])
+  , (compoundName2, [m1, m2, m3, m4, m5Outlier, m6, m7, m8, m9, m10])
+  , (compoundName3, [m1, m3, m4, m5, m7, m8, m9, m10])
   ]
 
 targetMeasurements2 :: Map Text [Measurement]
 targetMeasurements2 = Map.fromList
-  [ (compoundName2, [m1, m2, m5])
+  [ (compoundName2, [m1, m2, m3, m4, m7, m8, m9])
   ]
 
 targetMeasurements3 :: Map Text [Measurement]
 targetMeasurements3 = Map.fromList
-  [ (compoundName1, [m1, m5])
-  , (compoundName4, [m3, m4, m5])
+  [ (compoundName1, [m1, m3, m4, m5Outlier, m6, m7, m9, m10])
+  , (compoundName4, [m1, m2, m4, m5Outlier, m7, m8, m9, m10])
   ]
 
 targetMeasurements4 :: Map Text [Measurement]
 targetMeasurements4 = Map.fromList
-  [ (compoundName1, [m1, m5])
-  , (compoundName5, [m1, m2])
+  [ (compoundName1, [m1, m3, m4, m5Outlier, m6, m7, m9, m10])
+  , (compoundName5, [m1, m2, m4, m5Outlier, m7, m8, m9, m10])
   ]
 
-m1, m2, m3, m4, m5 :: Measurement
+m1, m2, m3, m4, m5, m5Outlier, m6, m7, m8, m9, m10 :: Measurement
 m1 = Measurement
-  { mConcentration = 1.5
-  , mSignal = 200
+  { mConcentration = 10
+  , mSignal = 1000
   , mIsOutlier = False
   }
-m2 = m1 {mConcentration = 3, mSignal = 400}
-m3 = m1 {mConcentration = 6, mSignal = 600}
-m4 = m1 {mConcentration = 12, mSignal = 800}
-m5 = Measurement
+m2 = m1 {mConcentration = 20, mSignal = 980}
+m3 = m1 {mConcentration = 30, mSignal = 950}
+m4 = m1 {mConcentration = 40, mSignal = 750}
+m5 = m1 {mConcentration = 50, mSignal = 600}
+m5Outlier = Measurement
   { mConcentration = 6
   , mSignal = 5000
   , mIsOutlier = True
   }
+m6 = m1 {mConcentration = 60, mSignal = 400}
+m7 = m1 {mConcentration = 70, mSignal = 250}
+m8 = m1 {mConcentration = 80, mSignal = 150}
+m9 = m1 {mConcentration = 90, mSignal = 120}
+m10 = m1 {mConcentration = 100, mSignal = 100}
 
 sampleMetadata :: FileMetadata
 sampleMetadata = FileMetadata ["foo", "room", "mood"]

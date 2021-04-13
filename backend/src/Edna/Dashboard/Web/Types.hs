@@ -21,7 +21,7 @@ import Servant.API (Header, Headers, getHeaders, getResponse)
 import Servant.API.ContentTypes (MimeRender, OctetStream)
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
-import Edna.Analysis.FourPL (Params4PL)
+import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Util
   (CompoundId, IdType(..), MeasurementId, MethodologyId, ProjectId, SubExperimentId, TargetId,
   ednaAesonWebOptions, gDeclareNamedSchema, unSqlId)
@@ -93,7 +93,7 @@ data SubExperimentResp = SubExperimentResp
   , serIsSuspicious :: Bool
   -- ^ Whether this sub-experiment's data is suspicious (potentially has
   -- incorrect points).
-  , serResult :: Params4PL
+  , serResult :: AnalysisResult
   -- ^ 4PL parameters computed for this sub-experiment.
   } deriving stock (Generic, Show, Eq)
 

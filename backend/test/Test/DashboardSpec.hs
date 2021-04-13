@@ -12,7 +12,7 @@ import RIO (runRIO)
 import Test.Hspec
   (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldSatisfy, shouldThrow)
 
-import Edna.Analysis.FourPL (analyse4PL)
+import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
@@ -23,7 +23,7 @@ import Edna.Dashboard.Web.Types
   MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileMetadata(unFileMetadata), Measurement(..))
 import Edna.Setup (EdnaContext)
-import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId)
+import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId, oneOrError)
 import Edna.Web.Types (WithId(..))
 
 import Test.Orphans ()
@@ -86,27 +86,26 @@ spec = withContext $ do
             , mrSignal = mSignal m
             , mrIsEnabled = (i == changedMeasurement) == mIsOutlier m
             }
-        let expectedMeasurements = zipWith step [1..] [m1, m2, m3]
+        let expectedMeasurements = zipWith step [1..] [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10]
 
-        let activePoints =
-              flip mapMaybe expectedMeasurements $ \(wItem -> measResp) ->
-                guard (mrIsEnabled measResp) $>
-                (mrConcentration measResp, mrSignal measResp)
+        let activePoints = flip mapMaybe expectedMeasurements $ \(wItem -> measResp) ->
+              guard (mrIsEnabled measResp) $> (mrConcentration measResp, mrSignal measResp)
 
         (analysedRemovals, analysedResult) <-
           analyseNewSubExperiment sourceSubExp nser
         WithId newId resp <- newSubExperiment sourceSubExp nser
         WithId _ resp' <- getSubExperiment newId
         measurements <- getMeasurements newId
+        params4PL <-
+          analyse4PL [Params4PLReq (SqlId 1) activePoints] >>= oneOrError "invalid analysis"
         liftIO $ do
-          params4PL <- analyse4PL activePoints
           analysedResult `shouldBe` params4PL
           analysedRemovals `shouldBe` [SqlId changedMeasurement]
 
           resp `shouldBe` resp'
           serName resp `shouldBe` nserName nser
           serIsSuspicious resp `shouldBe` False
-          serResult resp `shouldBe` params4PL
+          serResult resp `shouldBe` plrspData params4PL
           measurements `shouldBe` expectedMeasurements
   where
     addSampleData = do
@@ -158,7 +157,7 @@ gettersSpec = do
           getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
         liftIO $ do
           length erExperiments `shouldBe` 1
-          erMeanIC50 `shouldBe` Just 33
+          erMeanIC50 `shouldBe` Just 51.025965961684655
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erTarget `shouldBe` targetId
     describe "getExperimentMetadata" $ do
@@ -212,12 +211,12 @@ gettersSpec = do
             }
         -- These lists match lists in @targetMeasurementsX@ values from SampleData.
         liftIO $ do
-          measurements1 `shouldBe` map toMeasurementResp [m1, m2, m3]
-          measurements2 `shouldBe` map toMeasurementResp [m2, m4, m5]
-          measurements3 `shouldBe` map toMeasurementResp [m1, m3, m4]
-          measurements4 `shouldBe` map toMeasurementResp [m1, m2, m5]
-          measurements5 `shouldBe` map toMeasurementResp [m1, m5]
-          measurements6 `shouldBe` map toMeasurementResp [m3, m4, m5]
+          measurements1 `shouldBe` map toMeasurementResp [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10]
+          measurements2 `shouldBe` map toMeasurementResp [m1, m3, m4, m5Outlier, m6, m7, m9, m10]
+          measurements3 `shouldBe` map toMeasurementResp [m1, m2, m3, m4, m5Outlier, m6, m7, m8, m9, m10]
+          measurements4 `shouldBe` map toMeasurementResp [m1, m2, m3, m4, m7, m8, m9]
+          measurements5 `shouldBe` map toMeasurementResp [m1, m3, m4, m5, m7, m8, m9, m10]
+          measurements6 `shouldBe` map toMeasurementResp [m1, m2, m4, m5Outlier, m7, m8, m9, m10]
           measurements7 `shouldBe` measurements1 -- no changes
       it "fails for unknown sub-experiment" $ \ctx -> do
         runRIO ctx (getMeasurements unknownSqlId) `shouldThrow`

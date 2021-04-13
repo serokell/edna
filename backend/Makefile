@@ -40,7 +40,8 @@ test:
 	# We build everything first because setup-test-db creates a temporary DB
 	# that doesn't live long.
 	$(call call_build_no_watch)
-	TEST_PG_CONN_STRING="`scripts/setup-test-db.sh`" $(call call_test)
+	export TEST_PG_CONN_STRING="`scripts/setup-test-db.sh`" && cd ../analysis && \
+		poetry install && poetry run bash -c "cd ../backend && $(call call_test)"
 
 clean:
 	$(call call_clean)
