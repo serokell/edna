@@ -32,7 +32,7 @@ extra-deps:
 # with more precise goals.
 # It's developed by us, so we are quite confident in it, that's why we are using
 # it even though it's not ready yet.
-- git: git@github.com:serokell/servant-util.git
+- git: https://github.com/serokell/servant-util
   commit: 3dff2de34cce90c4d1dab68e03d30f8939fd52ca # not master
   subdirs:
     - servant-util
