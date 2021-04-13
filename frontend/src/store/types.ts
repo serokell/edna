@@ -82,8 +82,6 @@ export const chartColors = [
 export type NewSubExperiment = {
   subExperimentId: number;
   changedPoints: MeasurementDto[];
-  analysed?: {
-    // Result of 4PL
-    result: number[];
-  };
+  // Result of 4PL
+  analysed?: number[];
 };

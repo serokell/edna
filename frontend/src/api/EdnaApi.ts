@@ -39,6 +39,11 @@ export interface CreateProjectArgsApi {
   description: Maybe<string>;
 }
 
+export interface AnalyzeNewSubexperimentApi {
+  name: string;
+  changes: number[];
+}
+
 export function toCreateProjectArgsApi(form: CreateProjectForm): CreateProjectArgsApi {
   return {
     name: form.name,
@@ -72,6 +77,16 @@ interface EdnaApiInterface {
   ) => Promise<ExperimentsWithMeanDto>;
   fetchSubExperiment: (subExperimentId: number) => Promise<SubExperimentDto>;
   fetchMeasurements: (subExperimentId: number) => Promise<MeasurementDto[]>;
+
+  analyzeSubexperiment: (
+    subExperimentId: number,
+    sub: AnalyzeNewSubexperimentApi
+  ) => Promise<number[]>;
+
+  newSubexperiment: (
+    subExperimentId: number,
+    sub: AnalyzeNewSubexperimentApi
+  ) => Promise<SubExperimentDto>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -201,6 +216,14 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
       return axios
         .get(`/subExperiment/${subExperimentId}/measurements`)
         .then(subExp => subExp.data);
+    },
+
+    analyzeSubexperiment: async (subExperimentId: number, sub: AnalyzeNewSubexperimentApi) => {
+      return axios.post(`/subExperiment/${subExperimentId}/new/analyse`, sub).then(res => res.data);
+    },
+
+    newSubexperiment: async (subExperimentId: number, sub: AnalyzeNewSubexperimentApi) => {
+      return axios.post(`/subExperiment/${subExperimentId}/new`, sub).then(res => res.data);
     },
   };
 }

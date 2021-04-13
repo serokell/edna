@@ -6,17 +6,23 @@ import "./DashboardPage.scss";
 import { ExperimentsTableSuspendable } from "./ExperimentsTable/ExperimentsTable";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import cn from "../../utils/bemUtils";
-import { experimentsTableSizeAtom, selectedSubExperimentsColorAtom } from "../../store/atoms";
+import {
+  experimentsTableSizeAtom,
+  newSubexperimentAtom,
+  selectedSubExperimentsColorAtom,
+} from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
 import { selectedSubExperimentsQuery } from "../../store/selectors";
 import { negateTableSize } from "../../store/types";
 import { isDefined, zip } from "../../utils/utils";
+import { NewSubexperimentPlate } from "./NewSubexperimentPlate/NewSubexperimentPlate";
 
 export const DashboardPage: FunctionComponent = () => {
   const dashboardPage = cn("dashboardPage");
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
   const plotlyClassName = dashboardPage("chart", { size: negateTableSize(expTableSize) });
   const experimentsClassName = dashboardPage("experiments", { size: expTableSize });
+  const newSubexperiment = useRecoilValue(newSubexperimentAtom);
 
   return (
     <PageLayout>
@@ -26,8 +32,12 @@ export const DashboardPage: FunctionComponent = () => {
         <TargetSelector className={dashboardPage("targetSelector")} />
 
         <SuspenseSpinner className={plotlyClassName}>
-          <PlotlyChartSuspendable className={plotlyClassName} />
-          {}
+          <div className={plotlyClassName}>
+            <PlotlyChartSuspendable />
+            {newSubexperiment.subExperimentId !== -1 && (
+              <NewSubexperimentPlate className="dashboardPage__newSubexperimentPlate" />
+            )}
+          </div>
         </SuspenseSpinner>
 
         <SuspenseSpinner className={experimentsClassName}>

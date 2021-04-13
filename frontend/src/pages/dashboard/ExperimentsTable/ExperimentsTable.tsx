@@ -21,6 +21,7 @@ import { useAddSubExperiment, useRemoveSubExperiments } from "../../../store/upd
 import { ExpandMinimizeButton } from "../ExpandMinimizeButton/ExpandMinimizeButton";
 import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
 import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
+import cn from "../../../utils/bemUtils";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -65,24 +66,37 @@ export function ExperimentsTableSuspendable({
     () => ({
       id: "show",
       accessor: (exp: Experiment) => (
-        <input
-          type="checkbox"
-          checked={selectedExperiments.has(exp.id)}
-          onChange={e => {
-            if (e.target.checked) {
-              addSubExperiment(exp.primarySubExperiment.id);
-            } else {
-              if (selectedSubexperiments.size === 1) {
-                setShowEntries("all");
-              }
+        <td
+          className={`ednaTable__cell ${
+            expTableSize === "minimized" ? "experimentsTable__showCheckbox" : ""
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={selectedExperiments.has(exp.id)}
+            onChange={e => {
+              if (e.target.checked) {
+                addSubExperiment(exp.primarySubExperiment.id);
+              } else {
+                // TODO fix it
+                if (selectedSubexperiments.size === 1) {
+                  setShowEntries("all");
+                }
 
-              removeSubExperiments(exp.subExperiments);
-            }
-          }}
-        />
+                removeSubExperiments(exp.subExperiments);
+              }
+            }}
+          />
+        </td>
       ),
     }),
-    [selectedSubexperiments, selectedExperiments, addSubExperiment, removeSubExperiments]
+    [
+      expTableSize,
+      selectedSubexperiments,
+      selectedExperiments,
+      addSubExperiment,
+      removeSubExperiments,
+    ]
   );
 
   const minimizedColumns: Column<Experiment>[] = React.useMemo(
@@ -135,9 +149,12 @@ export function ExperimentsTableSuspendable({
                   ? experiments
                   : experiments.filter(e => selectedExperiments.has(e.id))
               }
+              columnExtras={{
+                show: { manualCellRendering: true },
+              }}
               collapsible={e => (
                 <SuspenseSpinner>
-                  <ExperimentsCollapse experiment={e} />
+                  <ExperimentsCollapse experiment={e} expanded={expTableSize === "expanded"} />
                 </SuspenseSpinner>
               )}
             />
@@ -187,15 +204,27 @@ function ShowEntriesSwitch({
   );
 }
 
-function ExperimentsCollapse({ experiment }: { experiment: Experiment }) {
+function ExperimentsCollapse({
+  experiment,
+  expanded,
+}: {
+  experiment: Experiment;
+  expanded: boolean;
+}) {
   const subExperiments = useRecoilValue(
     waitForAll(experiment.subExperiments.map(subId => subExperimentsMetaAtom(subId)))
   );
 
+  const experimentsTable = cn("experimentsTable");
+
   return (
-    <div className="experimentsTable__subexperiments">
+    <div className={experimentsTable("subexperiments")}>
       {subExperiments.map(s => (
-        <SubexperimentPlate key={uuidv4()} subexperiment={s} />
+        <SubexperimentPlate
+          className={experimentsTable("subexperiment", { expanded })}
+          key={uuidv4()}
+          subexperiment={s}
+        />
       ))}
     </div>
   );

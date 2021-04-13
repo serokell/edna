@@ -102,6 +102,10 @@
       color: #6e7571;
     }
   }
+
+  &_small {
+    padding: (6 * $px) (8 * $px);
+  }
 }
 
 .roundedButton {

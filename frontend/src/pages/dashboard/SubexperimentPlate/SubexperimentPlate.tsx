@@ -1,5 +1,6 @@
 import React from "react";
 import { useRecoilValue } from "recoil";
+import cx from "classnames";
 import { SubExperimentDto } from "../../../api/types";
 import "./SubexperimentPlate.scss";
 import {
@@ -12,9 +13,13 @@ import "../IC50Line.scss";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;
+  className?: string;
 }
 
-export function SubexperimentPlate({ subexperiment }: SubexperimentPlateProps): React.ReactElement {
+export function SubexperimentPlate({
+  subexperiment,
+  className,
+}: SubexperimentPlateProps): React.ReactElement {
   const activeColor = useRecoilValue(selectedSubExperimentsColorAtom(subexperiment.id));
   const selectedSubExperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
   const addSubExperiment = useAddSubExperiment();
@@ -22,7 +27,7 @@ export function SubexperimentPlate({ subexperiment }: SubexperimentPlateProps): 
 
   return (
     <div
-      className="subexperimentPlate"
+      className={cx("subexperimentPlate", className)}
       style={{ borderColor: activeColor }}
       onClick={() => {
         if (selectedSubExperiments.has(subexperiment.id)) removeSubExperiments([subexperiment.id]);

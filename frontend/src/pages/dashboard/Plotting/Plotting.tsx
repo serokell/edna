@@ -177,6 +177,11 @@ export default function PlotlyChart({
           point.curveNumber === newSubCurveNumber ||
           point.curveNumber === newSubCurveNumber + 1
         ) {
+          // Reset current IC50
+          setNewSubexperiment(old => ({
+            ...old,
+            analysed: undefined,
+          }));
           // If clicked point is initially enabled
           const isEnabled = point.curveNumber === newSubCurveNumber;
           const revertedPoint = newSubexperiment.changedPoints.filter(
@@ -209,6 +214,12 @@ export default function PlotlyChart({
           newSubexperiment.subExperimentId === -1 ||
           newSubexperiment.subExperimentId === subExpOfClickedTrace.meta.id
         ) {
+          // Reset current IC50
+          setNewSubexperiment(old => ({
+            ...old,
+            analysed: undefined,
+          }));
+
           // If disabled set is empty, just add new point
           setNewSubexperiment(old => ({
             subExperimentId: subExpOfClickedTrace.meta.id,

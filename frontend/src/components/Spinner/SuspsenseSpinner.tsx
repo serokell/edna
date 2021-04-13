@@ -6,7 +6,7 @@ export function SuspenseSpinner({
   children,
   className,
 }: {
-  children: React.ReactElement;
+  children: React.ReactNode;
   className?: string;
 }): React.ReactElement {
   return <Suspense fallback={<div className={cx("spinner", className)} />}>{children}</Suspense>;

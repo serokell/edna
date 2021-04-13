@@ -8,11 +8,39 @@
   border-radius: 4 * $px;
   box-shadow: 0 0 (5 * $px) rgba(151, 151, 151, 0.3);
 
+  &__name {
+    min-height: 20 * $px;
+    padding: 4 * $px;
+    font-size: 12 * $px;
+    line-height: 16 * $px;
+  }
+
+  &__ic50 {
+    display: flex;
+    align-items: center;
+    margin-top: 8 * $px;
+  }
+
+  &__recomouteBtn {
+    margin-left: 16 * $px;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
   &__btns {
     display: flex;
+    margin-top: 16 * $px;
   }
 
   &__saveBtn {
     margin-right: 8 * $px;
+  }
+
+  &__cancelBtn {
+    font-size: 14 * $px;
+    font-weight: 700;
+    line-height: 18 * $px;
   }
 }
