@@ -5,16 +5,22 @@ $input-border-color: #e1e1e1;
 $input-border-outlined: #2684ff;
 $elem-padding: 10 * $px;
 $container-side-padding: 20 * $px;
-$container-max-width: 1440 * $px - 2 * (138 * $px) - 2 * $container-side-padding;
+$container-max-width: 1440 * $px - 2 * 128 * $px + 2 * $container-side-padding;
 
+$color-black70: rgba(25, 28, 28, 0.7);
 $color-green: #3a8370;
 $color-light-green: #edf8f2;
 $color-titles-gray: #afb6b6;
 $color-disabled-green: rgba($color-green, 0.3);
 $color-black: #191c1c;
-$color-gray: #9ba5a0;
+$color-gray: #9ba5a1;
 $color-help-red: #ce6c6c;
+$color-stroke: #9ba5a1;
+$color-stroke2: #dfe3e3;
+$color-help-green: #64c97a;
 
 :root {
+  --color-gray: #9ba5a1;
   --error-msg: #ea2243;
+  --border-radius: 0.5rem;
 }

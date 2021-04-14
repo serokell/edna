@@ -3,11 +3,10 @@ import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
 import Api from "../../api/api";
 import "../../components/Spinner/Spinner.scss";
-import MeasurementsCharts from "./MeasurementsCharts";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
 import { excelFileAtom } from "../../store/atoms";
-import CreatableSelect from "../../components/CreatableSelect";
+import Combobox from "../../components/Combobox";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
 import { isParsed } from "../../store/types";
@@ -22,6 +21,7 @@ import { MethodologyDto, ProjectDto } from "../../api/types";
 import { methodologiesQuery, projectsQuery } from "../../store/selectors";
 import {
   useCompoundsRefresher,
+  useFilteredExperimentsRefresher,
   useProjectRefresher,
   useTargetsRefresher,
 } from "../../store/updaters";
@@ -33,6 +33,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const projectsRefresher = useProjectRefresher();
   const targetsRefresher = useTargetsRefresher();
   const compoundsRefresher = useCompoundsRefresher();
+  const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
 
   return (
     <PageLayout>
@@ -65,6 +66,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               projectsRefresher();
               targetsRefresher();
               compoundsRefresher();
+              filteredExperimentsRefresher();
             }
           } catch (ex) {
             setExcelFile({ state: "failed-to-add", reason: ex.message });
@@ -109,10 +111,10 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               className="uploadingForm__project"
             >
               {field => (
-                <CreatableSelect
+                <Combobox
                   optionsLoadable={projectsLoadable}
                   placeholder="Select a project"
-                  placeholderNo="No projects"
+                  placeholderEmpty="No projects"
                   toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
                   tabIndex="2"
                   {...field}
@@ -127,11 +129,11 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               className="uploadingForm__methodology"
             >
               {field => (
-                <CreatableSelect
+                <Combobox
                   {...field}
                   optionsLoadable={methodologiesLoadable}
                   placeholder="Select a methodology"
-                  placeholderNo="No methodologies"
+                  placeholderEmpty="No methodologies"
                   toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
                   tabIndex="3"
                 />
@@ -181,18 +183,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           </Form>
         )}
       </Formik>
-
-      <div className="uploadResult">
-        {isParsed(excelFile) && <MeasurementsCharts experiments={excelFile.experiments} />}
-
-        {(excelFile?.state === "uploading" || excelFile?.state === "verifying") && (
-          <div className="spinner">Uploading...</div>
-        )}
-
-        {(excelFile?.state === "failed-to-parse" || excelFile?.state === "failed-to-add") && (
-          <span className="uploadResult__fail">{excelFile.reason}</span>
-        )}
-      </div>
     </PageLayout>
   );
 };

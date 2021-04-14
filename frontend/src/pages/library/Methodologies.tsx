@@ -7,10 +7,9 @@ import { MethodologyDto } from "../../api/types";
 import { extraFormatter } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
-import EditSvg from "../../assets/svg/edit.svg";
-import DeleteSvg from "../../assets/svg/delete.svg";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Table } from "../../components/Table/Table";
+import { DeleteContextItem, EditContextItem } from "../../components/ContextActions/ContextItems";
 
 export function MethodsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -58,7 +57,7 @@ export function MethodsSuspendable(): React.ReactElement {
         id: "description",
         accessor: (m: MethodologyDto) => {
           return (
-            <td className="ednaTable__cell cellBtn">
+            <td className="ednaTable__cell libraryTable__cellBtn">
               <Button
                 type="half-rounded"
                 size="small"
@@ -81,32 +80,24 @@ export function MethodsSuspendable(): React.ReactElement {
         accessor: (m: MethodologyDto) => (
           <ContextActions
             actions={[
-              <div
+              <EditContextItem
                 key="edit"
-                className="contextActions__item"
-                onMouseDown={() => {
+                onClick={() => {
                   setModalDialog({
                     kind: "create-edit-methodology",
                     editing: m,
                   });
                 }}
-              >
-                <EditSvg />
-                Edit
-              </div>,
-              <div
+              />,
+              <DeleteContextItem
                 key="delete"
-                className="contextActions__item"
-                onMouseDown={() => {
+                onClick={() => {
                   setModalDialog({
                     kind: "delete-methodology",
                     methodology: m,
                   });
                 }}
-              >
-                <DeleteSvg />
-                Delete
-              </div>,
+              />,
             ]}
           />
         ),

@@ -58,7 +58,6 @@
   @include main-btn();
 
   padding: (16 * $px) (22 * $px);
-
   font-size: 18 * $px;
   font-weight: 500;
   line-height: 24 * $px;
@@ -103,6 +102,10 @@
       color: #6e7571;
     }
   }
+
+  &_small {
+    padding: (6 * $px) (8 * $px);
+  }
 }
 
 .roundedButton {
@@ -126,6 +129,7 @@
   }
 
   &:disabled {
+    color: rgba($color-green, 0.3);
     pointer-events: none;
     background: rgba($color-light-green, 0.3);
   }
@@ -134,7 +138,11 @@
     border-radius: 4 * $px;
   }
 
-  &_size-small {
+  &_active {
+    background-color: #bfe5d2;
+  }
+
+  &_small {
     padding: (6 * $px) (8 * $px);
   }
 }

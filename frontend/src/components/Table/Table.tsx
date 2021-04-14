@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Column, useTable } from "react-table";
+import { v4 as uuidv4 } from "uuid";
 import "./Table.scss";
-import cx from "classnames";
+import cn from "../../utils/bemUtils";
 
 interface ColumnExtra {
   manualCellRendering?: boolean;
@@ -14,6 +15,7 @@ interface LibraryTableProps<T extends object> {
   columnExtras?: { [id: string]: ColumnExtra };
   className?: string;
   small?: boolean;
+  collapsible?: (x: T) => React.ReactNode;
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -23,13 +25,16 @@ export function Table<T extends object>({
   columnExtras,
   className,
   small,
+  collapsible,
 }: LibraryTableProps<T>): React.ReactElement {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
     columns,
     data,
   });
-
+  const isCollapsible = !!collapsible;
   const lastColumnWithRightBorder = computeLastColumnWithRightBorder(columns);
+  const ednaTable = cn("ednaTable");
+  const [shownColl, setShownColl] = useState<boolean[]>(new Array(data.length).fill(false));
 
   return (
     <table {...getTableProps()} className={`ednaTable ${className ?? ""}`}>
@@ -50,28 +55,48 @@ export function Table<T extends object>({
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
-        {rows.map(row => {
+        {rows.map((row, i) => {
           prepareRow(row);
           return (
-            <tr {...row.getRowProps()} className="ednaTable__row">
-              {row.cells.map(cell => {
-                const manualCell =
-                  cell.column.id &&
-                  columnExtras &&
-                  columnExtras[cell.column.id] &&
-                  columnExtras[cell.column.id].manualCellRendering;
-                return manualCell ? (
-                  cell.render("Cell", cell.getCellProps())
-                ) : (
+            <React.Fragment key={uuidv4()}>
+              <tr
+                {...row.getRowProps()}
+                className={ednaTable("row", { collapsible: isCollapsible, striped: i % 2 === 0 })}
+                onClick={e => {
+                  const classNm = (e.target as any).className as string;
+                  if (isCollapsible && classNm.indexOf("ednaTable__cell") !== -1) {
+                    const newShownColl = shownColl.slice();
+                    newShownColl[i] = !shownColl[i];
+                    setShownColl(newShownColl);
+                  }
+                }}
+              >
+                {row.cells.map(cell => {
+                  const manualCell =
+                    cell.column.id &&
+                    columnExtras &&
+                    columnExtras[cell.column.id] &&
+                    columnExtras[cell.column.id].manualCellRendering;
+                  return manualCell ? (
+                    cell.render("Cell", cell.getCellProps())
+                  ) : (
+                    <td {...cell.getCellProps()} className={ednaTable("cell", { small })}>
+                      {cell.render("Cell")}
+                    </td>
+                  );
+                })}
+              </tr>
+              {collapsible && (
+                <tr>
                   <td
-                    {...cell.getCellProps()}
-                    className={`ednaTable__cell ${cx({ ednaTable__cell_small: small })}`}
+                    colSpan={columns.length}
+                    className={ednaTable("cellShownCollapse", { shown: shownColl[i] })}
                   >
-                    {cell.render("Cell")}
+                    {collapsible(row.original)}
                   </td>
-                );
-              })}
-            </tr>
+                </tr>
+              )}
+            </React.Fragment>
           );
         })}
       </tbody>

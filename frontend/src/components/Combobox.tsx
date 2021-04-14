@@ -1,30 +1,50 @@
 import React from "react";
 import Select from "react-select";
 import { Loadable } from "recoil";
+import { GroupTypeBase } from "react-select/src/types";
+import { StylesConfig } from "react-select/src/styles";
 import { Maybe } from "../utils/utils";
 import { FormikCompatible } from "./FormField/FormField";
 
-type SelectOption = { value: string; label: string };
+export type SelectOption = { value: string; label: string };
 
-interface CreatableSelectProps<T> extends FormikCompatible<Maybe<T>> {
+interface ComboboxProps<T> extends FormikCompatible<Maybe<T>> {
   optionsLoadable: Loadable<T[]>;
   placeholder: string;
-  placeholderNo: string;
+  placeholderEmpty: string;
   toOption: (arg: T) => SelectOption;
+  isLoading?: boolean;
+  styles?: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>>;
 
   [prop: string]: any;
 }
 
-export default function CreatableSelect<T>({
+export default function Combobox<T>({
   optionsLoadable,
   placeholder,
-  placeholderNo,
+  placeholderEmpty,
   toOption,
   optionCreator,
   value,
   onChange,
+  styles,
+  isLoading,
   ...props
-}: CreatableSelectProps<T>): React.ReactElement {
+}: ComboboxProps<T>): React.ReactElement {
+  const mergedStyles: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>> = {
+    // Colorize message when error happened
+    noOptionsMessage: provided =>
+      optionsLoadable.state === "hasError"
+        ? {
+            ...provided,
+            color: "var(--error-msg)",
+          }
+        : { ...provided },
+    // Show loading indicator on loading
+    loadingIndicator: provided =>
+      optionsLoadable.state === "loading" ? { visibility: "hidden" } : { ...provided },
+    ...styles,
+  };
   return (
     <Select<SelectOption>
       {...props}
@@ -36,28 +56,16 @@ export default function CreatableSelect<T>({
             : undefined;
         onChange(opt);
       }}
-      isLoading={optionsLoadable.state === "loading"}
+      isLoading={isLoading || optionsLoadable.state === "loading"}
       isClearable
-      styles={{
-        // Colorize message when error happened
-        noOptionsMessage: provided =>
-          optionsLoadable.state === "hasError"
-            ? {
-                ...provided,
-                color: "var(--error-msg)",
-              }
-            : { ...provided },
-        // Show loading indicator on loading
-        loadingIndicator: provided =>
-          optionsLoadable.state === "loading" ? { visibility: "hidden" } : { ...provided },
-      }}
+      styles={mergedStyles}
       // Show error happened during options loading
       noOptionsMessage={({ inputValue }) => {
         if (!inputValue)
           return optionsLoadable.state === "hasError"
             ? "Error happened during loading"
-            : placeholderNo;
-        return placeholderNo;
+            : placeholderEmpty;
+        return placeholderEmpty;
       }}
       placeholder={placeholder}
       options={

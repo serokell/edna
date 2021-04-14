@@ -1,18 +1,20 @@
 import React, { useState } from "react";
+import cx from "classnames";
 import DotsSvg from "../../assets/svg/dots.svg";
 import "./ContextActions.scss";
 import cn from "../../utils/bemUtils";
 
 interface ContextActionsProps {
   actions: React.ReactNode[];
+  className?: string;
 }
 
-export function ContextActions({ actions }: ContextActionsProps): React.ReactElement {
+export function ContextActions({ actions, className }: ContextActionsProps): React.ReactElement {
   const [visible, setVisible] = useState(false);
   const contentActions = cn("contextActions");
 
   return (
-    <div className="contextActions">
+    <div className={cx("contextActions", className)}>
       <button
         type="button"
         className={contentActions("btn")}
@@ -23,9 +25,7 @@ export function ContextActions({ actions }: ContextActionsProps): React.ReactEle
       >
         <DotsSvg />
       </button>
-      <div id="contextActionsContent" className={contentActions("content", { visible })}>
-        {actions}
-      </div>
+      <div className={contentActions("content", { visible })}>{actions}</div>
     </div>
   );
 }

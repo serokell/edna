@@ -3,9 +3,8 @@
 .container {
   display: flex;
   flex-direction: column;
-  max-width: $container-max-width;
-
-  padding: (62 * $px) $container-side-padding;
+  width: $container-max-width;
+  padding: (56 * $px) $container-side-padding;
   margin-right: auto;
   margin-left: auto;
 }

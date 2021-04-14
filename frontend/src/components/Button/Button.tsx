@@ -2,6 +2,7 @@ import React from "react";
 import "../RoundSpinner.scss";
 import "./Button.scss";
 import cx from "classnames";
+import cn from "../../utils/bemUtils";
 
 type ButtonType = "primary" | "text" | "rounded" | "half-rounded" | "link";
 type ButtonSize = "default" | "small";
@@ -16,6 +17,7 @@ interface ButtonProps {
   btnStyle?: ButtonStyle;
   children: React.ReactNode;
   loading?: boolean;
+  active?: boolean;
 
   [prop: string]: any;
 }
@@ -30,28 +32,28 @@ export function Button({
   children,
   loading,
   isSubmit,
+  active,
   ...props
 }: ButtonProps): React.ReactElement {
   const btnSize = size ?? "default";
 
-  const buttonModifiers = {
-    primaryButton: type === "primary",
-    textButton: type === "text",
-    roundedButton: type === "rounded" || type === "half-rounded",
-    linkButton: type === "link",
-  };
+  const baseClassNm = type === "half-rounded" ? "roundedButton" : `${type}Button`;
 
   return (
     <button
       {...props}
       disabled={disabled}
       type={isSubmit ? "submit" : "button"}
-      className={cx(buttonModifiers, [className], {
-        roundedButton_halfRounding: type === "half-rounded",
-        "roundedButton_size-small": btnSize === "small",
-        textButton_gray: btnStyle === "gray",
-        textButton_delete: btnStyle === "delete",
-      })}
+      className={cx(
+        [className],
+        cn(baseClassNm)({
+          active,
+          gray: btnStyle === "gray",
+          delete: btnStyle === "delete",
+          small: btnSize === "small",
+          halfRounding: type === "half-rounded",
+        })
+      )}
     >
       {children} {loading && <div className="round-spinner btn-spinner" />}
     </button>

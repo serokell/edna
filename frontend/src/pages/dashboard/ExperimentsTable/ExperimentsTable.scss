@@ -1,0 +1,48 @@
+@import "src/styles/variables";
+
+.experimentsArea {
+  display: flex;
+  flex-direction: column;
+
+  &__controlBtns {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14 * $px;
+  }
+
+  &__showEntries {
+    display: flex;
+  }
+
+  &__showBtn + &__showBtn {
+    margin-left: 8 * $px;
+  }
+
+  &__experimentsTableContainer {
+    max-height: 522 * $px;
+  }
+}
+
+.experimentsTable {
+  &__subexperiments {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 16 * $px;
+  }
+
+  &__subexperiment {
+    margin-bottom: 11 * $px;
+  }
+
+  &__subexperiment:nth-child(odd) {
+    margin-right: 9 * $px;
+  }
+
+  &__subexperiment_expanded:nth-child(4n+2) {
+    margin-right: 9 * $px;
+  }
+
+  &__showCheckbox {
+    padding-right: 23 * $px;
+  }
+}

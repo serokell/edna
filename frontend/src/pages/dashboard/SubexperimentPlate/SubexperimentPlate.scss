@@ -1,0 +1,24 @@
+@import "src/styles/variables";
+@import "src/styles/fonts";
+
+.subexperimentPlate {
+  display: flex;
+  flex-direction: column;
+  min-width: 165 * $px;
+  padding: (10 * $px) (16 * $px);
+  border: (2 * $px) solid $color-stroke2;
+  border-radius: 3 * $px;
+
+  &__head {
+    @include paragraph-p2;
+    margin-bottom: 7 * $px;
+  }
+
+  &__satisfactoryStatus {
+    margin-right: 11 * $px;
+  }
+
+  &:hover {
+    background-color: #fafafa;
+  }
+}

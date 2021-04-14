@@ -1,10 +1,12 @@
 @import "src/styles/variables";
 
+$cell-indent: 22 * $px;
+
 .ednaTable {
   $border-color: #dfe3e3;
   $head-vertical-padding: 20 * $px;
   $head-line-height: 18 * $px;
-  $cell-indent: 22 * $px;
+
   width: 100%;
   border-spacing: 0;
 
@@ -45,24 +47,53 @@
     font-weight: 400;
     line-height: 18 * $px;
     border-bottom: $px solid $border-color;
+
+    &_small {
+      max-height: 44 * $px;
+      padding: (13 * $px) 0 (13 * $px) $cell-indent;
+    }
+  }
+
+  &__cellShownCollapse {
+    display: none;
+    height: 0;
+    border-bottom: $px solid $border-color;
+
+    &_shown {
+      display: table-cell;
+      height: 100%;
+    }
   }
 
   &__row {
-    &:nth-child(even) {
-      border: 0;
+    border: 0;
 
-      &:hover {
-        background-color: $color-light-green;
-      }
+    &_striped {
+      background-color: #fafafa;
     }
 
-    &:nth-child(odd) {
-      background-color: #fafafa;
-      border: 0;
+    &:hover {
+      background-color: $color-light-green;
+    }
 
+    &_collapsible {
       &:hover {
-        background-color: $color-light-green;
+        cursor: pointer;
       }
     }
   }
+
+  tr:last-child .ednaTable__cell {
+    border-bottom: 0;
+  }
+
+  tr:last-child .ednaTable__cellShownCollapse {
+    border-bottom: 0;
+  }
+}
+
+.tableContainer {
+  overflow-y: scroll;
+  border: $px solid #9ba5a1;
+  border-radius: 8 * $px;
 }

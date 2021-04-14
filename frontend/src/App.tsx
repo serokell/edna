@@ -1,20 +1,73 @@
-import React, { FunctionComponent, ReactElement } from "react";
-import { Route, Switch } from "react-router-dom";
+import React, { FunctionComponent, ReactElement, useEffect } from "react";
+import { Route, Switch, useLocation } from "react-router-dom";
 import { Redirect } from "react-router";
 
-import { useRecoilValue } from "recoil";
+import { useRecoilCallback, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
 import { UploadPage } from "./pages/upload/UploadPage";
 import { LibraryPage } from "./pages/library/LibraryPage";
 import { NotFound } from "./components/NotFound/NotFound";
-import { modalDialogAtom } from "./store/atoms";
+import {
+  colorsCounterAtom,
+  compoundIdSelectedAtom,
+  excelFileAtom,
+  experimentsTableSizeAtom,
+  modalDialogAtom,
+  projectSelectedIdAtom,
+  selectedSubExperimentsColorAtom,
+  selectedSubExperimentsIdsAtom,
+  targetIdSelectedAtom,
+} from "./store/atoms";
 import { CreateMethodologyDialog } from "./components/dialogs/CreateMethodologyDialog";
 import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
 import { MethodologyDescriptionDialog } from "./components/dialogs/MethodologyDescriptionDialog";
 import { DeleteMethodologyDialog } from "./components/dialogs/DeleteMethodologyDialog";
 import { AddLinkDialog } from "./components/dialogs/AddLinkDialog";
+import { DashboardPage } from "./pages/dashboard/DashboardPage";
+import { chartColors } from "./store/types";
+import { SimpleDialog } from "./components/dialogs/SimpleDialog";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
+  const location = useLocation();
+  const resetExcelFile = useResetRecoilState(excelFileAtom);
+  const resetProjectSelectedId = useResetRecoilState(projectSelectedIdAtom);
+  const resetCompoundIdSelected = useResetRecoilState(compoundIdSelectedAtom);
+  const resetTargetIdSelected = useResetRecoilState(targetIdSelectedAtom);
+  const resetExperimentsTableSizeAtom = useResetRecoilState(experimentsTableSizeAtom);
+  const setSelectedSubExperimentsIds = useSetRecoilState(selectedSubExperimentsIdsAtom);
+  const selectedSubExperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
+
+  const resetColorsCounter = useRecoilCallback(({ reset }) => () => {
+    for (let i = 0; i < chartColors.length; i++) {
+      reset(colorsCounterAtom(chartColors[i]));
+    }
+  });
+
+  const resetSubexperimentsColors = useRecoilCallback(({ reset }) => () => {
+    const arr = Array.from(selectedSubExperiments);
+    for (let i = 0; i < arr.length; i++) {
+      reset(selectedSubExperimentsColorAtom(arr[i]));
+    }
+  });
+
+  useEffect(() => {
+    // Cleaners of state when we leave a page
+    if (location.pathname !== "/upload") {
+      resetExcelFile();
+    }
+
+    if (location.pathname !== "/dashboard") {
+      resetColorsCounter();
+      resetSubexperimentsColors();
+      resetProjectSelectedId();
+      resetCompoundIdSelected();
+      resetTargetIdSelected();
+      resetExperimentsTableSizeAtom();
+      // For some weird reason reset doesn't update selectedExperimentsQuery selector
+      setSelectedSubExperimentsIds(new Set<number>());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <>
@@ -34,12 +87,19 @@ export const App: FunctionComponent = (): ReactElement => {
       {modalDialog?.kind === "create-edit-project" && (
         <CreateProjectDialog editing={modalDialog.editing} />
       )}
+      {modalDialog?.kind === "failed-recompute-ic50" && (
+        <SimpleDialog title="Failed to recompute IC50" description={modalDialog.reason} />
+      )}
       <Switch>
         <Route path="/upload">
           <UploadPage />
         </Route>
         <Route path="/library">
           <LibraryPage />
+        </Route>
+
+        <Route path="/dashboard">
+          <DashboardPage />
         </Route>
 
         <Redirect exact from="/" to="/upload" />
