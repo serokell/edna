@@ -29,7 +29,8 @@ import Edna.Library.DB.Schema
   (CompoundRec, CompoundT(..), ProjectT(..), TestMethodologyRec, TestMethodologyT(..))
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Web.Types
-  (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp, TargetResp)
+  (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..), ProjectResp,
+  TargetResp)
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, localToUTC, nothingOrThrow)
@@ -75,18 +76,19 @@ editChemSoft compoundSqlId uri = do
   Q.editCompoundChemSoft compoundSqlId uriText
   compoundToResp compound {cChemsoftLink = Just uriText}
 
-methodologyToResp :: TestMethodologyRec -> Edna (WithId 'MethodologyId MethodologyReqResp)
-methodologyToResp TestMethodologyRec{..} = do
+methodologyToResp :: (TestMethodologyRec, [Text]) -> Edna (WithId 'MethodologyId MethodologyResp)
+methodologyToResp (TestMethodologyRec{..}, projects) = do
   url <- case tmConfluenceLink of
     Just link -> Just <$> justOrThrow (LEInvalidURI link) (parseURI link)
     Nothing -> pure Nothing
-  pure $ WithId (SqlId $ unSerial tmTestMethodologyId) $ MethodologyReqResp
-    { mrpName = tmName
-    , mrpDescription = tmDescription
-    , mrpConfluence = url
+  pure $ WithId (SqlId $ unSerial tmTestMethodologyId) $ MethodologyResp
+    { mrName = tmName
+    , mrDescription = tmDescription
+    , mrConfluence = url
+    , mrProjects = projects
     }
 
-getMethodology :: SqlId 'MethodologyId -> Edna (WithId 'MethodologyId MethodologyReqResp)
+getMethodology :: SqlId 'MethodologyId -> Edna (WithId 'MethodologyId MethodologyResp)
 getMethodology methodologySqlId = Q.getMethodologyById methodologySqlId >>=
   justOrThrow (LEMethodologyNotFound methodologySqlId) >>= methodologyToResp
 
@@ -94,23 +96,23 @@ getMethodologies
   :: Maybe Word
   -> Maybe Word
   -> Maybe StubSortBy
-  -> Edna [WithId 'MethodologyId MethodologyReqResp]
+  -> Edna [WithId 'MethodologyId MethodologyResp]
 getMethodologies _ _ _ = Q.getMethodologies >>= mapM methodologyToResp
 
-addMethodology :: MethodologyReqResp -> Edna (WithId 'MethodologyId MethodologyReqResp)
-addMethodology tm@MethodologyReqResp{..} = do
-  Q.getMethodologyByName mrpName >>= nothingOrThrow (LEMethodologyNameExists mrpName)
-  res <- Q.insertMethodology tm >>= methodologyToResp
-  res <$ logMessage ("Added methodology with name " <> mrpName)
+addMethodology :: MethodologyReq -> Edna (WithId 'MethodologyId MethodologyResp)
+addMethodology tm@MethodologyReq{..} = do
+  Q.getMethodologyByName mrqName >>= nothingOrThrow (LEMethodologyNameExists mrqName)
+  res <- Q.insertMethodology tm >>= methodologyToResp . (,[])
+  res <$ logMessage ("Added methodology with name " <> mrqName)
 
 updateMethodology
   :: SqlId 'MethodologyId
-  -> MethodologyReqResp
-  -> Edna (WithId 'MethodologyId MethodologyReqResp)
-updateMethodology mId@(SqlId methodologyId) tm@MethodologyReqResp{..} = do
-  existingMethodology <- Q.getMethodologyByName mrpName
+  -> MethodologyReq
+  -> Edna (WithId 'MethodologyId MethodologyResp)
+updateMethodology mId@(SqlId methodologyId) tm@MethodologyReq{..} = do
+  existingMethodology <- Q.getMethodologyByName mrqName
   case existingMethodology of
-    Just tmRec -> ensureOrThrow (LEMethodologyNameExists mrpName) $
+    Just tmRec -> ensureOrThrow (LEMethodologyNameExists mrqName) $
       tmTestMethodologyId tmRec == SqlSerial methodologyId
     Nothing -> pure ()
   Q.updateMethodology mId tm >> getMethodology mId

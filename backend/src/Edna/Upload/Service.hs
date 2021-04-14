@@ -99,6 +99,8 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
             \(TargetMeasurements targetMeasurements) -> keys targetMeasurements
       compoundToId <- HM.fromList <$> mapM insertCompound compounds
 
+      LQ.touchProject projId
+
       expFileId <- UQ.insertExperimentFile projId methodId (fcMetadata fc)
         description fileName fileBytes
 

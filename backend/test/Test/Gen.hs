@@ -17,7 +17,8 @@ module Test.Gen
   , genFileSummaryItem
   , genProjectReq
   , genProjectResp
-  , genMethodologyReqResp
+  , genMethodologyReq
+  , genMethodologyResp
   , genCompoundResp
   , genTargetResp
   , genExperimentsResp
@@ -58,11 +59,14 @@ import Edna.Dashboard.Web.Types
 import Edna.ExperimentReader.Types
   (FileContents(..), FileMetadata(..), Measurement(..), TargetMeasurements(..))
 import Edna.Library.Web.Types
-  (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
+  (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..), ProjectResp(..),
+  TargetResp(..))
 import Edna.Upload.Web.API (ExperimentalMeasurement(..))
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
 import Edna.Util (SqlId(..), localToUTC)
 import Edna.Web.Types
+
+import Test.Util (methodologyReqToResp)
 
 ----------------
 -- Heddgehog
@@ -128,12 +132,16 @@ genProjectResp = do
   prCompoundNames <- Gen.list (Range.linear 0 10) genName
   return ProjectResp {..}
 
-genMethodologyReqResp :: MonadGen m => m MethodologyReqResp
-genMethodologyReqResp = do
-  mrpName <- genName
-  mrpDescription <- Gen.maybe genDescription
-  mrpConfluence <- Gen.maybe genURI
-  return MethodologyReqResp {..}
+genMethodologyReq :: MonadGen m => m MethodologyReq
+genMethodologyReq = do
+  mrqName <- genName
+  mrqDescription <- Gen.maybe genDescription
+  mrqConfluence <- Gen.maybe genURI
+  return MethodologyReq {..}
+
+genMethodologyResp :: MonadGen m => m MethodologyResp
+genMethodologyResp =
+  methodologyReqToResp <$> genMethodologyReq <*> Gen.list (Range.linear 0 5) genName
 
 genCompoundResp :: MonadGen m => m CompoundResp
 genCompoundResp = do
@@ -239,7 +247,7 @@ genLocalTime = do
     m <- Gen.int (Range.constant 1 12)
     d <- Gen.int (Range.constant 1 28)
     let day = fromGregorian y m d
-    secs <- toInteger <$> Gen.int (Range.constant 0 86401)
+    secs <- toInteger <$> Gen.int (Range.constant 0 86399)
     let timeOfDay = timeToTimeOfDay $ secondsToDiffTime secs
     pure $ LocalTime day timeOfDay
 
@@ -304,8 +312,11 @@ instance Arbitrary ProjectReq where
 instance Arbitrary ProjectResp where
   arbitrary = hedgehog genProjectResp
 
-instance Arbitrary MethodologyReqResp where
-  arbitrary = hedgehog genMethodologyReqResp
+instance Arbitrary MethodologyReq where
+  arbitrary = hedgehog genMethodologyReq
+
+instance Arbitrary MethodologyResp where
+  arbitrary = hedgehog genMethodologyResp
 
 instance Arbitrary CompoundResp where
   arbitrary = hedgehog genCompoundResp

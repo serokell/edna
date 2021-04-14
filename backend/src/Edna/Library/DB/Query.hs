@@ -16,6 +16,7 @@ module Edna.Library.DB.Query
   , getProjectsWithCompounds
   , insertProject
   , updateProject
+  , touchProject
   , insertTarget
   , getTargetByName
   , getCompoundByName
@@ -25,10 +26,11 @@ module Edna.Library.DB.Query
 import Universum
 
 import qualified Data.List as L
+import qualified Data.List.NonEmpty as NE
 import qualified Database.Beam.Postgres.Full as Pg
 
 import Database.Beam.Backend (SqlSerial(..))
-import Database.Beam.Postgres (pgNubBy_)
+import Database.Beam.Postgres (now_, pgNubBy_)
 import Database.Beam.Query
   (all_, asc_, cast_, default_, filter_, guard_, insert, insertExpressions, int, just_, leftJoin_,
   lookup_, orderBy_, select, update, val_, (<-.), (==.))
@@ -41,8 +43,7 @@ import Edna.Dashboard.DB.Schema (ExperimentT(..))
 import Edna.Library.DB.Schema as LDB
   (CompoundRec, CompoundT(..), PrimaryKey(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..),
   TestMethodologyRec, TestMethodologyT(..))
-import Edna.Library.Web.Types
-  (MethodologyReqResp(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
+import Edna.Library.Web.Types (MethodologyReq(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U
@@ -166,9 +167,8 @@ insertCompound compoundName = do
 --------------------------
 
 -- | Get methodology by its name. Return nothing if there is no such methodology.
-getMethodologyById :: MethodologyId -> Edna (Maybe TestMethodologyRec)
-getMethodologyById (SqlId methodologyId) = runSelectReturningOne' $
-  lookup_ (esTestMethodology ednaSchema) $ TestMethodologyId $ SqlSerial methodologyId
+getMethodologyById :: MethodologyId -> Edna (Maybe (TestMethodologyRec, [Text]))
+getMethodologyById = fmap listToMaybe . getMethodology' . Just
 
 -- | Get methodology by its name. Return nothing if there is no such methodology.
 getMethodologyByName :: Text -> Edna (Maybe TestMethodologyRec)
@@ -178,30 +178,49 @@ getMethodologyByName name = runSelectReturningOne' $ select $ do
   pure methodologies
 
 -- | Get all methodologies
-getMethodologies :: Edna [TestMethodologyRec]
-getMethodologies = runSelectReturningList' $ select $ all_ $ esTestMethodology ednaSchema
+getMethodologies :: Edna [(TestMethodologyRec, [Text])]
+getMethodologies = getMethodology' Nothing
 
--- | Insert methodology and return its DB value
+getMethodology' :: Maybe MethodologyId -> Edna [(TestMethodologyRec, [Text])]
+getMethodology' mMethodologyId =
+  fmap convert $
+  runSelectReturningList' $ select $
+  pgNubBy_ (bimap tmTestMethodologyId pProjectId) $ do
+    tm <- all_ $ esTestMethodology ednaSchema
+    whenJust mMethodologyId $ \(SqlId methodId) ->
+      guard_ (tmTestMethodologyId tm ==. val_ (SqlSerial methodId))
+    experimentFile <- leftJoin_ (all_ $ esExperimentFile ednaSchema) $
+      \ef -> just_ (cast_ (tmTestMethodologyId tm) int) ==. efMethodologyId ef
+    project <- leftJoin_ (all_ $ esProject ednaSchema) $
+      \p -> just_ (cast_ (pProjectId p) int) ==. efProjectId experimentFile
+    return (tm, project)
+  where
+    convert :: [(TestMethodologyRec, Maybe ProjectRec)] -> [(TestMethodologyRec, [Text])]
+    convert =
+      map (\ne -> (fst $ head ne, map pName . mapMaybe snd . toList $ ne)) .
+      NE.groupAllWith (tmTestMethodologyId . fst)
+
+-- | Insert methodology and return its DB value.
 -- Fails if methodology with this name already exists
-insertMethodology :: MethodologyReqResp -> Edna TestMethodologyRec
-insertMethodology MethodologyReqResp{..} = runInsertReturningOne' $
+insertMethodology :: MethodologyReq -> Edna TestMethodologyRec
+insertMethodology MethodologyReq{..} = runInsertReturningOne' $
   insert (esTestMethodology ednaSchema) $ insertExpressions
     [ TestMethodologyRec
       { tmTestMethodologyId = default_
-      , tmName = val_ mrpName
-      , tmDescription = val_ mrpDescription
-      , tmConfluenceLink = val_ $ renderURI <$> mrpConfluence
+      , tmName = val_ mrqName
+      , tmDescription = val_ mrqDescription
+      , tmConfluenceLink = val_ $ renderURI <$> mrqConfluence
       }
     ]
 
 -- | Update methodology by its ID
-updateMethodology :: MethodologyId -> MethodologyReqResp -> Edna ()
-updateMethodology (SqlId methodologyId) MethodologyReqResp{..} =
+updateMethodology :: MethodologyId -> MethodologyReq -> Edna ()
+updateMethodology (SqlId methodologyId) MethodologyReq{..} =
   runUpdate' $ update (esTestMethodology ednaSchema)
     (\tm -> mconcat
-      [ LDB.tmName tm <-. val_ mrpName
-      , LDB.tmDescription tm <-. val_ mrpDescription
-      , LDB.tmConfluenceLink tm <-. val_ (renderURI <$> mrpConfluence)])
+      [ LDB.tmName tm <-. val_ mrqName
+      , LDB.tmDescription tm <-. val_ mrqDescription
+      , LDB.tmConfluenceLink tm <-. val_ (renderURI <$> mrqConfluence)])
     (\tm -> tmTestMethodologyId tm ==. val_ (SqlSerial methodologyId))
 
 -- | Delete methodology by its ID. Returns whether something was actually
@@ -300,12 +319,19 @@ insertProject ProjectReq{..} = runInsertReturningOne' $
       }
     ]
 
--- | Update project bu its ID
+-- | Update project by its ID
 updateProject :: ProjectId -> ProjectReq -> Edna ()
 updateProject (SqlId projectId) ProjectReq{..} =
   runUpdate' $ update (esProject ednaSchema)
     (\p -> mconcat
       [ LDB.pName p <-. val_ prqName
       , LDB.pDescription p <-. val_ prqDescription
-      , LDB.pLastUpdate p <-. default_])
+      , LDB.pLastUpdate p <-. now_])
+    (\p -> pProjectId p ==. val_ (SqlSerial projectId))
+
+-- | Update timestamp of last modification of the project
+touchProject :: ProjectId -> Edna ()
+touchProject (SqlId projectId) =
+  runUpdate' $ update (esProject ednaSchema)
+    (\p -> LDB.pLastUpdate p <-. now_)
     (\p -> pProjectId p ==. val_ (SqlSerial projectId))

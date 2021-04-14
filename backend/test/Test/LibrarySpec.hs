@@ -17,7 +17,7 @@ import Edna.Library.Service
   getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
   updateMethodology, updateProject)
 import Edna.Library.Web.Types
-  (CompoundResp(..), MethodologyReqResp(..), ProjectReq(..),
+  (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..),
   ProjectResp(prCompoundNames, prDescription, prName), TargetResp(..))
 import Edna.Setup (EdnaContext)
 import Edna.Util (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId)
@@ -25,6 +25,7 @@ import Edna.Web.Types (WithId(..))
 
 import Test.SampleData
 import Test.Setup (runTestEdna, runWithInit, withContext)
+import Test.Util (methodologyReqToResp)
 
 spec :: Spec
 spec = withContext $ do
@@ -137,20 +138,21 @@ gettersSpec = do
       , (7, compoundName5)
       ]
 
-    checkMethodologies :: MonadIO m => [WithId 'MethodologyId MethodologyReqResp] -> m ()
+    checkMethodologies :: MonadIO m => [WithId 'MethodologyId MethodologyResp] -> m ()
     checkMethodologies pairs = liftIO $ do
       length pairs `shouldBe` length methodologyIds
       forM_ pairs $ \WithId {..} -> do
         let
-          (expectedName, expectedDescription, expectedConfluence) =
+          (expectedName, expectedDescription, expectedConfluence, expectedProj) =
             expectedMethodologies Map.! unSqlId wiId
-        mrpName wItem `shouldBe` expectedName
-        mrpDescription wItem `shouldBe` expectedDescription
-        mrpConfluence wItem `shouldBe` expectedConfluence
+        mrName wItem `shouldBe` expectedName
+        mrDescription wItem `shouldBe` expectedDescription
+        mrConfluence wItem `shouldBe` expectedConfluence
+        mrProjects wItem `shouldBe` [expectedProj]
 
     expectedMethodologies = Map.fromList
-      [ (1, (methodologyName1, methodologyDescription1, methodologyConfluence1))
-      , (2, (methodologyName2, methodologyDescription2, methodologyConfluence2))
+      [ (1, (methodologyName1, methodologyDescription1, methodologyConfluence1, projectName1))
+      , (2, (methodologyName2, methodologyDescription2, methodologyConfluence2, projectName2))
       ]
 
     checkProjects :: MonadIO m => [WithId 'ProjectId ProjectResp] -> m ()
@@ -176,23 +178,23 @@ additionSpec = do
   describe "addMethodology" $ do
     it "successfully adds methodology with a new name" $ runTestEdna $ do
       let
-        mrp = MethodologyReqResp
-          { mrpName = "new"
-          , mrpDescription = Just "smth"
-          , mrpConfluence = Just sampleURI
+        mrq = MethodologyReq
+          { mrqName = "new"
+          , mrqDescription = Just "smth"
+          , mrqConfluence = Just sampleURI
           }
-      withId <- addMethodology mrp
-      liftIO $ wItem withId `shouldBe` mrp
+      withId <- addMethodology mrq
+      liftIO $ wItem withId `shouldBe` methodologyReqToResp mrq []
       liftIO . shouldBe withId =<< getMethodology (wiId withId)
     it "fails to add methodology with an already used name" $ \ctx -> do
       let
-        mrp = MethodologyReqResp
-          { mrpName = methodologyName1
-          , mrpDescription = Nothing
-          , mrpConfluence = Nothing
+        mrq = MethodologyReq
+          { mrqName = methodologyName1
+          , mrqDescription = Nothing
+          , mrqConfluence = Nothing
           }
-      runRIO ctx (addMethodology mrp) `shouldThrow`
-        (== LEMethodologyNameExists (mrpName mrp))
+      runRIO ctx (addMethodology mrq) `shouldThrow`
+        (== LEMethodologyNameExists (mrqName mrq))
   describe "addProject" $ do
     it "successfully adds project with a new name" $ runTestEdna $ do
       let
@@ -232,22 +234,23 @@ modificationSpec = do
       methodologyId :: MethodologyId
       methodologyId = SqlId 2
 
-      mrq :: MethodologyReqResp
-      mrq = MethodologyReqResp
-        { mrpName = "new name"
-        , mrpDescription = Just "new description"
-        , mrpConfluence = Just sampleURI
+      mrq :: MethodologyReq
+      mrq = MethodologyReq
+        { mrqName = "new name"
+        , mrqDescription = Just "new description"
+        , mrqConfluence = Just sampleURI
         }
     it "fails to update an unknown methodology" $ \ctx -> do
       runRIO ctx (updateMethodology unknownSqlId mrq) `shouldThrow`
         (== LEMethodologyNotFound unknownSqlId)
     it "fails to update name to a duplicate" $ \ctx -> do
-      let mrq' = mrq { mrpName = methodologyName1 }
+      let mrq' = mrq { mrqName = methodologyName1 }
       runRIO ctx (updateMethodology methodologyId mrq') `shouldThrow`
         (== LEMethodologyNameExists methodologyName1)
     it "successfully edits an existing methodology" $ runTestEdna $ do
+      projects <- mrProjects . wItem <$> getMethodology methodologyId
       withId <- updateMethodology methodologyId mrq
-      liftIO $ wItem withId `shouldBe` mrq
+      liftIO $ wItem withId `shouldBe` methodologyReqToResp mrq projects
       liftIO . shouldBe withId =<< getMethodology methodologyId
   describe "updateProject" $ do
     let

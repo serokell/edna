@@ -141,6 +141,7 @@ test-suite edna-test
       Test.SMT.State
       Test.SwaggerSpec
       Test.UploadSpec
+      Test.Util
       Test.Util.URISpec
       Paths_edna
   hs-source-dirs:

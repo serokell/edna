@@ -30,9 +30,9 @@ import Edna.Library.Service
   getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
   updateMethodology, updateProject)
 import Edna.Library.Web.Types
-  (CompoundResp, MethodologyReqResp, ProjectReq, ProjectResp, TargetResp)
+  (CompoundResp, MethodologyReq, MethodologyResp, ProjectReq, ProjectResp, TargetResp)
 import Edna.Setup (Edna)
-import Edna.Util (IdType(..), SqlId(..))
+import Edna.Util (IdType(..), MethodologyId, SqlId(..))
 import Edna.Web.Types (StubSortBy, URI, WithId)
 
 -- TODO: pagination and sorting are just stubs for now (everywhere).
@@ -89,22 +89,22 @@ data MethodologyEndpoints route = MethodologyEndpoints
     meAddMethodology :: route
       :- "methodology"
       :> Summary "Add a new methodology"
-      :> ReqBody '[JSON] MethodologyReqResp
-      :> Post '[JSON] (WithId 'MethodologyId MethodologyReqResp)
+      :> ReqBody '[JSON] MethodologyReq
+      :> Post '[JSON] (WithId 'MethodologyId MethodologyResp)
 
   , -- | Update an existing methodology.
     meEditMethodology :: route
       :- "methodology"
       :> Summary "Update an existing methodology"
-      :> Capture "methodologyId" (SqlId 'MethodologyId)
-      :> ReqBody '[JSON] MethodologyReqResp
-      :> Put '[JSON] (WithId 'MethodologyId MethodologyReqResp)
+      :> Capture "methodologyId" MethodologyId
+      :> ReqBody '[JSON] MethodologyReq
+      :> Put '[JSON] (WithId 'MethodologyId MethodologyResp)
 
   , -- | Delete an existing methodology.
     meDeleteMethodology :: route
       :- "methodology"
       :> Summary "Delete an existing methodology"
-      :> Capture "methodologyId" (SqlId 'MethodologyId)
+      :> Capture "methodologyId" MethodologyId
       :> Delete '[JSON] NoContent
 
   , -- | Get known methodologies with optional pagination and sorting
@@ -114,14 +114,14 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :> QueryParam "page" Word
       :> QueryParam "size" Word
       :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId 'MethodologyId MethodologyReqResp]
+      :> Get '[JSON] [WithId 'MethodologyId MethodologyResp]
 
   , -- | Get methodology data by ID
     meGetMethodology :: route
       :- "methodology"
       :> Summary "Get methodology data by ID"
-      :> Capture "methodologyId" (SqlId 'MethodologyId)
-      :> Get '[JSON] (WithId 'MethodologyId MethodologyReqResp)
+      :> Capture "methodologyId" MethodologyId
+      :> Get '[JSON] (WithId 'MethodologyId MethodologyResp)
   } deriving stock (Generic)
 
 type MethodologyAPI = ToServant MethodologyEndpoints AsApi
