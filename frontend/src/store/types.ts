@@ -68,7 +68,8 @@ export type ModalDialogState =
   | { kind: "methodology-description"; methodology: MethodologyDto }
   | { kind: "create-edit-methodology"; editing?: MethodologyDto }
   | { kind: "create-edit-project"; editing?: ProjectDto }
-  | { kind: "failed-recompute-ic50"; reason: string };
+  | { kind: "failed-recompute-ic50"; reason: string }
+  | { kind: "show-experiment-metadata"; description: string[] };
 
 export type ExperimentsTableSize = "expanded" | "minimized";
 

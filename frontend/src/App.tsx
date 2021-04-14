@@ -93,6 +93,9 @@ export const App: FunctionComponent = (): ReactElement => {
       {modalDialog?.kind === "failed-recompute-ic50" && (
         <SimpleDialog title="Failed to recompute IC50" description={modalDialog.reason} />
       )}
+      {modalDialog?.kind === "show-experiment-metadata" && (
+        <SimpleDialog title="Metadata" description={modalDialog.description} btnText="Close" />
+      )}
       <Switch>
         <Route path="/upload">
           <UploadPage />

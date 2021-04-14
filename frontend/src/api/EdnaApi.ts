@@ -4,6 +4,7 @@ import {
   CompoundDto,
   ExperimentsWithMeanDto,
   MeasurementDto,
+  ExperimentMetadataDto,
   MethodologyDto,
   ParsedExcelDto,
   ProjectDto,
@@ -88,6 +89,8 @@ interface EdnaApiInterface {
     subExperimentId: number,
     sub: AnalyzeNewSubexperimentApi
   ) => Promise<SubExperimentDto>;
+
+  fetchExperimentMetadata: (experimentId: number) => Promise<ExperimentMetadataDto>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -225,6 +228,10 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     newSubexperiment: async (subExperimentId: number, sub: AnalyzeNewSubexperimentApi) => {
       return axios.post(`/subExperiment/${subExperimentId}/new`, sub).then(res => res.data);
+    },
+
+    fetchExperimentMetadata: async (experimentId: number) => {
+      return axios.get(`/experiment/${experimentId}/metadata`).then(res => res.data);
     },
   };
 }

@@ -3,6 +3,7 @@
 .contextActions {
   position: relative;
   display: flex;
+  width: 30 * $px;
 
   &__btn {
     padding: 0 (22 * $px);
@@ -17,7 +18,9 @@
 
   &__content {
     position: absolute;
-    right: 100 * $px;
+    top: 25 * $px;
+    right: 0 * $px;
+    z-index: 20;
     display: none;
     flex-direction: column;
     margin: 0 (22 * $px);
@@ -37,6 +40,7 @@
     width: 100%;
     padding: (6 * $px) (12 * $px);
     color: rgba($color-black, 0.7);
+    text-decoration: none;
 
     svg {
       margin-right: 14 * $px;
@@ -44,6 +48,7 @@
 
     &:hover {
       cursor: pointer;
+      background-color: $color-light-green;
     }
   }
 }

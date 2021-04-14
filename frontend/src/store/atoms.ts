@@ -3,7 +3,7 @@ import { atom, atomFamily } from "recoil";
 import { NewSubExperiment, ExperimentsTableSize, FileUploadState, ModalDialogState } from "./types";
 import { Maybe } from "../utils/utils";
 import Api from "../api/api";
-import { MeasurementDto, SubExperimentDto } from "../api/types";
+import { ExperimentMetadataDto, MeasurementDto, SubExperimentDto } from "../api/types";
 
 // Global
 export const modalDialogAtom = atom<ModalDialogState>({
@@ -98,5 +98,12 @@ export const newSubexperimentAtom = atom<NewSubExperiment>({
   default: {
     changedPoints: [],
     subExperimentId: -1,
+  },
+});
+
+export const experimentMetadata = atomFamily<ExperimentMetadataDto, number>({
+  key: "ExperimentMetadata",
+  default: async experimentId => {
+    return Api.fetchExperimentMetadata(experimentId);
   },
 });

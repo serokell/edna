@@ -1,10 +1,12 @@
-import { useRecoilValue, waitForAll } from "recoil";
+import { useRecoilCallback, useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
 import React, { useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
 import { v4 as uuidv4 } from "uuid";
 import {
+  experimentMetadata,
   experimentsTableSizeAtom,
+  modalDialogAtom,
   selectedSubExperimentsIdsAtom,
   subExperimentsMetaAtom,
 } from "../../../store/atoms";
@@ -23,6 +25,8 @@ import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
 import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
 import cn from "../../../utils/bemUtils";
 import "../IC50Line.scss";
+import MetadataSvg from "../../../assets/svg/metadata.svg";
+import DownloadSvg from "../../../assets/svg/download.svg";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -38,6 +42,14 @@ export function ExperimentsTableSuspendable({
   const removeSubExperiments = useRemoveSubExperiments();
   const selectedExperiments = useRecoilValue(selectedExperimentsQuery);
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
+  const setModalDialog = useSetRecoilState(modalDialogAtom);
+
+  const cacheMetadata = useRecoilCallback(
+    ({ snapshot }) => (experimentId: number) => {
+      return snapshot.getPromise(experimentMetadata(experimentId));
+    },
+    [experimentMetadata]
+  );
 
   const compoundColumn = React.useMemo(
     () => ({
@@ -114,6 +126,7 @@ export function ExperimentsTableSuspendable({
     [compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
   );
 
+  // TODO implement file downloading
   const expandedColumns: Column<Experiment>[] = React.useMemo(
     () => [
       compoundColumn,
@@ -130,10 +143,41 @@ export function ExperimentsTableSuspendable({
       showCheckboxColumn,
       {
         id: "actions",
-        accessor: () => <ContextActions actions={[]} />,
+        accessor: (e: Experiment) => (
+          <ContextActions
+            actions={[
+              <div
+                key="metadata"
+                className="contextActions__item"
+                onMouseDown={async () => {
+                  const metadata = await cacheMetadata(e.id);
+                  setModalDialog({
+                    kind: "show-experiment-metadata",
+                    description: metadata.fileMetadata.concat(metadata.description),
+                  });
+                }}
+              >
+                <MetadataSvg />
+                Metadata
+              </div>,
+              <a
+                key="download"
+                download
+                className="contextActions__item"
+                href={`/experiment/${e.id}/file`}
+                onMouseDown={() => {
+                  console.log("on link click");
+                }}
+              >
+                <DownloadSvg />
+                Download
+              </a>,
+            ]}
+          />
+        ),
       },
     ],
-    [compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
+    [setModalDialog, cacheMetadata, compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
   );
 
   return (

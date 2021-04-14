@@ -63,8 +63,12 @@ export function Table<T extends object>({
                 {...row.getRowProps()}
                 className={ednaTable("row", { collapsible: isCollapsible, striped: i % 2 === 0 })}
                 onClick={e => {
-                  const classNm = (e.target as any).className as string;
-                  if (isCollapsible && classNm.indexOf("ednaTable__cell") !== -1) {
+                  const classNm = (e.target as any).className;
+                  if (
+                    isCollapsible &&
+                    typeof classNm === "string" &&
+                    classNm.indexOf("ednaTable__cell") !== -1
+                  ) {
                     const newShownColl = shownColl.slice();
                     newShownColl[i] = !shownColl[i];
                     setShownColl(newShownColl);
