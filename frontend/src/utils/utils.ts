@@ -1,4 +1,5 @@
 // For testing and mocking purposes
+import { RefObject, useEffect } from "react";
 import { DateTimeDto } from "../api/types";
 
 export function delay(ms: number): Promise<void> {
@@ -39,4 +40,22 @@ export function zip<A, B>(a: A[], b: B[]): [A, B][] {
 
 export function formatIC50(x: number): string {
   return x.toFixed(3);
+}
+
+export function useClickOutsideCallback(ref: RefObject<HTMLElement>, onOutside: () => void): void {
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as any)) {
+        onOutside();
+      }
+    };
+
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref]);
 }

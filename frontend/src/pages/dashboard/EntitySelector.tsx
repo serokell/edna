@@ -17,9 +17,9 @@ import {
 } from "../../store/atoms";
 import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
 import { formatDateTimeDto } from "../../utils/utils";
-import { EditContextItem } from "../../components/ContextActions/ContextItems";
 import { Button } from "../../components/Button/Button";
 import { EntityProperty } from "../../components/DescriptiveSelector/DescriptivePlate";
+import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 interface SelectorProps {
   className?: string;
@@ -49,7 +49,8 @@ export function ProjectSelector({ className }: SelectorProps): React.ReactElemen
       }
       toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
       contextActions={[
-        <EditContextItem
+        <ContextItem
+          type="edit"
           key="edit"
           onClick={() => {
             if (projectSelectedL.state === "hasValue" && projectSelectedL.contents) {
@@ -105,7 +106,8 @@ export function CompoundSelector({ className }: SelectorProps): React.ReactEleme
       }}
       toOption={c => ({ value: `${c.id}`, label: c.item.name })}
       contextActions={[
-        <EditContextItem
+        <ContextItem
+          type="edit"
           key="edit"
           onClick={() => {
             if (compoundSelectedL.state === "hasValue" && compoundSelectedL.contents) {

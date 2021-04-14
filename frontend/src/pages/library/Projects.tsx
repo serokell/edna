@@ -8,7 +8,7 @@ import { ContextActions } from "../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Button } from "../../components/Button/Button";
 import { Table } from "../../components/Table/Table";
-import { EditContextItem } from "../../components/ContextActions/ContextItems";
+import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 export function ProjectsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -38,8 +38,9 @@ export function ProjectsSuspendable(): React.ReactElement {
         accessor: (p: ProjectDto) => (
           <ContextActions
             actions={[
-              <EditContextItem
+              <ContextItem
                 key="edit"
+                type="delete"
                 onClick={() =>
                   setModalDialog({
                     kind: "create-edit-project",

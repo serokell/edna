@@ -9,7 +9,7 @@ import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Table } from "../../components/Table/Table";
-import { DeleteContextItem, EditContextItem } from "../../components/ContextActions/ContextItems";
+import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 export function MethodsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -80,7 +80,8 @@ export function MethodsSuspendable(): React.ReactElement {
         accessor: (m: MethodologyDto) => (
           <ContextActions
             actions={[
-              <EditContextItem
+              <ContextItem
+                type="edit"
                 key="edit"
                 onClick={() => {
                   setModalDialog({
@@ -89,7 +90,8 @@ export function MethodsSuspendable(): React.ReactElement {
                   });
                 }}
               />,
-              <DeleteContextItem
+              <ContextItem
+                type="delete"
                 key="delete"
                 onClick={() => {
                   setModalDialog({

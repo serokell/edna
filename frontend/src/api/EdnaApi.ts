@@ -91,6 +91,9 @@ interface EdnaApiInterface {
   ) => Promise<SubExperimentDto>;
 
   fetchExperimentMetadata: (experimentId: number) => Promise<ExperimentMetadataDto>;
+  makePrimary: (subExperimentId: number) => Promise<SubExperimentDto>;
+  renameSubexperiment: (subExperimentId: number, newName: string) => Promise<SubExperimentDto>;
+  deleteSubexperiment: (subExperimentId: number) => Promise<any>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -232,6 +235,22 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     fetchExperimentMetadata: async (experimentId: number) => {
       return axios.get(`/experiment/${experimentId}/metadata`).then(res => res.data);
+    },
+
+    makePrimary: async (subExperimentId: number) => {
+      return axios.post(`/subExperiment/primary/${subExperimentId}`).then(res => res.data);
+    },
+
+    renameSubexperiment: async (subExperimentId: number, newName: string) => {
+      return axios
+        .put(`/subExperiment/name/${subExperimentId}`, `"${newName}"`, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(res => res.data);
+    },
+
+    deleteSubexperiment: async (subExperimentId: number) => {
+      return axios.delete(`/subExperiment/${subExperimentId}`).then(res => res.data);
     },
   };
 }

@@ -25,8 +25,8 @@ import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
 import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
 import cn from "../../../utils/bemUtils";
 import "../IC50Line.scss";
-import MetadataSvg from "../../../assets/svg/metadata.svg";
 import DownloadSvg from "../../../assets/svg/download.svg";
+import { ContextItem } from "../../../components/ContextActions/ContextItems";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -146,20 +146,17 @@ export function ExperimentsTableSuspendable({
         accessor: (e: Experiment) => (
           <ContextActions
             actions={[
-              <div
+              <ContextItem
                 key="metadata"
-                className="contextActions__item"
-                onMouseDown={async () => {
+                type="metadata"
+                onClick={async () => {
                   const metadata = await cacheMetadata(e.id);
                   setModalDialog({
                     kind: "show-experiment-metadata",
                     description: metadata.fileMetadata.concat(metadata.description),
                   });
                 }}
-              >
-                <MetadataSvg />
-                Metadata
-              </div>,
+              />,
               <a
                 key="download"
                 download

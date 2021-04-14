@@ -41,6 +41,7 @@
     padding: (6 * $px) (12 * $px);
     color: rgba($color-black, 0.7);
     text-decoration: none;
+    white-space: nowrap;
 
     svg {
       margin-right: 14 * $px;

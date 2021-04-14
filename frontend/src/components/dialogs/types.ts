@@ -34,3 +34,9 @@ export function toCreateMethodologyForm(meth?: MethodologyDto): CreateMethodolog
 export interface AddLinkForm {
   link: string;
 }
+
+// Rename subexperiment dialog
+
+export interface RenameSubexperiment {
+  name: string;
+}

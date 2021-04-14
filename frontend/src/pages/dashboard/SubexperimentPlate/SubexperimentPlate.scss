@@ -2,6 +2,7 @@
 @import "src/styles/fonts";
 
 .subexperimentPlate {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 165 * $px;
