@@ -54,6 +54,17 @@ $cell-indent: 22 * $px;
     }
   }
 
+  &__cellShownCollapse {
+    display: none;
+    height: 0;
+    border-bottom: $px solid $border-color;
+
+    &_shown {
+      display: table-cell;
+      height: 100%;
+    }
+  }
+
   &__row {
     border: 0;
 
@@ -72,15 +83,12 @@ $cell-indent: 22 * $px;
     }
   }
 
-  &__rowShownCollapse {
-    display: none;
-    height: 0;
-    border-bottom: $px solid $border-color;
+  tr:last-child .ednaTable__cell {
+    border-bottom: 0;
+  }
 
-    &_shown {
-      display: table-cell;
-      height: 100%;
-    }
+  tr:last-child .ednaTable__cellShownCollapse {
+    border-bottom: 0;
   }
 }
 

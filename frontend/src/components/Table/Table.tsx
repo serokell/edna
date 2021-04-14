@@ -90,7 +90,7 @@ export function Table<T extends object>({
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className={ednaTable("rowShownCollapse", { shown: shownColl[i] })}
+                    className={ednaTable("cellShownCollapse", { shown: shownColl[i] })}
                   >
                     {collapsible(row.original)}
                   </td>
