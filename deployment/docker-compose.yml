@@ -1,17 +1,38 @@
 version: '3.7'
 services:
+  backend:
+    image: "ghcr.io/serokell/edna-backend:latest"
+    depends_on:
+      - postgres
+    volumes:
+      - ./config.yaml:/config.yaml
+    networks:
+      - edna-network
+    ports:
+      - 9000:9000
+    command: --config /config.yaml
+  frontend:
+    image: "ghcr.io/serokell/edna-frontend:latest"
+    depends_on:
+      - backend
+    ports:
+      - 8080:80
+    networks:
+      - edna-network
   postgres:
-    image: "postgres"
+    image: postgres
     container_name: postgres
     ports:
-      - "5432:5432"
+      - 5432:5432
     environment:
       POSTGRES_USER: ednauser
       POSTGRES_PASSWORD: ednapass
       POSTGRES_DB: ednadb
     volumes:
-      - ./postgres:/var/lib/postgresql/data/
+      - edna-db-data:/var/lib/postgresql/data/
     networks:
       - edna-network
 networks:
   edna-network: { }
+volumes:
+  edna-db-data:

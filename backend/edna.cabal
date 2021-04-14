@@ -93,6 +93,7 @@ library
     process,
     resource-pool,
     rio,
+    safe-exceptions,
     servant,
     servant-multipart,
     servant-server,

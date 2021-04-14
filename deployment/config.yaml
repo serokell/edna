@@ -1,0 +1,24 @@
+# Config for docker-compose-based local deployment
+api:
+  # Must match the port from `docker-compose.yml`
+  listen-addr: "*:9000"
+  serve-docs: true
+
+db:
+  # Syntax: https://www.postgresql.org/docs/9.5/libpq-connect.html#LIBPQ-CONNSTRING
+  # Must match parameters from `docker-compose.yml`
+  # Database runs in a separate container, and container name is used as its address.
+  # So we pass `postgress` instead of `localhost`.
+  conn-string: "host=postgres dbname=ednadb user=ednauser password=ednapass"
+  max-connections: 200
+  # Optional value that we use to init DB on start
+  initialisation:
+    # Two options of DB initialisation from the app:
+    # * "enable" will run init script on the app start,
+    # * "enable-with-drop" will run drop script before init
+    mode: "enable"
+    # Inside the Docker image `init.sql` is available in the root
+    init-script: "/init.sql"
+
+# Other possible values: 'Prod' and 'Nothing'.
+logging: Dev
