@@ -12,6 +12,7 @@ import {
   excelFileAtom,
   experimentsTableSizeAtom,
   modalDialogAtom,
+  newSubexperimentAtom,
   projectSelectedIdAtom,
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
@@ -34,6 +35,7 @@ export const App: FunctionComponent = (): ReactElement => {
   const resetCompoundIdSelected = useResetRecoilState(compoundIdSelectedAtom);
   const resetTargetIdSelected = useResetRecoilState(targetIdSelectedAtom);
   const resetExperimentsTableSizeAtom = useResetRecoilState(experimentsTableSizeAtom);
+  const resetNewSubExperiment = useResetRecoilState(newSubexperimentAtom);
   const setSelectedSubExperimentsIds = useSetRecoilState(selectedSubExperimentsIdsAtom);
   const selectedSubExperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
 
@@ -62,6 +64,7 @@ export const App: FunctionComponent = (): ReactElement => {
       resetProjectSelectedId();
       resetCompoundIdSelected();
       resetTargetIdSelected();
+      resetNewSubExperiment();
       resetExperimentsTableSizeAtom();
       // For some weird reason reset doesn't update selectedExperimentsQuery selector
       setSelectedSubExperimentsIds(new Set<number>());
