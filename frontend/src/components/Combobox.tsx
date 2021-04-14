@@ -8,7 +8,7 @@ import { FormikCompatible } from "./FormField/FormField";
 
 export type SelectOption = { value: string; label: string };
 
-interface CreatableSelectProps<T> extends FormikCompatible<Maybe<T>> {
+interface ComboboxProps<T> extends FormikCompatible<Maybe<T>> {
   optionsLoadable: Loadable<T[]>;
   placeholder: string;
   placeholderEmpty: string;
@@ -19,7 +19,7 @@ interface CreatableSelectProps<T> extends FormikCompatible<Maybe<T>> {
   [prop: string]: any;
 }
 
-export default function CreatableSelect<T>({
+export default function Combobox<T>({
   optionsLoadable,
   placeholder,
   placeholderEmpty,
@@ -30,7 +30,7 @@ export default function CreatableSelect<T>({
   styles,
   isLoading,
   ...props
-}: CreatableSelectProps<T>): React.ReactElement {
+}: ComboboxProps<T>): React.ReactElement {
   const mergedStyles: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>> = {
     // Colorize message when error happened
     noOptionsMessage: provided =>

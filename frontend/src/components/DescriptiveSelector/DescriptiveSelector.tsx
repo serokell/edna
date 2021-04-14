@@ -2,7 +2,7 @@ import { Loadable } from "recoil";
 import cx from "classnames";
 import React, { useState } from "react";
 import { isDefined, Maybe } from "../../utils/utils";
-import CreatableSelect, { SelectOption } from "../CreatableSelect";
+import Combobox, { SelectOption } from "../Combobox";
 import "./DescriptiveSelector.scss";
 import { DescriptivePlate, EntityProperty } from "./DescriptivePlate";
 
@@ -37,7 +37,7 @@ export function DescriptiveSelector<T>({
 
   return (
     <div className={cx("descriptiveSelector", className)}>
-      <CreatableSelect
+      <Combobox
         {...props}
         isFocused={selectOpened}
         styles={{

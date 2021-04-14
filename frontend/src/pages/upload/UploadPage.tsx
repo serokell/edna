@@ -6,7 +6,7 @@ import "../../components/Spinner/Spinner.scss";
 import FormField from "../../components/FormField/FormField";
 import "./UploadPage.scss";
 import { excelFileAtom } from "../../store/atoms";
-import CreatableSelect from "../../components/CreatableSelect";
+import Combobox from "../../components/Combobox";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
 import { isParsed } from "../../store/types";
@@ -111,7 +111,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               className="uploadingForm__project"
             >
               {field => (
-                <CreatableSelect
+                <Combobox
                   optionsLoadable={projectsLoadable}
                   placeholder="Select a project"
                   placeholderEmpty="No projects"
@@ -129,7 +129,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               className="uploadingForm__methodology"
             >
               {field => (
-                <CreatableSelect
+                <Combobox
                   {...field}
                   optionsLoadable={methodologiesLoadable}
                   placeholder="Select a methodology"

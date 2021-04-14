@@ -2,12 +2,10 @@
 @import "src/styles/fonts";
 
 .descriptivePlate {
-  padding: (22 * $px) (22 * $px) (18 * $px) (18 * $px);
-  border-right: $px solid $color-gray;
-  border-bottom: $px solid $color-gray;
-  border-left: $px solid $color-gray;
-  border-bottom-right-radius: $border-radius;
-  border-bottom-left-radius: $border-radius;
+  padding: (22 * $px) (18 * $px);
+  border: $px solid $color-gray;
+  border-top: 0;
+  border-radius: 0 0 $border-radius $border-radius;
 
   &__line {
     display: flex;
