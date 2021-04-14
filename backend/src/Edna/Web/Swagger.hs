@@ -37,6 +37,7 @@ import Servant.Swagger (HasSwagger(..))
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.Core (SwaggerUiHtml)
 
+import Edna.Orphans ()
 import Edna.Web.API (EdnaAPI, ednaAPI)
 
 ----------------------------------------------------------------------------

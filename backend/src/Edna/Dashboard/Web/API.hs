@@ -17,6 +17,7 @@ import Servant.API
   (Capture, Delete, Get, Header, Headers, JSON, NoContent, OctetStream, Post, Put, QueryParam,
   Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
+import Servant.Pagination (PageHeaders, Ranges, applyRange, extractRange, returnRange)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Analysis.FourPL (AnalysisResult)
@@ -27,9 +28,8 @@ import Edna.Dashboard.Service
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
-import Edna.Web.Types (StubSortBy, WithId)
-
--- TODO: pagination and sorting are just stubs for now.
+import Edna.Web.Pagination (getPaginatedHelper, noPageHeaders)
+import Edna.Web.Types (WithId)
 
 -- | Endpoints related to projects.
 data DashboardEndpoints route = DashboardEndpoints
@@ -93,10 +93,8 @@ data DashboardEndpoints route = DashboardEndpoints
       :> QueryParam "compoundId" CompoundId
       :> QueryParam "targetId" TargetId
 
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] ExperimentsResp
+      :> Header "Range" (Ranges ExperimentPaginationFields ExperimentWithId)
+      :> Get '[JSON] (Headers ExperimentsHeaders ExperimentsResp)
 
   , -- | Get experiment's metadata by ID
     deGetExperimentMetadata :: route
@@ -131,6 +129,8 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Get '[JSON] [WithId 'MeasurementId MeasurementResp]
   } deriving stock (Generic)
 
+type ExperimentsHeaders = PageHeaders ExperimentPaginationFields ExperimentWithId
+
 type DashboardAPI = ToServant DashboardEndpoints AsApi
 
 dashboardEndpoints :: ToServant DashboardEndpoints (AsServerT Edna)
@@ -141,7 +141,14 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deDeleteSubExp = deleteSubExperiment
   , deNewSubExp = newSubExperiment
   , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
-  , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
+  , deGetExperiments = \p c t mRanges ->
+    getPaginatedHelper mRanges (getExperiments p c t) $ \ranges resp -> do
+      let uploadDateRange = extractRange @_ @"uploadDate" ranges
+      case uploadDateRange of
+        Just r ->
+          (\experiments -> resp {erExperiments = experiments}) <<$>>
+          returnRange r (applyRange r $ erExperiments resp)
+        Nothing -> return $ noPageHeaders resp
   , deGetExperimentMetadata = getExperimentMetadata
   , deGetExperimentFile = \i -> getExperimentFile i <&>
       \(name, blob) -> addHeader ("attachment;filename=" <> name) blob

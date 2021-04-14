@@ -8,6 +8,8 @@ module Edna.Dashboard.Web.Types
   ( NewSubExperimentReq (..)
   , ExperimentsResp (..)
   , ExperimentResp (..)
+  , ExperimentWithId
+  , ExperimentPaginationFields
   , SubExperimentResp (..)
   , MeasurementResp (..)
   , ExperimentMetadata (..)
@@ -22,13 +24,14 @@ import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
 import Servant.API.ContentTypes (MimeRender, OctetStream)
+import Servant.Pagination (HasPagination(..))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Util
   (CompoundId, IdType(..), MeasurementId, MethodologyId, ProjectId, SubExperimentId, TargetId,
   ednaAesonWebOptions, gDeclareNamedSchema, unSqlId)
-import Edna.Web.Types (WithId)
+import Edna.Web.Types (WithId(..))
 
 -- | Data submitted in body to create a new sub-experiment.
 data NewSubExperimentReq = NewSubExperimentReq
@@ -47,7 +50,7 @@ instance Buildable NewSubExperimentReq where
 
 -- | Experiment as response from the server.
 data ExperimentsResp = ExperimentsResp
-  { erExperiments :: [WithId 'ExperimentId ExperimentResp]
+  { erExperiments :: [ExperimentWithId]
   , erMeanIC50 :: Maybe Double
   -- ^ If compound and target are selected,
   -- we also show mean IC50 for this pair.
@@ -94,6 +97,14 @@ instance Buildable ExperimentResp where
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
+
+type ExperimentWithId = WithId 'ExperimentId ExperimentResp
+
+instance HasPagination ExperimentWithId "uploadDate" where
+  type RangeType ExperimentWithId "uploadDate" = UTCTime
+  getFieldValue _ = erUploadDate . wItem
+
+type ExperimentPaginationFields = '["uploadDate"]
 
 -- | SubExperiment as response from the server.
 data SubExperimentResp = SubExperimentResp
