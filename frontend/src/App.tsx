@@ -24,6 +24,7 @@ import { DeleteMethodologyDialog } from "./components/dialogs/DeleteMethodologyD
 import { AddLinkDialog } from "./components/dialogs/AddLinkDialog";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { chartColors } from "./store/types";
+import { SimpleDialog } from "./components/dialogs/SimpleDialog";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
@@ -85,6 +86,9 @@ export const App: FunctionComponent = (): ReactElement => {
       )}
       {modalDialog?.kind === "create-edit-project" && (
         <CreateProjectDialog editing={modalDialog.editing} />
+      )}
+      {modalDialog?.kind === "failed-recompute-ic50" && (
+        <SimpleDialog title="Failed to recompute IC50" description={modalDialog.reason} />
       )}
       <Switch>
         <Route path="/upload">

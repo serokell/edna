@@ -7,6 +7,7 @@ import {
   MethodologyDto,
   ParsedExcelDto,
   ProjectDto,
+  ResultDto,
   SubExperimentDto,
   TargetDto,
 } from "./types";
@@ -81,7 +82,7 @@ interface EdnaApiInterface {
   analyzeSubexperiment: (
     subExperimentId: number,
     sub: AnalyzeNewSubexperimentApi
-  ) => Promise<number[]>;
+  ) => Promise<ResultDto>;
 
   newSubexperiment: (
     subExperimentId: number,

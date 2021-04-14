@@ -36,3 +36,7 @@ export function extraFormatter(items: string[]): string {
 export function zip<A, B>(a: A[], b: B[]): [A, B][] {
   return a.map((e, i) => [e, b[i]]);
 }
+
+export function formatIC50(x: number): string {
+  return x.toFixed(3);
+}

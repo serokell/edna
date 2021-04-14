@@ -10,7 +10,7 @@ import {
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
 import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../../store/selectors";
-import { formatDateTimeDto } from "../../../utils/utils";
+import { formatDateTimeDto, formatIC50 } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -22,6 +22,7 @@ import { ExpandMinimizeButton } from "../ExpandMinimizeButton/ExpandMinimizeButt
 import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
 import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
 import cn from "../../../utils/bemUtils";
+import "../IC50Line.scss";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -57,7 +58,12 @@ export function ExperimentsTableSuspendable({
   const ic50Column = React.useMemo(
     () => ({
       Header: "IC50",
-      accessor: (e: Experiment) => e.primarySubExperiment.item.result[2],
+      accessor: (e: Experiment) =>
+        "Right" in e.primarySubExperiment.item.result ? (
+          formatIC50(e.primarySubExperiment.item.result.Right[2])
+        ) : (
+          <span className="ic50__valueNone" />
+        ),
     }),
     []
   );

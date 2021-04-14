@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import "./NewSubexperimentPlate.scss";
 import cx from "classnames";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { Button } from "../../../components/Button/Button";
-import { newSubexperimentAtom } from "../../../store/atoms";
-import { isDefined } from "../../../utils/utils";
+import { modalDialogAtom, newSubexperimentAtom } from "../../../store/atoms";
+import { formatIC50, isDefined } from "../../../utils/utils";
 import RecomputeSvg from "../../../assets/svg/recompute.svg";
 import Api from "../../../api/api";
 import { useFilteredExperimentsRefresher } from "../../../store/updaters";
@@ -20,6 +20,7 @@ export function NewSubexperimentPlate({
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
   const ic50 = newSubexperiment.analysed ? newSubexperiment.analysed[2] : undefined;
   const [suexperimentName, setSuexperimentName] = useState<string>("New subexperiment");
+  const setModalDialog = useSetRecoilState(modalDialogAtom);
 
   return (
     <div className={cx("newSubexperimentPlate", className)}>
@@ -31,7 +32,7 @@ export function NewSubexperimentPlate({
       <div className="ic50 newSubexperimentPlate__ic50">
         <span className="ic50__label">IC50</span>
         {isDefined(ic50) ? (
-          <span className="ic50__value">{ic50}</span>
+          <span className="ic50__value">{formatIC50(ic50)}</span>
         ) : (
           <>
             <span className="ic50__valueNone" />
@@ -42,10 +43,14 @@ export function NewSubexperimentPlate({
                   name: suexperimentName,
                   changes: newSubexperiment.changedPoints.map(x => x.id),
                 });
-                setNewSubexperiment(old => ({
-                  ...old,
-                  analysed: newResult,
-                }));
+                if ("Left" in newResult) {
+                  setModalDialog({ kind: "failed-recompute-ic50", reason: newResult.Left });
+                } else {
+                  setNewSubexperiment(old => ({
+                    ...old,
+                    analysed: newResult.Right,
+                  }));
+                }
               }}
             />
           </>

@@ -7,7 +7,7 @@ import "./Plotting.scss";
 import { useRecoilState } from "recoil";
 import { PlotMarker } from "plotly.js-basic-dist";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
-import { SubExperimentWithMeasurements } from "../../../store/types";
+import { SuccessSubExperimentWithMeasurements } from "../../../store/types";
 import { newSubexperimentAtom } from "../../../store/atoms";
 import { isDefined } from "../../../utils/utils";
 
@@ -18,7 +18,7 @@ const plotConfig: Partial<PlotlyBasic.Config> = {
 };
 
 interface SubExperimentNColor {
-  subexperiment: SubExperimentWithMeasurements;
+  subexperiment: SuccessSubExperimentWithMeasurements;
   color: string;
 }
 
@@ -103,7 +103,7 @@ export default function PlotlyChart({
       name: "4PL",
       x: subexperiment.measurements.map(a => a.item.concentration),
       y: subexperiment.measurements.map(a =>
-        fourPL(subexperiment.meta.item.result, a.item.concentration)
+        fourPL(subexperiment.meta.item.result.Right, a.item.concentration)
       ),
       type: "scatter",
       mode: "lines",

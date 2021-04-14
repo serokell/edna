@@ -10,6 +10,7 @@ import {
 import { useAddSubExperiment, useRemoveSubExperiments } from "../../../store/updaters";
 import { SatisfactoryStatus } from "../../../components/SatisfactoryStatus/SatisfactoryStatus";
 import "../IC50Line.scss";
+import { formatIC50 } from "../../../utils/utils";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;
@@ -25,6 +26,7 @@ export function SubexperimentPlate({
   const addSubExperiment = useAddSubExperiment();
   const removeSubExperiments = useRemoveSubExperiments();
 
+  // TODO hover for error ic50
   return (
     <div
       className={cx("subexperimentPlate", className)}
@@ -45,7 +47,11 @@ export function SubexperimentPlate({
       <div className="ic50">
         <span className="ic50__label">IC50</span>
 
-        <span className="ic50__value">{subexperiment.item.result[2]}</span>
+        {"Left" in subexperiment.item.result ? (
+          <span className="ic50__valueNone" />
+        ) : (
+          <span className="ic50__value">{formatIC50(subexperiment.item.result.Right[2])}</span>
+        )}
       </div>
     </div>
   );

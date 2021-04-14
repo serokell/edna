@@ -8,6 +8,7 @@ import {
   ProjectDto,
   MeasurementDto,
   DateTimeDto,
+  SuccessSubExperimentDto,
 } from "../api/types";
 
 export interface Experiment {
@@ -28,6 +29,11 @@ export type ExperimentsWithMean = {
 
 export type SubExperimentWithMeasurements = {
   meta: SubExperimentDto;
+  measurements: MeasurementDto[];
+};
+
+export type SuccessSubExperimentWithMeasurements = {
+  meta: SuccessSubExperimentDto;
   measurements: MeasurementDto[];
 };
 
@@ -57,7 +63,8 @@ export type ModalDialogState =
   | { kind: "delete-methodology"; methodology: MethodologyDto }
   | { kind: "methodology-description"; methodology: MethodologyDto }
   | { kind: "create-edit-methodology"; editing?: MethodologyDto }
-  | { kind: "create-edit-project"; editing?: ProjectDto };
+  | { kind: "create-edit-project"; editing?: ProjectDto }
+  | { kind: "failed-recompute-ic50"; reason: string };
 
 export type ExperimentsTableSize = "expanded" | "minimized";
 

@@ -22,10 +22,24 @@ export type ParsedExcelDto = {
   compounds: ParsedCompoundDto[];
 };
 
+export type ResultDto =
+  | {
+      Left: string;
+    }
+  | {
+      Right: number[];
+    };
+
 export type SubExperimentDto = Dto<{
   name: string;
   isSuspicious: boolean;
-  result: number[];
+  result: ResultDto;
+}>;
+
+export type SuccessSubExperimentDto = Dto<{
+  name: string;
+  isSuspicious: boolean;
+  result: { Right: number[] };
 }>;
 
 export type MeasurementDto = Dto<{

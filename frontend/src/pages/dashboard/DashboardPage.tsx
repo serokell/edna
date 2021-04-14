@@ -13,7 +13,7 @@ import {
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
 import { selectedSubExperimentsQuery } from "../../store/selectors";
-import { negateTableSize } from "../../store/types";
+import { negateTableSize, SuccessSubExperimentWithMeasurements } from "../../store/types";
 import { isDefined, zip } from "../../utils/utils";
 import { NewSubexperimentPlate } from "./NewSubexperimentPlate/NewSubexperimentPlate";
 
@@ -69,9 +69,9 @@ export function PlotlyChartSuspendable({
     <PlotlyChart
       className={className}
       subExperiments={zip(subExperiments, colors)
-        .filter(x => isDefined(x[1]))
+        .filter(([sub, color]) => isDefined(color) && "Right" in sub.meta.item.result)
         .map(([subexperiment, color]) => ({
-          subexperiment,
+          subexperiment: subexperiment as SuccessSubExperimentWithMeasurements,
           color: color!,
         }))}
     />
