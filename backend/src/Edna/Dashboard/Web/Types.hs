@@ -21,7 +21,6 @@ import Data.Swagger (NamedSchema(..), ToSchema(..), binarySchema)
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
-import Servant.API (Header, Headers, getHeaders, getResponse)
 import Servant.API.ContentTypes (MimeRender, OctetStream)
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
@@ -158,22 +157,6 @@ instance Buildable ExperimentFileBlob where
     build (length blob) <> " bytes of ExperimentFileBlob"
 
 instance Buildable (ForResponseLog ExperimentFileBlob) where
-  build = buildForResponse
-
-instance Buildable
-  (Headers '[Header "Content-Disposition" Text] ExperimentFileBlob) where
-  build headers =
-    build (getResponse headers) <>
-    ", with Content-Disposition " <> build name
-    where
-      untypedHeaders = getHeaders headers
-      name = case untypedHeaders of
-        [(_, nameBS)] -> show @String nameBS
-        -- Must not happen because there is exactly one header in the type
-        _ -> error "unexpected number of headers"
-
-instance Buildable (ForResponseLog $
-  Headers '[Header "Content-Disposition" Text] ExperimentFileBlob) where
   build = buildForResponse
 
 deriveJSON ednaAesonWebOptions ''NewSubExperimentReq

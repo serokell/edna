@@ -39,17 +39,16 @@ import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, localToUTC, nothingOrThrow)
 import Edna.Util.URI (parseURI, renderURI)
-import Edna.Web.Types (StubSortBy, URI, WithId(..))
+import Edna.Web.Types (URI, WithId(..))
 
 -- | Get target with given ID.
 getTarget :: SqlId 'TargetId -> Edna (WithId 'TargetId TargetResp)
 getTarget targetSqlId =
   Q.getTargetById targetSqlId >>= justOrThrow (LETargetNotFound targetSqlId)
 
--- | Get all targets with optional pagination and sorting.
--- Pagination and sorting parameters are currently ignored.
-getTargets :: Maybe Word -> Maybe Word -> Maybe StubSortBy -> Edna [WithId 'TargetId TargetResp]
-getTargets _ _ _ = Q.getTargets
+-- | Get all known targets.
+getTargets :: Edna [WithId 'TargetId TargetResp]
+getTargets = Q.getTargets
 
 compoundToResp :: CompoundRec -> Edna (WithId 'CompoundId CompoundResp)
 compoundToResp CompoundRec{..} = do
@@ -66,12 +65,8 @@ getCompound :: SqlId 'CompoundId -> Edna (WithId 'CompoundId CompoundResp)
 getCompound compoundSqlId = Q.getCompoundById compoundSqlId >>=
   justOrThrow (LECompoundNotFound compoundSqlId) >>= compoundToResp
 
-getCompounds
-  :: Maybe Word
-  -> Maybe Word
-  -> Maybe StubSortBy
-  -> Edna [WithId 'CompoundId CompoundResp]
-getCompounds _ _ _ = Q.getCompounds >>= mapM compoundToResp
+getCompounds :: Edna [WithId 'CompoundId CompoundResp]
+getCompounds = Q.getCompounds >>= mapM compoundToResp
 
 editChemSoft :: SqlId 'CompoundId -> URI -> Edna (WithId 'CompoundId CompoundResp)
 editChemSoft compoundSqlId uri = do
@@ -97,11 +92,8 @@ getMethodology methodologySqlId = Q.getMethodologyById methodologySqlId >>=
   justOrThrow (LEMethodologyNotFound methodologySqlId) >>= methodologyToResp
 
 getMethodologies
-  :: Maybe Word
-  -> Maybe Word
-  -> Maybe StubSortBy
-  -> Edna [WithId 'MethodologyId MethodologyResp]
-getMethodologies _ _ _ = Q.getMethodologies >>= mapM methodologyToResp
+  :: Edna [WithId 'MethodologyId MethodologyResp]
+getMethodologies = Q.getMethodologies >>= mapM methodologyToResp
 
 addMethodology :: MethodologyReq -> Edna (WithId 'MethodologyId MethodologyResp)
 addMethodology tm@MethodologyReq{..} = do
@@ -130,8 +122,8 @@ getProject :: SqlId 'ProjectId -> Edna (WithId 'ProjectId ProjectResp)
 getProject projectSqlId =
   Q.getProjectWithCompoundsById projectSqlId >>= justOrThrow (LEProjectNotFound projectSqlId)
 
-getProjects :: Maybe Word -> Maybe Word -> Maybe StubSortBy -> Edna [WithId 'ProjectId ProjectResp]
-getProjects _ _ _ = Q.getProjectsWithCompounds
+getProjects :: Edna [WithId 'ProjectId ProjectResp]
+getProjects = Q.getProjectsWithCompounds
 
 addProject :: ProjectReq -> Edna (WithId 'ProjectId ProjectResp)
 addProject p@ProjectReq{..} = do

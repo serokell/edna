@@ -63,8 +63,8 @@ spec = withContext $ startWithInitial $ do
         "blob" sampleFile
       summary2 <- uploadFile' (SqlId 2) (SqlId 2) "file description 2" "file name 2"
         "blob2" sampleFile2
-      targets <- Library.getTargets Nothing Nothing Nothing
-      compounds <- Library.getCompounds Nothing Nothing Nothing
+      targets <- Library.getTargets
+      compounds <- Library.getCompounds
       experiments <- Dashboard.getExperiments Nothing Nothing Nothing
       liftIO $ do
         summary `shouldBe` sortFileSummary sampleFileSummary'

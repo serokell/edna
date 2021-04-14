@@ -56,7 +56,7 @@ gettersSpec = do
         (== LETargetNotFound unknownSqlId)
   describe "getTargets" $ do
     it "successfully gets all targets" $ runTestEdna $ do
-      targets <- getTargets Nothing Nothing Nothing
+      targets <- getTargets
       checkTargets targets
 
   describe "getCompound" $ do
@@ -68,7 +68,7 @@ gettersSpec = do
         (== LECompoundNotFound unknownSqlId)
   describe "getCompounds" $ do
     it "successfully gets all compounds" $ runTestEdna $ do
-      compounds <- getCompounds Nothing Nothing Nothing
+      compounds <- getCompounds
       checkCompounds compounds
 
   describe "getMethodology" $ do
@@ -80,7 +80,7 @@ gettersSpec = do
         (== LEMethodologyNotFound unknownSqlId)
   describe "getMethodologies" $ do
     it "successfully gets all methodologies" $ runTestEdna $ do
-      methodologies <- getMethodologies Nothing Nothing Nothing
+      methodologies <- getMethodologies
       checkMethodologies methodologies
 
   describe "getProject" $ do
@@ -92,7 +92,7 @@ gettersSpec = do
         (== LEProjectNotFound unknownSqlId)
   describe "getProjects" $ do
     it "successfully gets all projects" $ runTestEdna $ do
-      projects <- getProjects Nothing Nothing Nothing
+      projects <- getProjects
       checkProjects projects
   where
     -- The way IDs are assigned is implementation detail that we (ab)use here.

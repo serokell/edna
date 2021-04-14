@@ -25,8 +25,10 @@ module Edna.Library.Web.API
 import Universum
 
 import Servant (ReqBody)
-import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary, (:>))
+import Servant.API
+  (Capture, Delete, Get, Header, Headers, JSON, NoContent, Post, Put, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
+import Servant.Pagination (PageHeaders, Ranges, applyRange, extractRange, returnRange)
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Library.Service
@@ -34,14 +36,13 @@ import Edna.Library.Service
   getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
   updateMethodology, updateProject)
 import Edna.Library.Web.Types
-  (CompoundResp, MethodologyReq, MethodologyResp, ProjectReq, ProjectResp, TargetResp)
+  (CompoundPaginationFields, CompoundWithId, MethodologyPaginationFields, MethodologyReq,
+  MethodologyWithId, ProjectPaginationFields, ProjectReq, ProjectWithId, TargetPaginationFields,
+  TargetWithId)
 import Edna.Setup (Edna)
-import Edna.Util (IdType(..), MethodologyId, SqlId(..))
-import Edna.Web.Types (StubSortBy, URI, WithId)
-
--- TODO: pagination and sorting are just stubs for now (everywhere).
--- Most likely we will use @servant-util@ to implement them,
--- but let's do it later.
+import Edna.Util (CompoundId, MethodologyId, ProjectId, TargetId)
+import Edna.Web.Pagination (getPaginatedHelper, moreThanOnePagination, noPageHeaders)
+import Edna.Web.Types (URI)
 
 -- | Endpoints related to projects.
 data ProjectEndpoints route = ProjectEndpoints
@@ -50,32 +51,32 @@ data ProjectEndpoints route = ProjectEndpoints
       :- "project"
       :> Summary "Add a new project"
       :> ReqBody '[JSON] ProjectReq
-      :> Post '[JSON] (WithId 'ProjectId ProjectResp)
+      :> Post '[JSON] ProjectWithId
 
   , -- | Update an existing project.
     peEditProject :: route
       :- "project"
       :> Summary "Update an existing project"
-      :> Capture "projectId" (SqlId 'ProjectId)
+      :> Capture "projectId" ProjectId
       :> ReqBody '[JSON] ProjectReq
-      :> Put '[JSON] (WithId 'ProjectId ProjectResp)
+      :> Put '[JSON] ProjectWithId
 
   , -- | Get known projects with optional pagination and sorting
     peGetProjects :: route
       :- "projects"
       :> Summary "Get known projects"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId 'ProjectId ProjectResp]
+      :> Header "Range" (Ranges ProjectPaginationFields ProjectWithId)
+      :> Get '[JSON] (Headers ProjectsHeaders [ProjectWithId])
 
   , -- | Get project data by ID
     peGetProject :: route
       :- "project"
       :> Summary "Get project data by ID"
-      :> Capture "projectId" (SqlId 'ProjectId)
-      :> Get '[JSON] (WithId 'ProjectId ProjectResp)
+      :> Capture "projectId" ProjectId
+      :> Get '[JSON] ProjectWithId
   } deriving stock (Generic)
+
+type ProjectsHeaders = PageHeaders ProjectPaginationFields ProjectWithId
 
 type ProjectAPI = ToServant ProjectEndpoints AsApi
 
@@ -83,7 +84,17 @@ projectEndpoints :: ToServant ProjectEndpoints (AsServerT Edna)
 projectEndpoints = genericServerT ProjectEndpoints
   { peAddProject = addProject
   , peEditProject = updateProject
-  , peGetProjects = getProjects
+  , peGetProjects =
+    \mRanges -> getPaginatedHelper mRanges getProjects $ \ranges allProjects -> do
+      let nameRange = extractRange @_ @"name" ranges
+      let creationDateRange = extractRange @_ @"creationDate" ranges
+      let lastUpdateRange = extractRange @_ @"lastUpdate" ranges
+      case (nameRange, creationDateRange, lastUpdateRange) of
+        (Just r, Nothing, Nothing) -> returnRange r $ applyRange r allProjects
+        (Nothing, Just r, Nothing) -> returnRange r $ applyRange r allProjects
+        (Nothing, Nothing, Just r) -> returnRange r $ applyRange r allProjects
+        (Nothing, Nothing, Nothing) -> return $ noPageHeaders allProjects
+        _ -> throwM moreThanOnePagination
   , peGetProject = getProject
   }
 
@@ -94,7 +105,7 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :- "methodology"
       :> Summary "Add a new methodology"
       :> ReqBody '[JSON] MethodologyReq
-      :> Post '[JSON] (WithId 'MethodologyId MethodologyResp)
+      :> Post '[JSON] MethodologyWithId
 
   , -- | Update an existing methodology.
     meEditMethodology :: route
@@ -102,7 +113,7 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :> Summary "Update an existing methodology"
       :> Capture "methodologyId" MethodologyId
       :> ReqBody '[JSON] MethodologyReq
-      :> Put '[JSON] (WithId 'MethodologyId MethodologyResp)
+      :> Put '[JSON] MethodologyWithId
 
   , -- | Delete an existing methodology.
     meDeleteMethodology :: route
@@ -115,18 +126,18 @@ data MethodologyEndpoints route = MethodologyEndpoints
     meGetMethodologies :: route
       :- "methodologies"
       :> Summary "Get known methodologies"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId 'MethodologyId MethodologyResp]
+      :> Header "Range" (Ranges MethodologyPaginationFields MethodologyWithId)
+      :> Get '[JSON] (Headers MethodologyHeaders [MethodologyWithId])
 
   , -- | Get methodology data by ID
     meGetMethodology :: route
       :- "methodology"
       :> Summary "Get methodology data by ID"
       :> Capture "methodologyId" MethodologyId
-      :> Get '[JSON] (WithId 'MethodologyId MethodologyResp)
+      :> Get '[JSON] MethodologyWithId
   } deriving stock (Generic)
+
+type MethodologyHeaders = PageHeaders MethodologyPaginationFields MethodologyWithId
 
 type MethodologyAPI = ToServant MethodologyEndpoints AsApi
 
@@ -135,7 +146,12 @@ methodologyEndpoints = genericServerT MethodologyEndpoints
   { meAddMethodology = addMethodology
   , meEditMethodology = updateMethodology
   , meDeleteMethodology = deleteMethodology
-  , meGetMethodologies = getMethodologies
+  , meGetMethodologies =
+    \mRanges -> getPaginatedHelper mRanges getMethodologies $ \ranges allMethodologies -> do
+      let nameRange = extractRange @_ @"name" ranges
+      case nameRange of
+        Just r -> returnRange r $ applyRange r allMethodologies
+        Nothing -> return $ noPageHeaders allMethodologies
   , meGetMethodology = getMethodology
   }
 
@@ -145,24 +161,32 @@ data TargetEndpoints route = TargetEndpoints
     teGetTargets :: route
       :- "targets"
       :> Summary "Get known targets"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId 'TargetId TargetResp]
+      :> Header "Range" (Ranges TargetPaginationFields TargetWithId)
+      :> Get '[JSON] (Headers TargetHeaders [TargetWithId])
 
   , -- | Get target data by ID
     teGetTarget :: route
       :- "target"
       :> Summary "Get target data by ID"
-      :> Capture "targetId" (SqlId 'TargetId)
-      :> Get '[JSON] (WithId 'TargetId TargetResp)
+      :> Capture "targetId" TargetId
+      :> Get '[JSON] TargetWithId
   } deriving stock (Generic)
+
+type TargetHeaders = PageHeaders TargetPaginationFields TargetWithId
 
 type TargetAPI = ToServant TargetEndpoints AsApi
 
 targetEndpoints :: ToServant TargetEndpoints (AsServerT Edna)
 targetEndpoints = genericServerT TargetEndpoints
-  { teGetTargets = getTargets
+  { teGetTargets =
+    \mRanges -> getPaginatedHelper mRanges getTargets $ \ranges allTargets -> do
+      let nameRange = extractRange @_ @"name" ranges
+      let additionDateRange = extractRange @_ @"additionDate" ranges
+      case (nameRange, additionDateRange) of
+        (Just r, Nothing) -> returnRange r $ applyRange r allTargets
+        (Nothing, Just r) -> returnRange r $ applyRange r allTargets
+        (Nothing, Nothing) -> return $ noPageHeaders allTargets
+        _ -> throwM moreThanOnePagination
   , teGetTarget = getTarget
   }
 
@@ -173,32 +197,40 @@ data CompoundEndpoints route = CompoundEndpoints
       :- "compound"
       :> "chemsoft"
       :> Summary "Update ChemSoft link of a compound"
-      :> Capture "compoundId" (SqlId 'CompoundId)
+      :> Capture "compoundId" CompoundId
       :> ReqBody '[JSON] URI
-      :> Put '[JSON] (WithId 'CompoundId CompoundResp)
+      :> Put '[JSON] CompoundWithId
 
   , -- | Get known compounds with optional pagination and sorting
     ceGetCompounds :: route
       :- "compounds"
       :> Summary "Get known compounds"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
-      :> Get '[JSON] [WithId 'CompoundId CompoundResp]
+      :> Header "Range" (Ranges CompoundPaginationFields CompoundWithId)
+      :> Get '[JSON] (Headers CompoundHeaders [CompoundWithId])
 
   , -- | Get compound data by ID
     ceGetCompound :: route
       :- "compound"
       :> Summary "Get compound data by ID"
-      :> Capture "compoundId" (SqlId 'CompoundId)
-      :> Get '[JSON] (WithId 'CompoundId CompoundResp)
+      :> Capture "compoundId" CompoundId
+      :> Get '[JSON] CompoundWithId
   } deriving stock (Generic)
+
+type CompoundHeaders = PageHeaders CompoundPaginationFields CompoundWithId
 
 type CompoundAPI = ToServant CompoundEndpoints AsApi
 
 compoundEndpoints :: ToServant CompoundEndpoints (AsServerT Edna)
 compoundEndpoints = genericServerT CompoundEndpoints
   { ceEditChemSoft = editChemSoft
-  , ceGetCompounds = getCompounds
+  , ceGetCompounds =
+    \mRanges -> getPaginatedHelper mRanges getCompounds $ \ranges allCompounds -> do
+      let nameRange = extractRange @_ @"name" ranges
+      let additionDateRange = extractRange @_ @"additionDate" ranges
+      case (nameRange, additionDateRange) of
+        (Just r, Nothing) -> returnRange r $ applyRange r allCompounds
+        (Nothing, Just r) -> returnRange r $ applyRange r allCompounds
+        (Nothing, Nothing) -> return $ noPageHeaders allCompounds
+        _ -> throwM moreThanOnePagination
   , ceGetCompound = getCompound
   }

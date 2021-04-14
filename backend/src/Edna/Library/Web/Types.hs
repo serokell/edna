@@ -6,11 +6,19 @@
 
 module Edna.Library.Web.Types
   ( TargetResp (..)
+  , TargetWithId
+  , TargetPaginationFields
   , CompoundResp (..)
+  , CompoundWithId
+  , CompoundPaginationFields
   , MethodologyReq (..)
   , MethodologyResp (..)
+  , MethodologyWithId
+  , MethodologyPaginationFields
   , ProjectReq (..)
   , ProjectResp (..)
+  , ProjectWithId
+  , ProjectPaginationFields
   ) where
 
 import Universum
@@ -21,11 +29,12 @@ import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), genericF, (+|), (|+))
 import Network.URI.JSON ()
+import Servant.Pagination (HasPagination(..))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse)
 
-import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
+import Edna.Util (IdType(..), ednaAesonWebOptions, gDeclareNamedSchema)
 import Edna.Util.URI ()
-import Edna.Web.Types (URI)
+import Edna.Web.Types (URI, WithId(..))
 
 -- | Project as submitted by end users.
 data ProjectReq = ProjectReq
@@ -64,6 +73,22 @@ instance ToSchema ProjectReq where
 
 instance ToSchema ProjectResp where
   declareNamedSchema = gDeclareNamedSchema
+
+type ProjectWithId = WithId 'ProjectId ProjectResp
+
+instance HasPagination ProjectWithId "name" where
+  type RangeType ProjectWithId "name" = Text
+  getFieldValue _ = prName . wItem
+
+instance HasPagination ProjectWithId "creationDate" where
+  type RangeType ProjectWithId "creationDate" = UTCTime
+  getFieldValue _ = prCreationDate . wItem
+
+instance HasPagination ProjectWithId "lastUpdate" where
+  type RangeType ProjectWithId "lastUpdate" = UTCTime
+  getFieldValue _ = prLastUpdate . wItem
+
+type ProjectPaginationFields = '["name", "creationDate", "lastUpdate"]
 
 -- | Test methodology as submitted by end users.
 data MethodologyReq = MethodologyReq
@@ -104,6 +129,14 @@ deriveJSON ednaAesonWebOptions ''MethodologyResp
 instance ToSchema URI => ToSchema MethodologyResp where
   declareNamedSchema = gDeclareNamedSchema
 
+type MethodologyWithId = WithId 'MethodologyId MethodologyResp
+
+instance HasPagination MethodologyWithId "name" where
+  type RangeType MethodologyWithId "name" = Text
+  getFieldValue _ = mrName . wItem
+
+type MethodologyPaginationFields = '["name"]
+
 -- | Targets are not submitted directly by users, so for now
 -- there is only one representation for frontend.
 data TargetResp = TargetResp
@@ -128,6 +161,18 @@ deriveJSON ednaAesonWebOptions ''TargetResp
 instance ToSchema TargetResp where
   declareNamedSchema = gDeclareNamedSchema
 
+type TargetWithId = WithId 'TargetId TargetResp
+
+instance HasPagination TargetWithId "name" where
+  type RangeType TargetWithId "name" = Text
+  getFieldValue _ = trName . wItem
+
+instance HasPagination TargetWithId "additionDate" where
+  type RangeType TargetWithId "additionDate" = UTCTime
+  getFieldValue _ = trAdditionDate . wItem
+
+type TargetPaginationFields = '["name", "additionDate"]
+
 -- | Compounds are not submitted directly by users, so for now
 -- there is only one representation for frontend.
 -- MDe links are trivial to generate, so we offload this task to frontend.
@@ -150,3 +195,15 @@ deriveJSON ednaAesonWebOptions ''CompoundResp
 
 instance ToSchema URI => ToSchema CompoundResp where
   declareNamedSchema = gDeclareNamedSchema
+
+type CompoundWithId = WithId 'CompoundId CompoundResp
+
+instance HasPagination CompoundWithId "name" where
+  type RangeType CompoundWithId "name" = Text
+  getFieldValue _ = crName . wItem
+
+instance HasPagination CompoundWithId "additionDate" where
+  type RangeType CompoundWithId "additionDate" = UTCTime
+  getFieldValue _ = crAdditionDate . wItem
+
+type CompoundPaginationFields = '["name", "additionDate"]
