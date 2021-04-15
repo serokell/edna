@@ -15,7 +15,7 @@ import Servant.API
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
 
-import Edna.Analysis.FourPL (AnalysisResult, Params4PLResp(..))
+import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
   getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
@@ -136,7 +136,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deSetIsSuspiciousSubExp = setIsSuspiciousSubExperiment
   , deDeleteSubExp = deleteSubExperiment
   , deNewSubExp = newSubExperiment
-  , deAnalyseNewSubExp = fmap (plrspData . snd) ... analyseNewSubExperiment
+  , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
   , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
   , deGetExperimentMetadata = getExperimentMetadata
   , deGetExperimentFile = \i -> getExperimentFile i <&>

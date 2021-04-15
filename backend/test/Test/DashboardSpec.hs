@@ -12,7 +12,7 @@ import RIO (runRIO)
 import Test.Hspec
   (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldSatisfy, shouldThrow)
 
-import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
+import Edna.Analysis.FourPL (analyse4PLOne)
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
@@ -23,7 +23,7 @@ import Edna.Dashboard.Web.Types
   MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileMetadata(unFileMetadata), Measurement(..))
 import Edna.Setup (EdnaContext)
-import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId, oneOrError)
+import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId)
 import Edna.Web.Types (WithId(..))
 
 import Test.Orphans ()
@@ -96,8 +96,7 @@ spec = withContext $ do
         WithId newId resp <- newSubExperiment sourceSubExp nser
         WithId _ resp' <- getSubExperiment newId
         measurements <- getMeasurements newId
-        params4PL <-
-          analyse4PL [Params4PLReq (SqlId 1) activePoints] >>= oneOrError "invalid analysis"
+        params4PL <- analyse4PLOne activePoints
         liftIO $ do
           analysedResult `shouldBe` params4PL
           analysedRemovals `shouldBe` [SqlId changedMeasurement]
@@ -105,7 +104,7 @@ spec = withContext $ do
           resp `shouldBe` resp'
           serName resp `shouldBe` nserName nser
           serIsSuspicious resp `shouldBe` False
-          serResult resp `shouldBe` plrspData params4PL
+          serResult resp `shouldBe` params4PL
           measurements `shouldBe` expectedMeasurements
   where
     addSampleData = do
@@ -157,7 +156,8 @@ gettersSpec = do
           getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
         liftIO $ do
           length erExperiments `shouldBe` 1
-          erMeanIC50 `shouldBe` Just 51.025965961684655
+          -- TODO: EDNA-85 Make this test more robust
+          erMeanIC50 `shouldBe` Just 51.02596976392316
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erTarget `shouldBe` targetId
     describe "getExperimentMetadata" $ do

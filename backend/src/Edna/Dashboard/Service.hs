@@ -27,8 +27,7 @@ import Servant.API (NoContent(..))
 import qualified Edna.Dashboard.DB.Query as Q
 import qualified Edna.Upload.DB.Query as UQ
 
-import Edna.Analysis.FourPL
-  (AnalysisResult, Params4PL(..), Params4PLReq(..), Params4PLResp, analyse4PL)
+import Edna.Analysis.FourPL (AnalysisResult, Params4PL(..), analyse4PLOne)
 import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
@@ -41,7 +40,7 @@ import Edna.Setup (Edna)
 import Edna.Upload.DB.Query (insertRemovedMeasurements)
 import Edna.Util
   (CompoundId, ExperimentId, IdType(..), MeasurementId, ProjectId, SubExperimentId, TargetId,
-  fromSqlSerial, justOrThrow, oneOrError, unSqlId)
+  fromSqlSerial, justOrThrow, unSqlId)
 import Edna.Web.Types (WithId(..))
 
 -- | Make given sub-experiment the primary one for its parent experiment.
@@ -99,11 +98,10 @@ newSubExperiment subExpId req = do
 -- Returns IDs of all removed measurements in the new sub-experiment and
 -- 4PL parameters.
 analyseNewSubExperiment ::
-  SubExperimentId -> NewSubExperimentReq -> Edna ([MeasurementId], Params4PLResp)
+  SubExperimentId -> NewSubExperimentReq -> Edna ([MeasurementId], AnalysisResult)
 analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
-  expId <- justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
   measurements <- getMeasurements subExpId
-  result <- analyse4PL [Params4PLReq expId $ computeNewPoints measurements] >>= oneOrError "invalid analysis"
+  result <- analyse4PLOne (computeNewPoints measurements)
   pure (computeRemovedMeasurements measurements, result)
   where
     computeNewPoints ::
