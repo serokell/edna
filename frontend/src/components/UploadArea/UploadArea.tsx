@@ -50,10 +50,12 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
           }
         }}
       >
-        <div className="uploadArea__innerRect">
-          <UploadSvg className="uploadArea__uploadSvg" />
-          {value ? value.name : <strong>Click to upload</strong>}
-        </div>
+        <UploadSvg className="uploadArea__uploadSvg" />
+        {value ? (
+          value.name
+        ) : (
+          <span className="uploadArea__description">Drop your file here, or click to upload</span>
+        )}
       </div>
     </>
   );

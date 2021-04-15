@@ -84,7 +84,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             <FormField<File>
               name="file"
-              label="File"
               className={
                 isDefined(excelFile)
                   ? "uploadingForm__uploadArea_hidden"

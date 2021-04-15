@@ -5,26 +5,26 @@
 }
 
 .uploadArea {
-  padding: 22 * $px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400 * $px;
+  background: #f6faf8;
+  border: $px dashed #9ba5a1;
   border-radius: $border-radius;
-  box-shadow: (-4 * $px) (-4 * $px) (8 * $px) rgba(222, 222, 222, 0.25),
-    (4 * $px) (4 * $px) (8 * $px) rgba(222, 222, 222, 0.25);
 
-  &__innerRect {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 22 * $px;
-    background: #e7e7e7;
-    border: $px dashed #adadad;
-    border-radius: $border-radius;
-
-    &:hover {
-      cursor: pointer;
-    }
+  &:hover {
+    cursor: pointer;
   }
 
   &__uploadSvg {
-    margin-bottom: 14 * $px;
+    margin-bottom: 20 * $px;
+  }
+
+  &__description {
+    width: 138 * $px;
+    line-height: 23 * $px;
+    text-align: center;
   }
 }
