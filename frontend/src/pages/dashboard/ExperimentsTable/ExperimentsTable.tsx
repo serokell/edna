@@ -1,5 +1,5 @@
 import { useRecoilCallback, useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
 import { v4 as uuidv4 } from "uuid";
@@ -12,7 +12,7 @@ import {
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
 import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../../store/selectors";
-import { formatDateTimeDto, formatIC50 } from "../../../utils/utils";
+import { formatDateTimeDto, formatIC50, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -43,6 +43,15 @@ export function ExperimentsTableSuspendable({
   const selectedExperiments = useRecoilValue(selectedExperimentsQuery);
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
+
+  useEffect(() => {
+    const subsToRemove = Array.from(selectedSubexperiments).filter(
+      subId => !isDefined(experiments.find(e => e.subExperiments.find(s => s === subId)))
+    );
+    if (subsToRemove.length !== 0) {
+      removeSubExperiments(subsToRemove);
+    }
+  }, [selectedSubexperiments, removeSubExperiments, experiments]);
 
   const cacheMetadata = useRecoilCallback(
     ({ snapshot }) => (experimentId: number) => {
