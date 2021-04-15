@@ -4,6 +4,7 @@
 
 module Edna.Setup
   ( Edna
+  , dumpConfig
   , runEdna
   , fromConfig
 

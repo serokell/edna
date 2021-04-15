@@ -22,4 +22,6 @@ main = withUtf8 $ do
   options <- execParser ednaOpts
   logUnconditionally "Edna server is started"
   config <- prepareConfig options
-  runEdna config edna
+  if eoDumpConfig options
+  then dumpConfig config
+  else runEdna config edna

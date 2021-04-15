@@ -29,6 +29,7 @@ data EdnaOptions = EdnaOptions
   , eoDbInitialisationMode :: Maybe DatabaseInitOption
   , eoDbInitialisationInitScript :: Maybe FilePath
   , eoLogging :: Maybe LoggingConfig
+  , eoDumpConfig :: Bool
   } deriving stock (Generic, Show)
 
 
