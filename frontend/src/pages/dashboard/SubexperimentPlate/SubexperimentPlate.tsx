@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilCallback, useRecoilValue, useSetRecoilState } from "recoil";
 import cx from "classnames";
 import { SubExperimentDto } from "../../../api/types";
 import "./SubexperimentPlate.scss";
@@ -7,6 +7,7 @@ import {
   modalDialogAtom,
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
+  subExperimentsMetaAtom,
 } from "../../../store/atoms";
 import {
   useAddSubExperiment,
@@ -40,6 +41,14 @@ export function SubexperimentPlate({
   const refreshFiltered = useFilteredExperimentsRefresher();
 
   useClickOutsideCallback(ref, () => setContextMenuVisible(false));
+
+  const handleSuspiciousChange = useRecoilCallback(({ set }) => async () => {
+    const newSub = await Api.changeSuspiciousFlag(
+      subexperiment.id,
+      !subexperiment.item.isSuspicious
+    );
+    set(subExperimentsMetaAtom(subexperiment.id), newSub);
+  });
 
   // TODO hover for error and value of ic50
   return (
@@ -93,6 +102,7 @@ export function SubexperimentPlate({
       </div>
       <div className="subexperimentPlate__head">
         <SatisfactoryStatus
+          onClick={handleSuspiciousChange}
           isSuspicious={subexperiment.item.isSuspicious}
           className="subexperimentPlate__satisfactoryStatus"
         />

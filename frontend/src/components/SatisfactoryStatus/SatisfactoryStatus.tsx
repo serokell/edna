@@ -5,19 +5,28 @@ import "./SatisfactoryStatus.scss";
 
 interface SatisfactoryStatusProps {
   isSuspicious: boolean;
+  onClick: () => void;
   className?: string;
 }
 
 export function SatisfactoryStatus({
   isSuspicious,
   className,
+  onClick,
 }: SatisfactoryStatusProps): React.ReactElement {
   return (
-    <StatusSvg
-      className={cx(className, "satisfactoryStatus", {
-        satisfactoryStatus__ok: !isSuspicious,
-        satisfactoryStatus__bad: isSuspicious,
-      })}
-    />
+    <span
+      onClick={e => {
+        onClick();
+        e.stopPropagation();
+      }}
+    >
+      <StatusSvg
+        className={cx(className, "satisfactoryStatus", {
+          satisfactoryStatus__ok: !isSuspicious,
+          satisfactoryStatus__bad: isSuspicious,
+        })}
+      />
+    </span>
   );
 }

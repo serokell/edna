@@ -94,6 +94,10 @@ interface EdnaApiInterface {
   makePrimary: (subExperimentId: number) => Promise<SubExperimentDto>;
   renameSubexperiment: (subExperimentId: number, newName: string) => Promise<SubExperimentDto>;
   deleteSubexperiment: (subExperimentId: number) => Promise<any>;
+  changeSuspiciousFlag: (
+    subExperimentId: number,
+    isSuspicious: boolean
+  ) => Promise<SubExperimentDto>;
 }
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
@@ -251,6 +255,14 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     deleteSubexperiment: async (subExperimentId: number) => {
       return axios.delete(`/subExperiment/${subExperimentId}`).then(res => res.data);
+    },
+
+    changeSuspiciousFlag: async (subExperimentId: number, isSuspicious: boolean) => {
+      return axios
+        .put(`/subExperiment/suspicious/${subExperimentId}`, `${isSuspicious}`, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(res => res.data);
     },
   };
 }
