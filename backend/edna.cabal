@@ -71,6 +71,7 @@ library
       Edna.Util.URI
   other-modules:
       Paths_edna
+      Edna.Analysis.Infra
       Edna.Web.Error
   hs-source-dirs:
       src
