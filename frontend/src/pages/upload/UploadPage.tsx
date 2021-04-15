@@ -9,7 +9,7 @@ import { excelFileAtom } from "../../store/atoms";
 import Combobox from "../../components/Combobox";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
-import { isParsed } from "../../store/types";
+import { isAdded, isParsed } from "../../store/types";
 import { UploadStatus } from "../../components/UploadStatus/UploadStatus";
 import { UploadPreviewTable } from "../../components/UploadPreviewTable/UploadPreviewTable";
 import { Button } from "../../components/Button/Button";
@@ -177,7 +177,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   resetForm();
                 }}
               >
-                Upload another one
+                {isAdded(excelFile) ? "Upload another one" : "Reset"}
               </Button>
             </div>
           </Form>

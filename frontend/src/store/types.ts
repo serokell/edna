@@ -52,6 +52,10 @@ export function isParsed(
   return !!st && st.state === "parsed";
 }
 
+export function isAdded(st: FileUploadState): boolean {
+  return !!st && (st.state === "added" || st.state === "failed-to-add");
+}
+
 export type ModalDialogState =
   | undefined
   | {
