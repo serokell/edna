@@ -148,7 +148,9 @@ computeMeanIC50 resps = do
     mapM (getDefaultResult . erPrimarySubExperiment) resps
   where
     avg :: [Double] -> Double
-    avg items = sum items / fromIntegral (length items)
+    avg items
+      | null items = 0
+      | otherwise = sum items / fromIntegral (length items)
 
     getDefaultResult :: SubExperimentId -> Edna AnalysisResult
     getDefaultResult subExpId = do
