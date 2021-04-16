@@ -103,6 +103,8 @@ spec = do
       tableBaseTest "Valid.xlsx" "EmptyPlate" [] [] 0 0 noMetadataExp
     it "Complex plate" $
       tableBaseTest "Valid.xlsx" "Complex" ["A","B"] ["A","B","C","D"] 9 32 noMetadataExp
+    it "auto-outlier.xlsx" $
+      tableBaseTest "auto-outlier.xlsx" "Лист1" ["NLO"] ["OLOLO"] 0 21 noMetadataExp
   describe "Invalid tables" $ do
     let expectErr res errExpected = case res of
           Left err
