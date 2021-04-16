@@ -1,5 +1,11 @@
 @import "src/styles/variables";
 
+.pageLayout {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
 .container {
   display: flex;
   flex-direction: column;
