@@ -18,6 +18,7 @@ module Test.SampleData
   -- * Files
   , sampleFile
   , sampleFile2
+  , autoOutlierFile
   , sampleMetadata
   , sampleDescription
   , sampleFileName
@@ -26,6 +27,7 @@ module Test.SampleData
   , targetName1, targetName2, targetName3, targetName4
   , compoundName1, compoundName2, compoundName3, compoundName4, compoundName5
   , m1, m2, m3, m4, m5, m5Outlier, m6, m7, m8, m9, m10
+  , autoOutlierMeasurements
 
   -- * Other
   , sampleURI
@@ -98,6 +100,13 @@ sampleFile2 = mkFileContents
   , (targetName4, targetMeasurements4)
   ]
 
+-- This file contains one experiment where our analysis module finds one potential outlier
+-- automatically.
+autoOutlierFile :: FileContents
+autoOutlierFile = mkFileContents
+  [ (targetName1, one (compoundName1, autoOutlierMeasurements))
+  ]
+
 mkFileContents :: [(Text, Map Text [Measurement])] -> FileContents
 mkFileContents items = FileContents {..}
   where
@@ -163,6 +172,27 @@ m7 = m1 {mConcentration = 70, mSignal = 250}
 m8 = m1 {mConcentration = 80, mSignal = 150}
 m9 = m1 {mConcentration = 90, mSignal = 120}
 m10 = m1 {mConcentration = 100, mSignal = 100}
+
+autoOutlierMeasurements :: [Measurement]
+autoOutlierMeasurements = foldMap mkMeasurements
+  [ (0.00508, [36144, 37086])
+  , (0.01524, [36022, 36787])
+  , (0.04572, [36248, 36362])
+  , (0.13717, [36385, 36724])
+  , (0.41152, [35417, 35992])
+  , (1.2346, [35461,35479])
+  , (3.7037, [33434,33917])
+  , (11.111, [27498,27737])
+  , (33.333, [16689,17041])
+  , (100, [5973,6045])
+  , (150, [1000])
+  ]
+  where
+    mkMeasurements (c, signals) = flip map signals $ \s -> Measurement
+      { mConcentration = c
+      , mSignal = s
+      , mIsOutlier = False
+      }
 
 sampleMetadata :: FileMetadata
 sampleMetadata = FileMetadata ["foo", "room", "mood"]
