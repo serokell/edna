@@ -12,7 +12,7 @@ import {
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
 import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../../store/selectors";
-import { formatDateTimeDto, formatIC50, isDefined } from "../../../utils/utils";
+import { formatAsDate, formatIC50, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -27,6 +27,7 @@ import cn from "../../../utils/bemUtils";
 import "../IC50Line.scss";
 import DownloadSvg from "../../../assets/svg/download.svg";
 import { ContextItem } from "../../../components/ContextActions/ContextItems";
+import { Tooltip } from "../../../components/Tooltip/Tooltip";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -81,9 +82,13 @@ export function ExperimentsTableSuspendable({
       Header: "IC50",
       accessor: (e: Experiment) =>
         "Right" in e.primarySubExperiment.item.result ? (
-          formatIC50(e.primarySubExperiment.item.result.Right[2])
+          <Tooltip text={`${e.primarySubExperiment.item.result.Right[2]}`}>
+            {formatIC50(e.primarySubExperiment.item.result.Right[2])}
+          </Tooltip>
         ) : (
-          <span className="ic50__valueNone" />
+          <Tooltip text={e.primarySubExperiment.item.result.Left} type="error">
+            <span className="ic50__valueNone" />
+          </Tooltip>
         ),
     }),
     []
@@ -147,7 +152,7 @@ export function ExperimentsTableSuspendable({
       },
       {
         Header: "Upload data",
-        accessor: (e: Experiment) => formatDateTimeDto(e.uploadDate),
+        accessor: (e: Experiment) => formatAsDate(e.uploadDate),
       },
       showCheckboxColumn,
       {

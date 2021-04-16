@@ -1,0 +1,32 @@
+@import "src/styles/variables";
+
+.tooltipContainer {
+  position: relative;
+  line-height: 0;
+  text-align: center;
+
+  &__tooltip {
+    position: absolute;
+    bottom: -26 * $px;
+    left: -50%;
+
+    z-index: 1;
+    display: none;
+    padding: (2 * $px) (8 * $px);
+
+    font-size: 12 * $px;
+    line-height: 16 * $px;
+    color: white;
+    white-space: nowrap;
+    background-color: $color-black70;
+    border-radius: 2 * $px;
+
+    &_type_error {
+      color: $color-help-red;
+    }
+  }
+
+  &:hover &__tooltip {
+    display: block;
+  }
+}

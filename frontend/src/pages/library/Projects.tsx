@@ -3,12 +3,14 @@ import React from "react";
 import { modalDialogAtom } from "../../store/atoms";
 import { projectsQuery } from "../../store/selectors";
 import { ProjectDto } from "../../api/types";
-import { extraFormatter, formatDateTimeDto } from "../../utils/utils";
+import { formatAsDate, formatAsDateTime } from "../../utils/utils";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Button } from "../../components/Button/Button";
 import { Table } from "../../components/Table/Table";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
+import { ExtraFormatter } from "../../components/ExtraFormatter";
+import { Tooltip } from "../../components/Tooltip/Tooltip";
 
 export function ProjectsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -22,16 +24,26 @@ export function ProjectsSuspendable(): React.ReactElement {
       {
         Header: "Compounds",
         accessor: (p: ProjectDto) => (
-          <span className="project__compounds">{extraFormatter(p.item.compoundNames)}</span>
+          <span className="project__compounds">
+            <ExtraFormatter items={p.item.compoundNames} />
+          </span>
         ),
       },
       {
         Header: "Creation date",
-        accessor: (p: ProjectDto) => formatDateTimeDto(p.item.creationDate),
+        accessor: (p: ProjectDto) => (
+          <Tooltip text={formatAsDateTime(p.item.creationDate)}>
+            {formatAsDate(p.item.creationDate)}
+          </Tooltip>
+        ),
       },
       {
         Header: "Last update",
-        accessor: (p: ProjectDto) => formatDateTimeDto(p.item.lastUpdate),
+        accessor: (p: ProjectDto) => (
+          <Tooltip text={formatAsDateTime(p.item.lastUpdate)}>
+            {formatAsDate(p.item.lastUpdate)}
+          </Tooltip>
+        ),
       },
       {
         id: "actions",

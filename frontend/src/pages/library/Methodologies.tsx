@@ -4,12 +4,12 @@ import React from "react";
 import { modalDialogAtom } from "../../store/atoms";
 import { methodologiesQuery } from "../../store/selectors";
 import { MethodologyDto } from "../../api/types";
-import { extraFormatter } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Table } from "../../components/Table/Table";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
+import { ExtraFormatter } from "../../components/ExtraFormatter";
 
 export function MethodsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -22,7 +22,7 @@ export function MethodsSuspendable(): React.ReactElement {
       },
       {
         Header: "Projects",
-        accessor: (t: MethodologyDto) => extraFormatter(t.item.projects),
+        accessor: (t: MethodologyDto) => <ExtraFormatter items={t.item.projects} />,
       },
       {
         Header: "Confluence link",

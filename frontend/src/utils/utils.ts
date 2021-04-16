@@ -16,7 +16,7 @@ export function capitalizeFirstLetter(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function formatDateTimeDto(t: DateTimeDto): string {
+export function formatAsDate(t: DateTimeDto): string {
   const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "numeric",
@@ -25,13 +25,20 @@ export function formatDateTimeDto(t: DateTimeDto): string {
   return new Date(Date.parse(t)).toLocaleDateString("ru-RU", options);
 }
 
-export function replaceEmptyWithUndefined(x: string): Maybe<string> {
-  return x || undefined;
+export function formatAsDateTime(t: DateTimeDto): string {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  };
+  return new Date(Date.parse(t)).toLocaleDateString("ru-RU", options);
 }
 
-export function extraFormatter(items: string[]): string {
-  if (items.length <= 4) return items.join(", ");
-  return `${items.slice(0, 4).join(", ")} and ${items.length - 4} more`;
+export function replaceEmptyWithUndefined(x: string): Maybe<string> {
+  return x || undefined;
 }
 
 export function zip<A, B>(a: A[], b: B[]): [A, B][] {

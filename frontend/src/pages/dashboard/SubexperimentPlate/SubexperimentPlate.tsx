@@ -20,6 +20,7 @@ import { formatIC50, useClickOutsideCallback } from "../../../utils/utils";
 import cn from "../../../utils/bemUtils";
 import { ContextItem } from "../../../components/ContextActions/ContextItems";
 import Api from "../../../api/api";
+import { Tooltip } from "../../../components/Tooltip/Tooltip";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;
@@ -113,9 +114,13 @@ export function SubexperimentPlate({
         <span className="ic50__label">IC50</span>
 
         {"Left" in subexperiment.item.result ? (
-          <span className="ic50__valueNone" />
+          <Tooltip type="error" text={subexperiment.item.result.Left}>
+            <span className="ic50__valueNone" />
+          </Tooltip>
         ) : (
-          <span className="ic50__value">{formatIC50(subexperiment.item.result.Right[2])}</span>
+          <Tooltip text={`${subexperiment.item.result.Right[2]}`}>
+            <span className="ic50__value">{formatIC50(subexperiment.item.result.Right[2])}</span>
+          </Tooltip>
         )}
       </div>
     </div>

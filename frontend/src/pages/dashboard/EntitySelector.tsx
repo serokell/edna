@@ -16,7 +16,7 @@ import {
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
-import { formatDateTimeDto } from "../../utils/utils";
+import { formatAsDate } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { EntityProperty } from "../../components/DescriptiveSelector/DescriptivePlate";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
@@ -42,10 +42,10 @@ export function ProjectSelector({ className }: SelectorProps): React.ReactElemen
       toEntityProperties={p =>
         p.item.description
           ? [
-              { label: "Last updated:", value: formatDateTimeDto(p.item.lastUpdate) },
+              { label: "Last updated:", value: formatAsDate(p.item.lastUpdate) },
               { label: "Description:", value: p.item.description },
             ]
-          : [{ label: "Last updated:", value: formatDateTimeDto(p.item.lastUpdate) }]
+          : [{ label: "Last updated:", value: formatAsDate(p.item.lastUpdate) }]
       }
       toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
       contextActions={[
@@ -133,7 +133,7 @@ export function TargetSelector({ className }: SelectorProps): React.ReactElement
       value={targetSelected}
       onChange={x => setTargetSelected(x?.id)}
       optionsLoadable={compoundsLoadable}
-      toEntityProperties={t => [{ label: "Added:", value: formatDateTimeDto(t.item.additionDate) }]}
+      toEntityProperties={t => [{ label: "Added:", value: formatAsDate(t.item.additionDate) }]}
       placeholder="Select a target"
       placeholderEmpty="No targets"
       toOption={c => ({ value: `${c.id}`, label: c.item.name })}

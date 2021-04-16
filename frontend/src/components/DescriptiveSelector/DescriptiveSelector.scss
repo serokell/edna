@@ -1,6 +1,7 @@
 @import "src/styles/variables";
 
 .descriptiveSelector {
+  z-index: 2;
   display: flex;
   flex-direction: column;
 }

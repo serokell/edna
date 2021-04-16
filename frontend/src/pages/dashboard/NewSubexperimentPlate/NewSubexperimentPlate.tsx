@@ -8,6 +8,7 @@ import { formatIC50, isDefined } from "../../../utils/utils";
 import RecomputeSvg from "../../../assets/svg/recompute.svg";
 import Api from "../../../api/api";
 import { useFilteredExperimentsRefresher } from "../../../store/updaters";
+import { Tooltip } from "../../../components/Tooltip/Tooltip";
 
 interface NewSubexperimentPlateProps {
   className?: string;
@@ -36,23 +37,28 @@ export function NewSubexperimentPlate({
         ) : (
           <>
             <span className="ic50__valueNone" />
-            <RecomputeSvg
-              className="newSubexperimentPlate__recomouteBtn"
-              onClick={async () => {
-                const newResult = await Api.analyzeSubexperiment(newSubexperiment.subExperimentId, {
-                  name: suexperimentName,
-                  changes: newSubexperiment.changedPoints.map(x => x.id),
-                });
-                if ("Left" in newResult) {
-                  setModalDialog({ kind: "failed-recompute-ic50", reason: newResult.Left });
-                } else {
-                  setNewSubexperiment(old => ({
-                    ...old,
-                    analysed: newResult.Right,
-                  }));
-                }
-              }}
-            />
+            <Tooltip text="Recompute">
+              <RecomputeSvg
+                className="newSubexperimentPlate__recomouteBtn"
+                onClick={async () => {
+                  const newResult = await Api.analyzeSubexperiment(
+                    newSubexperiment.subExperimentId,
+                    {
+                      name: suexperimentName,
+                      changes: newSubexperiment.changedPoints.map(x => x.id),
+                    }
+                  );
+                  if ("Left" in newResult) {
+                    setModalDialog({ kind: "failed-recompute-ic50", reason: newResult.Left });
+                  } else {
+                    setNewSubexperiment(old => ({
+                      ...old,
+                      analysed: newResult.Right,
+                    }));
+                  }
+                }}
+              />
+            </Tooltip>
           </>
         )}
       </div>
