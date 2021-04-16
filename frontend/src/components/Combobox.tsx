@@ -15,7 +15,7 @@ interface ComboboxProps<T> extends FormikCompatible<Maybe<T>> {
   toOption: (arg: T) => SelectOption;
   isLoading?: boolean;
   styles?: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>>;
-
+  isDisabled?: boolean;
   [prop: string]: any;
 }
 
@@ -29,6 +29,7 @@ export default function Combobox<T>({
   onChange,
   styles,
   isLoading,
+  isDisabled = false,
   ...props
 }: ComboboxProps<T>): React.ReactElement {
   const mergedStyles: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>> = {
@@ -72,6 +73,7 @@ export default function Combobox<T>({
         (optionsLoadable.state === "hasValue" && optionsLoadable.contents.map(toOption)) ||
         undefined
       }
+      isDisabled={isDisabled}
     />
   );
 }

@@ -116,6 +116,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   placeholderEmpty="No projects"
                   toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
                   tabIndex="2"
+                  isDisabled={isAdded(excelFile)}
                   {...field}
                 />
               )}
@@ -135,6 +136,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   placeholderEmpty="No methodologies"
                   toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
                   tabIndex="3"
+                  isDisabled={isAdded(excelFile)}
                 />
               )}
             </FormField>
@@ -149,6 +151,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   className="ednaTextarea uploadingForm__descriptionTextArea"
                   value={field.value}
                   onChange={e => field.onChange(e.target.value)}
+                  disabled={isAdded(excelFile)}
                 />
               )}
             </FormField>

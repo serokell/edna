@@ -31,7 +31,7 @@ function FormField<V>({
   // eslint-disable-next-line no-empty-pattern
   const [{}, { value }, { setValue }] = useField<V>(name);
   return (
-    <div className={cn("formField", className)}>
+    <div className={cn("formField", className, { disabled: true })}>
       {label && (
         <div className="formField__label">
           {label} {required && <span className="formField__required">*</span>}
