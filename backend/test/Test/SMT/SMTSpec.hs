@@ -31,10 +31,11 @@ import Edna.Util (MethodologyId, ProjectId, SqlId(..))
 
 import Test.Gen
 import Test.SMT.State
-import Test.Setup (ednaTestMode, withContext)
+import Test.Setup (ednaTestMode, specWithContext)
 
 spec :: Spec
-spec = context "State machine tests" $ withContext $ modifyMaxSuccess (min 20) $
+spec = context "State machine tests" $ specWithContext $
+  modifyMaxSuccess (min 20) $
   it "Edna implementation matches Edna model" $ \ctx -> ednaTestMode ctx $ do
     actions <- forAll $
       Gen.sequential (Range.linear 1 100) initialState
