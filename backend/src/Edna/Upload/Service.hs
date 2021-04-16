@@ -107,7 +107,7 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
       expFileId <- UQ.insertExperimentFile projId methodId (fcMetadata fc)
         description fileName fileBytes
 
-      experiments <- sortWith (\a -> (a ^. _1 . _2, a ^. _1 . _3)) <$>
+      experiments <- sortWith (\a -> (a ^. _1 . _1, a ^. _1 . _2)) <$>
         (concat <$> (forM (toPairs fileMeasurements) $
           \(targetName, TargetMeasurements targetMeasurements) ->
             forM (toPairs targetMeasurements) $ \(compoundName, measurements) -> do
@@ -118,9 +118,9 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
                   view (at name)
               let targetId = getId targetName targetToId
               let compoundId = getId compoundName compoundToId
-              pure ((expFileId, compoundId, targetId), measurements)))
+              pure ((compoundId, targetId), measurements)))
 
-      insertExperiments experiments
+      insertExperiments expFileId experiments
       measurementsToSummary fileMeasurements
 
 insertTarget :: Text -> Edna (Text, TargetId)
@@ -131,9 +131,10 @@ insertCompound compoundName =
   (compoundName,) . fromSqlSerial . cCompoundId <$> LQ.insertCompound compoundName
 
 -- Expects tuples sorted by @(CompoundId, TargetId)@ pairs.
-insertExperiments :: [((ExperimentFileId, CompoundId, TargetId), [Measurement])] -> Edna ()
-insertExperiments experiments = do
-  expIds <- UQ.insertExperiments $ map fst experiments
+insertExperiments ::
+  ExperimentFileId -> [((CompoundId, TargetId), [Measurement])] -> Edna ()
+insertExperiments expFileId experiments = do
+  expIds <- UQ.insertExperiments expFileId $ map fst experiments
   let
     -- Sorted by experiment IDs
     measurementsWithIds :: [(ExperimentId, [Measurement])]

@@ -32,11 +32,13 @@ import Edna.Util
 
 -- | Insert experiments and return their IDs
 -- Returned IDs are sorted by compound and target ids of experiment
-insertExperiments :: [(ExperimentFileId, CompoundId, TargetId)] -> Edna [ExperimentId]
-insertExperiments experiments = map (fromSqlSerial . eExperimentId) .
+insertExperiments ::
+  ExperimentFileId -> [(CompoundId, TargetId)] -> Edna [ExperimentId]
+insertExperiments (SqlId experimentFileId) experiments =
+  map (fromSqlSerial . eExperimentId) .
   sortWith (\a -> (eCompoundId a, eTargetId a)) <$>
     runInsertReturningList' (insert (esExperiment ednaSchema) $ insertExpressions $
-      flip map experiments $ \(SqlId experimentFileId, SqlId compoundId, SqlId targetId) ->
+      flip map experiments $ \(SqlId compoundId, SqlId targetId) ->
         ExperimentRec
         { eExperimentId = default_
         , eExperimentFileId = val_ experimentFileId
