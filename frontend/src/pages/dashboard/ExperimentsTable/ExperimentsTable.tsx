@@ -54,6 +54,12 @@ export function ExperimentsTableSuspendable({
     }
   }, [selectedSubexperiments, removeSubExperiments, experiments]);
 
+  useEffect(() => {
+    if (selectedExperiments.size === 0) {
+      setShowEntries("all");
+    }
+  }, [selectedExperiments.size]);
+
   const cacheMetadata = useRecoilCallback(
     ({ snapshot }) => (experimentId: number) => {
       return snapshot.getPromise(experimentMetadata(experimentId));
@@ -112,11 +118,6 @@ export function ExperimentsTableSuspendable({
                 if (e.target.checked) {
                   addSubExperiment(exp.primarySubExperiment.id);
                 } else {
-                  // TODO fix it
-                  if (selectedSubexperiments.size === 1) {
-                    setShowEntries("all");
-                  }
-
                   removeSubExperiments(exp.subExperiments);
                 }
               }}
@@ -126,13 +127,7 @@ export function ExperimentsTableSuspendable({
         </td>
       ),
     }),
-    [
-      expTableSize,
-      selectedSubexperiments,
-      selectedExperiments,
-      addSubExperiment,
-      removeSubExperiments,
-    ]
+    [expTableSize, selectedExperiments, addSubExperiment, removeSubExperiments]
   );
 
   const minimizedColumns: Column<Experiment>[] = React.useMemo(
