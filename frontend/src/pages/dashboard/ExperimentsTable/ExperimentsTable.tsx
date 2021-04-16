@@ -175,10 +175,7 @@ export function ExperimentsTableSuspendable({
                 key="download"
                 download
                 className="contextActions__item"
-                href={`/experiment/${e.id}/file`}
-                onMouseDown={() => {
-                  console.log("on link click");
-                }}
+                href={`/api/experiment/${e.id}/file`}
               >
                 <DownloadSvg />
                 Download
