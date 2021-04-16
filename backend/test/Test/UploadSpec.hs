@@ -9,20 +9,24 @@ import Universum
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
+import Data.List ((!!))
 import RIO (runRIO)
 import Test.Hspec (Spec, beforeAllWith, describe, it, shouldBe, shouldThrow)
 
 import qualified Edna.Dashboard.Service as Dashboard
 import qualified Edna.Library.Service as Library
 
-import Edna.Dashboard.Web.Types (ExperimentResp(..), ExperimentsResp(..))
-import Edna.ExperimentReader.Types (FileContents(..))
-import Edna.Library.Web.Types (CompoundResp(crName), TargetResp(..))
+import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
+import Edna.Dashboard.Web.Types
+  (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), SubExperimentResp(..))
+import Edna.ExperimentReader.Types (FileContents(..), Measurement(..))
+import Edna.Library.Web.Types (CompoundResp(crName), ProjectReq(..), TargetResp(..))
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util (IdType(..), SqlId(..))
 import Edna.Web.Types (WithId(..))
 
+import Test.Orphans ()
 import Test.SampleData
 import Test.Setup (runTestEdna, runWithInit, withContext)
 
@@ -64,6 +68,35 @@ spec = withContext $ startWithInitial $ do
         checkTargets targets
         checkCompounds compounds
         checkExperiments (wItem <$> erExperiments experiments)
+    it "successfully adds experiment with auto-detected outlier" $ runTestEdna $ do
+      projId <- wiId <$> Library.addProject (ProjectReq "autoOutlierFile" Nothing)
+      void $ uploadFileTest projId (SqlId 1) autoOutlierFile
+      ExperimentsResp {..} <- Dashboard.getExperiments (Just projId) Nothing Nothing
+      -- @autoOutlierFile@ has only 1 experiment and we are adding it into a
+      -- completely new project. So we expect one experiment in the result.
+      let [WithId _ ExperimentResp {..}] = erExperiments
+      -- There should be 2 sub-experiments because we should find 1 outlier.
+      -- One of them should be equal to primary, the other one is secondary.
+      let [secondarySubExpId] = filter (/= erPrimarySubExperiment) erSubExperiments
+      primaryMeasurements <- wItem <<$>> Dashboard.getMeasurements erPrimarySubExperiment
+      secondaryMeasurements <- wItem <<$>> Dashboard.getMeasurements secondarySubExpId
+      secondarySubExperiment <- wItem <$> Dashboard.getSubExperiment secondarySubExpId
+      [(_, Right Params4PLResp {..})] <- analyse4PL [Params4PLReq (SqlId 1) True $
+        map (\m -> (mConcentration m, mSignal m)) autoOutlierMeasurements]
+      let Just (autoOutliers, secondaryParams4PL) = plrspNewSubExp
+      let onlyDisabled = filter (not . mrIsEnabled)
+      liftIO $ do
+        length erSubExperiments `shouldBe` 2
+        serResult secondarySubExperiment `shouldBe` Right secondaryParams4PL
+        onlyDisabled primaryMeasurements `shouldBe` []
+        let secondaryDisabled = flip map (toList autoOutliers) $ \idx ->
+              let Measurement {..} = autoOutlierMeasurements !! fromIntegral idx
+              in MeasurementResp
+                  { mrConcentration = mConcentration
+                  , mrSignal = mSignal
+                  , mrIsEnabled = False
+                  }
+        onlyDisabled secondaryMeasurements `shouldBe` secondaryDisabled
   where
     addInitialData = addSampleProjects >> addSampleMethodologies
     startWithInitial =
