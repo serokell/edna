@@ -38,10 +38,10 @@ import Edna.Web.Types (URI, WithId(..))
 
 import Test.Orphans ()
 import Test.SampleData
-import Test.Setup (runTestEdna, runWithInit, withContext)
+import Test.Setup (runTestEdna, runWithInit, specWithContext)
 
 spec :: Spec
-spec = withContext $ startWithInitial $ do
+spec = specWithContext $ startWithInitial $ do
   describe "parseFile'" $ do
     it "returns empty summary for empty contents" $ runTestEdna $ do
       summary <- parseFile' (FileContents mempty sampleMetadata)
