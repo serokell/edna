@@ -41,10 +41,15 @@ export function DescriptiveSelector<T>({
         {...props}
         isFocused={selectOpened}
         styles={{
-          control: provided => ({
+          control: (provided: any, state) => ({
             ...provided,
             border: "1px solid var(--color-gray)",
             borderRadius: "var(--border-radius)",
+            borderColor: "hsl(0, 0%, 80%)",
+            boxShadow: state.isFocused ? 0 : 0,
+            "&:hover": {
+              borderColor: "hsl(0, 0%, 80%)",
+            },
             ...borderStyles,
           }),
         }}
