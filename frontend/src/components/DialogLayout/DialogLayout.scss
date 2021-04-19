@@ -77,6 +77,11 @@
 .secondaryDialogWindow {
   border-radius: 6 * $px;
 
+  p {
+    margin-top: 2 * $px;
+    margin-bottom: 2 * $px;
+  }
+
   &__title {
     @include headline2;
   }

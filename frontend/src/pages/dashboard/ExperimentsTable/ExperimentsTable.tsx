@@ -162,7 +162,7 @@ export function ExperimentsTableSuspendable({
                   const metadata = await cacheMetadata(e.id);
                   setModalDialog({
                     kind: "show-experiment-metadata",
-                    description: metadata.fileMetadata.concat(metadata.description),
+                    description: [metadata.description].concat(metadata.fileMetadata),
                   });
                 }}
               />,
