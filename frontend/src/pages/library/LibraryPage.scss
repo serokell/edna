@@ -24,8 +24,9 @@
     margin-right: 86 * $px;
     font-size: 26 * $px;
     font-weight: 700;
-    line-height: 32 * $px;
+    line-height: 36 * $px;
     color: $color-titles-gray;
+    text-decoration: none;
 
     &:hover {
       cursor: pointer;

@@ -123,7 +123,7 @@ export const App: FunctionComponent = (): ReactElement => {
         <Redirect exact from="/" to="/upload" />
 
         <Route path="*">
-          <NotFound />
+          <NotFound page />
         </Route>
       </Switch>
     </>
