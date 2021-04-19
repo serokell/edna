@@ -4,8 +4,8 @@ import os
 import pandas as pd
 import pytest
 
-from ic50_analysis import main as ic50_calc
 from ic50 import *
+from ic50_analysis import main as ic50_calc
 
 
 @pytest.fixture

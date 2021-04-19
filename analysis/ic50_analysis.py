@@ -2,7 +2,14 @@ import json
 import sys
 from typing import Any
 
-from ic50 import *
+import numpy as np
+
+from ic50 import calculate_sigmoid, detect_outliers
+from input_analysis import check_data, find_outliers_field
+
+
+def stderr_print(*args, **kwargs):  # type: ignore
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def main(argv: Any) -> None:
@@ -14,28 +21,19 @@ def main(argv: Any) -> None:
         response_value = {"experiment": experiment["experiment"], "status": "DONE"}
         measurements = np.array(experiment['data'])
 
-        try:
-            find_outliers = experiment["find_outliers"]
-            if type(find_outliers) == str:
-                find_outliers = find_outliers.lower()
-                find_outliers = int(find_outliers == 'true')
-        except KeyError:
-            find_outliers = True
+        find_outliers = find_outliers_field(experiment)
 
-        if measurements.shape[1] != 2:
-            response_value["status"] = "ERROR: Wrong experiment format."
-            response.append(response_value)
-            continue
-
-        if np.unique(measurements[:, 0]).shape[0] < 4:
-            response_value["status"] = "ERROR: Too little data."
+        input_check, input_error = check_data(measurements)
+        if not input_check:
+            response_value["status"] = input_error
             response.append(response_value)
             continue
 
         try:
             params = calculate_sigmoid(measurements)
             response_value["params"] = params
-        except (ArithmeticError, RuntimeError):
+        except (ArithmeticError, RuntimeError) as exc:
+            stderr_print(exc)
             response_value["status"] = "ERROR: Can not fit sigmoid."
             response.append(response_value)
             continue
@@ -48,7 +46,8 @@ def main(argv: Any) -> None:
                     new_measurements = np.delete(measurements, outliers, axis=0)
                     new_params = calculate_sigmoid(new_measurements)
                     response_value["new_params"] = new_params
-            except ArithmeticError:
+            except ArithmeticError as exc:
+                stderr_print(exc)
                 response_value["outliers"] = []
                 response.append(response_value)
                 continue
