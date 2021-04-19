@@ -1,7 +1,8 @@
+import warnings
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import OptimizeWarning, curve_fit
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
@@ -28,6 +29,8 @@ def _fit_sigmoid(
         scaled_signal = scaler.transform(measurements[:, 1].reshape(-1, 1)).reshape(-1)
 
     starting_point = _get_starting_parameters(measurements[:, 0], scaled_signal)
+
+    warnings.simplefilter('ignore', OptimizeWarning)
     try:
         with np.errstate(invalid='ignore'):
             fit_param = curve_fit(_sigmoid, measurements[:, 0], np.array(scaled_signal),
@@ -49,7 +52,7 @@ def _pseudo_cook_distance(
         global_mse: float,
         num_parameters: int = 4,
 ) -> float:
-    cook_distance = float(((global_fit - stripped_fit) ** 2).sum()) / ((num_parameters + 1) * global_mse)
+    cook_distance = float(((global_fit - stripped_fit) ** 2).sum()) / ((num_parameters + 1) * global_mse + 1e-10)
     return cook_distance
 
 

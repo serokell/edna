@@ -43,6 +43,7 @@ If there are no outliers, `new_params` is omitted. Status may contain error desc
 
 ## Error description
 
-1. `ERROR: Wrong experiment format.` The experiment from .json provided is in the wrong form.
-2. `ERROR: Too little data.` The least amount of data points to fit sigmoid is 4.
-3. `ERROR: Can not fit sigmoid.` Impossible to fit sigmoid to this particular set of data points.
+1. `ERROR: Empty data field.` No data points have been passed.
+2. `ERROR: Wrong experiment format.` The experiment from .json provided is in the wrong form.
+3. `ERROR: Too little data.` The least amount of data points to fit sigmoid is 4.
+4. `ERROR: Can not fit sigmoid.` Impossible to fit sigmoid to this particular set of data points.
