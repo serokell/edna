@@ -280,6 +280,7 @@ function ExperimentsCollapse({
         <SubexperimentPlate
           className={experimentsTable("subexperiment", { expanded })}
           key={uuidv4()}
+          isPrimary={experiment.primarySubExperiment.id === s.id}
           subexperiment={s}
         />
       ))}

@@ -24,12 +24,14 @@ import { Tooltip } from "../../../components/Tooltip/Tooltip";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;
+  isPrimary?: boolean;
   className?: string;
 }
 
 export function SubexperimentPlate({
   subexperiment,
   className,
+  isPrimary,
 }: SubexperimentPlateProps): React.ReactElement {
   const activeColor = useRecoilValue(selectedSubExperimentsColorAtom(subexperiment.id));
   const selectedSubExperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
@@ -107,7 +109,7 @@ export function SubexperimentPlate({
           isSuspicious={subexperiment.item.isSuspicious}
           className="subexperimentPlate__satisfactoryStatus"
         />
-        {subexperiment.item.name}
+        {isPrimary ? <b>{subexperiment.item.name}</b> : subexperiment.item.name}
       </div>
 
       <div className="ic50">
