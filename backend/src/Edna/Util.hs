@@ -14,6 +14,7 @@ module Edna.Util
   , MeasurementId
   , ednaAesonWebOptions
   , ednaAesonConfigOptions
+  , ednaAesonPythonOptions
   , schemaOptions
   , gDeclareNamedSchema
   , gToParamSchema
@@ -26,6 +27,7 @@ module Edna.Util
   , localToUTC
   , buildFromJSON
   , oneOrError
+  , uncurry3
   ) where
 
 import Universum
@@ -126,6 +128,10 @@ ednaAesonConfigOptions = AC.aesonPrefix AC.trainCase
 ednaAesonWebOptions :: A.Options
 ednaAesonWebOptions = AC.aesonPrefix AC.camelCase
 
+-- | JSON encoding/decoding for communication with Python.
+ednaAesonPythonOptions :: A.Options
+ednaAesonPythonOptions = AC.aesonPrefix AC.snakeCase
+
 ----------------
 -- Swagger
 ----------------
@@ -182,6 +188,9 @@ localToUTC = localTimeToUTC utc
 
 buildFromJSON :: ToJSON a => a -> Builder
 buildFromJSON x = "" +| decodeUtf8 @Text (encode x) |+ ""
+
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f (a, b, c) = f a b c
 
 ----------------
 -- SqlId

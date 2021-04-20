@@ -13,6 +13,7 @@ module Edna.Upload.Service
 import Universum
 
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
 
 import Fmt ((+|), (|+))
 import Lens.Micro.Platform (at, (?~))
@@ -20,8 +21,10 @@ import Lens.Micro.Platform (at, (?~))
 import qualified Edna.Library.DB.Query as LQ
 import qualified Edna.Upload.DB.Query as UQ
 
-import Edna.Analysis.FourPL (Params4PLReq(..), analyse4PL)
+import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
 import Edna.DB.Integration (transact)
+import Edna.Dashboard.DB.Schema
+  (MeasurementRec, MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.ExperimentReader.Parser (parseExperimentXls)
 import Edna.ExperimentReader.Types as EReader
 import Edna.Library.DB.Query (getMethodologyById, getProjectById)
@@ -30,9 +33,9 @@ import Edna.Logging (logDebug, logMessage)
 import Edna.Setup
 import Edna.Upload.Error (UploadError(..))
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
-import Edna.Util as U
-  (CompoundId, ExperimentFileId, ExperimentId, MethodologyId, ProjectId, SqlId(..), SubExperimentId,
-  TargetId, fromSqlSerial, justOrThrow)
+import Edna.Util
+  (CompoundId, ExperimentFileId, ExperimentId, MeasurementId, MethodologyId, ProjectId, SqlId(..),
+  TargetId, fromSqlSerial, justOrThrow, uncurry3)
 
 -- | Parse contents of an experiment data file and return as 'FileSummary'.
 -- Uses database to determine which targets are new.
@@ -104,7 +107,7 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
       expFileId <- UQ.insertExperimentFile projId methodId (fcMetadata fc)
         description fileName fileBytes
 
-      experiments <- sortWith (\a -> (a ^. _1 . _2, a ^. _1 . _3)) <$>
+      experiments <- sortWith (\a -> (a ^. _1 . _1, a ^. _1 . _2)) <$>
         (concat <$> (forM (toPairs fileMeasurements) $
           \(targetName, TargetMeasurements targetMeasurements) ->
             forM (toPairs targetMeasurements) $ \(compoundName, measurements) -> do
@@ -115,9 +118,9 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
                   view (at name)
               let targetId = getId targetName targetToId
               let compoundId = getId compoundName compoundToId
-              pure ((expFileId, compoundId, targetId), measurements)))
+              pure ((compoundId, targetId), measurements)))
 
-      insertExperiments experiments
+      insertExperiments expFileId experiments
       measurementsToSummary fileMeasurements
 
 insertTarget :: Text -> Edna (Text, TargetId)
@@ -127,19 +130,87 @@ insertCompound :: Text -> Edna (Text, CompoundId)
 insertCompound compoundName =
   (compoundName,) . fromSqlSerial . cCompoundId <$> LQ.insertCompound compoundName
 
-insertExperiments :: [((ExperimentFileId, CompoundId, TargetId), [Measurement])] -> Edna ()
-insertExperiments experiments = do
-  expIds <- UQ.insertExperiments $ map fst experiments
-  let experimentsWithIds = sortWith fst $ zip expIds $ map snd experiments
-  analysisResults <- analyse4PL $ flip map experimentsWithIds $ \(eId, ms) -> Params4PLReq eId $
-    map (\m -> (mConcentration m, mSignal m)) $ filter (not . EReader.mIsOutlier) ms
-  subExpIds <- UQ.insertSubExperiments analysisResults
-  UQ.insertPrimarySubExperiments $ zip expIds subExpIds
-  mapM_ (\ ((expId, measurements), subExpId) -> insertMeasurements expId subExpId measurements) $
-    zip experimentsWithIds subExpIds
+-- Expects tuples sorted by @(CompoundId, TargetId)@ pairs.
+insertExperiments ::
+  ExperimentFileId -> [((CompoundId, TargetId), [Measurement])] -> Edna ()
+insertExperiments expFileId experiments = do
+  expIds <- UQ.insertExperiments expFileId $ map fst experiments
+  let
+    -- Sorted by experiment IDs
+    measurementsWithIds :: [(ExperimentId, [Measurement])]
+    -- The order of IDs and tuples is supposed to match because both are sorted by
+    -- @(CompoundId, TargetId) pairs.
+    measurementsWithIds = sortWith fst $ zip expIds $ map snd experiments
 
-insertMeasurements :: ExperimentId -> SubExperimentId -> [Measurement] -> Edna ()
-insertMeasurements expId subExpId measurements = do
-  measurementIds <- UQ.insertMeasurements expId measurements
-  let removedIds = map fst . filter (EReader.mIsOutlier . snd) $ zip measurementIds measurements
-  UQ.insertRemovedMeasurements subExpId removedIds
+  -- Sorted by experiment IDs.
+  -- While 'analyse4PL' most likely preserves the order, it seems safer to sort
+  -- items explicitly here to have less assumptions on Python code.
+  analysisResults <- fmap (sortWith fst) $ analyse4PL $
+    flip map measurementsWithIds $ \(eId, ms) ->
+    Params4PLReq
+    { plreqExperiment = eId
+    , plreqFindOutliers = True
+    , plreqData =
+        map (\m -> (EReader.mConcentration m, EReader.mSignal m)) $
+          filter (not . EReader.mIsOutlier) ms
+    }
+  -- Sorted by experiment IDs
+  subExps <- UQ.insertSubExperiments analysisResults
+  UQ.insertPrimarySubExperiments $ map head subExps
+  mapM_ (uncurry3 insertMeasurements)
+    (zip3 subExps (map snd measurementsWithIds) (map snd analysisResults))
+
+-- There are 1 or 2 sub-experiments from the same experiment, the head one is always primary.
+-- First we insert all measurements to experiment. Then we insert removed measurements:
+--
+-- * For the primary one removed measurements are all measurements for which
+-- @mIsOutlier@ is @True@.
+-- * The second one must be provided iff @eitherResp@ holds @plrspNewSubExp@ inside of it.
+-- In this case we compute outliers from indices inside @plrspNewSubExp@.
+insertMeasurements ::
+  HasCallStack =>
+  NonEmpty SubExperimentRec -> [Measurement] -> Either Text Params4PLResp -> Edna ()
+insertMeasurements subExps measurements eitherResp = do
+  let primarySubExp = head subExps
+  let expId = SqlId $ seExperimentId primarySubExp
+  -- Insert measurements (trivial)
+  measurementRecs <- UQ.insertMeasurements expId measurements
+  -- Compute and insert removed measurements for the primary sub-experiment.
+  -- We simply check @mIsOutlier@ here.
+  let primarySubExpId = fromSqlSerial $ seSubExperimentId primarySubExp
+  let primaryRemovedIds =
+        mapMaybe (\MeasurementRec {..} -> fromSqlSerial mMeasurementId <$ guard mIsOutlier)
+        measurementRecs
+  UQ.insertRemovedMeasurements primarySubExpId primaryRemovedIds
+  -- If 2 sub-experiments are passed to this function and @plrspNewSubExp@ is available,
+  -- compute removed measurements for the secondary sub-experiment.
+  case (toList subExps, rightToMaybe eitherResp >>= plrspNewSubExp) of
+    ([_], Nothing) -> pass
+    ([_primary, autoSubExp], Just (outliers, _)) ->
+      let removed = autoRemovedIds measurementRecs outliers
+      in UQ.insertRemovedMeasurements (fromSqlSerial $ seSubExperimentId autoSubExp) removed
+    _ -> error $
+      "unexpected combination of subExps and eitherResp: " <>
+      show subExps <> ", " <> show eitherResp
+  where
+    -- The order of MeasurementRecs is not guaranteed to match the order of Measurements,
+    -- so we have to match them somehow.
+    -- Comparing Doubles by equality is a bad idea because conversion to SQL and back
+    -- may lose precision, so we don't do it. At the same time, this conversion is hopefully
+    -- monotonic, so if we sort both lists by keys the order should match.
+    -- Note that, in theory, there can be multiple points with equal @(concentration, signal)@ pair,
+    -- so the order matches only with respect to this equality. It shouldn't be a problem
+    -- because if two points are equal, either both of them should be outliers or none of them.
+    --
+    -- After sorting both lists and zipping them, for each MeasurementRec we know its index in the
+    -- original list of measurement and can check whether it's present in the outliers list.
+    autoRemovedIds :: [MeasurementRec] -> NonEmpty Word -> [MeasurementId]
+    autoRemovedIds measurementRecs (HS.fromList . toList -> outliers) =
+      let sortedMeasurements = sortWith
+            (\(_, m) -> (EReader.mConcentration m, EReader.mSignal m)) $
+            zip [0..] measurements
+          sortedRecs = sortWith
+            (\MeasurementRec {..} -> (mConcentration, mSignal)) measurementRecs
+      in flip mapMaybe (zip sortedMeasurements sortedRecs) $
+          \((idx, _), MeasurementRec {..}) ->
+          fromSqlSerial mMeasurementId <$ guard (idx `HS.member` outliers)
