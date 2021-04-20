@@ -9,7 +9,7 @@ import { excelFileAtom } from "../../store/atoms";
 import Combobox from "../../components/Combobox";
 import { isDefined, Maybe } from "../../utils/utils";
 import UploadArea from "../../components/UploadArea/UploadArea";
-import { isParsed } from "../../store/types";
+import { isAdded, isParsed } from "../../store/types";
 import { UploadStatus } from "../../components/UploadStatus/UploadStatus";
 import { UploadPreviewTable } from "../../components/UploadPreviewTable/UploadPreviewTable";
 import { Button } from "../../components/Button/Button";
@@ -84,7 +84,6 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             <FormField<File>
               name="file"
-              label="File"
               className={
                 isDefined(excelFile)
                   ? "uploadingForm__uploadArea_hidden"
@@ -117,6 +116,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   placeholderEmpty="No projects"
                   toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
                   tabIndex="2"
+                  isDisabled={isAdded(excelFile)}
                   {...field}
                 />
               )}
@@ -136,6 +136,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   placeholderEmpty="No methodologies"
                   toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
                   tabIndex="3"
+                  isDisabled={isAdded(excelFile)}
                 />
               )}
             </FormField>
@@ -150,6 +151,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   className="ednaTextarea uploadingForm__descriptionTextArea"
                   value={field.value}
                   onChange={e => field.onChange(e.target.value)}
+                  disabled={isAdded(excelFile)}
                 />
               )}
             </FormField>
@@ -177,7 +179,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   resetForm();
                 }}
               >
-                Upload another one
+                {isAdded(excelFile) ? "Upload another one" : "Reset"}
               </Button>
             </div>
           </Form>

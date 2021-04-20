@@ -1,12 +1,13 @@
 @import "variables";
 
-@mixin headline4() {
-  font-size: 2rem;
+@mixin headline4 {
+  font-size: 26 * $px;
   font-weight: 400;
+  line-height: 2rem;
   color: #4a4a4a;
 }
 
-@mixin headline1() {
+@mixin headline1 {
   font-size: 26 * $px;
   font-style: normal;
   font-weight: 400;
@@ -15,7 +16,7 @@
   letter-spacing: 0;
 }
 
-@mixin headline2() {
+@mixin headline2 {
   font-size: 18 * $px;
   font-style: normal;
   font-weight: 700;
@@ -24,14 +25,14 @@
   letter-spacing: 0;
 }
 
-@mixin headline3() {
+@mixin headline3 {
   font-size: 14 * $px;
   font-style: normal;
   font-weight: 400;
   line-height: 18 * $px;
 }
 
-@mixin paragraph-p1() {
+@mixin paragraph-p1 {
   font-size: 14 * $px;
   font-style: normal;
   font-weight: 400;
@@ -40,7 +41,7 @@
   letter-spacing: 0;
 }
 
-@mixin paragraph-p2() {
+@mixin paragraph-p2 {
   font-size: 12 * $px;
   font-style: normal;
   font-weight: 400;

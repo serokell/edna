@@ -1,6 +1,6 @@
 @import "src/styles/variables";
 
-@mixin is-btn() {
+@mixin is-btn {
   &:focus {
     outline: none;
   }
@@ -14,25 +14,25 @@
   }
 }
 
-@mixin main-btn() {
-  @include is-btn();
+@mixin main-btn {
+  @include is-btn;
+
   font-size: 18 * $px;
-  font-weight: 400;
   line-height: 22 * $px;
 }
 
-@mixin snd-btn() {
-  @include is-btn();
+@mixin snd-btn {
+  @include is-btn;
+
   font-size: 14 * $px;
-  font-weight: 400;
   line-height: 18 * $px;
 }
 
 .primaryButton {
-  @include main-btn();
+  @include main-btn;
+
   position: relative;
   display: flex;
-
   padding: (16 * $px) (22 * $px);
   color: white;
   background-color: $color-green;
@@ -55,11 +55,10 @@
 }
 
 .textButton {
-  @include main-btn();
+  @include main-btn;
 
   padding: (16 * $px) (22 * $px);
   font-size: 18 * $px;
-  font-weight: 500;
   line-height: 24 * $px;
   color: $color-green;
   background-color: white;
@@ -109,11 +108,10 @@
 }
 
 .roundedButton {
-  @include snd-btn();
+  @include snd-btn;
 
-  padding: (9 * $px) (20 * $px);
+  padding: (10 * $px) (21 * $px);
   font-size: 14 * $px;
-  font-weight: 700;
   line-height: 18 * $px;
   color: $color-green;
   background-color: $color-light-green;
@@ -145,10 +143,14 @@
   &_small {
     padding: (6 * $px) (8 * $px);
   }
+
+  svg {
+    margin-right: 15 * $px;
+  }
 }
 
 .linkButton {
-  @include snd-btn();
+  @include snd-btn;
 
   padding: (3 * $px) (18 * $px);
   color: white;

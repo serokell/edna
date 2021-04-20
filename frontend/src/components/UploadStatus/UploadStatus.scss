@@ -5,13 +5,13 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+
   //justify-content: space-between;
 
-  max-height: 73 * $px;
+  max-height: 90 * $px;
   padding: (28 * $px) (22 * $px);
-
-  background: #fafafa;
-  border: $px solid #e1e1e1;
+  background: #f6faf8;
+  border: $px solid #9ba5a1;
   border-radius: $border-radius;
 
   &__line {
@@ -22,7 +22,6 @@
   &__label {
     display: inline-flex;
     align-items: center;
-
     font-size: 14 * $px;
     font-style: normal;
     font-weight: 600;
@@ -36,7 +35,6 @@
   &__label {
     margin-top: 10 * $px;
     margin-bottom: 6 * $px;
-
     font-size: 10 * $px;
     line-height: 12 * $px;
     color: #616161;

@@ -6,16 +6,16 @@
   grid-template-rows: repeat(5, minmax(1fr, 150 * $px));
   grid-template-columns: 1fr 1fr;
   column-gap: 28 * $px;
-
   width: 100%;
   margin-right: auto;
   margin-left: auto;
 
   &__uploadTitle {
-    @include headline4();
+    @include headline4;
+
     grid-row: 1/2;
     grid-column: 1/2;
-    margin-bottom: 44 * $px;
+    margin-bottom: 32 * $px;
   }
 
   &__uploadAddButtons {
@@ -24,12 +24,12 @@
     margin-left: auto;
 
     button + button {
-      margin-left: 22 * $px;
+      margin-left: 53 * $px;
     }
   }
 
   &__uploadArea {
-    grid-row: 2/4;
+    grid-row: 2/6;
     grid-column: 1/2;
   }
 
@@ -38,23 +38,27 @@
   }
 
   &__previewTable {
-    grid-row: 3/5;
+    grid-row: 3/6;
     grid-column: 1/2;
+    margin-top: 28 * $px;
   }
 
   &__project {
     grid-row: 2/3;
     grid-column: 2/3;
+    height: 90 * $px;
   }
 
   &__methodology {
     grid-row: 3/4;
     grid-column: 2/3;
+    height: 90 * $px;
   }
 
   &__description {
     grid-row: 4/5;
     grid-column: 2/3;
+    height: 164 * $px;
   }
 
   &__descriptionTextArea {
@@ -64,7 +68,7 @@
   }
 
   &__label {
-    grid-row: 5/6;
+    grid-row: 6/7;
     grid-column: 1/2;
     margin-top: 16 * $px;
     font-size: 12 * $px;
@@ -73,14 +77,12 @@
 
   &__buttons {
     display: flex;
-
     grid-row: 5/6;
     grid-column: 2/3;
-    margin-top: 16 * $px;
     margin-right: auto;
 
     button + button {
-      margin-left: 60 * $px;
+      margin-left: 14 * $px;
     }
   }
 }

@@ -49,7 +49,7 @@ export function DialogLayout<T = any>({
 
         {formik ? (
           <Formik<T> {...formik}>
-            <Form>
+            <Form className="dialogForm">
               {children}
               {footer && <div className={dialogCls("footer")}>{footer}</div>}
             </Form>

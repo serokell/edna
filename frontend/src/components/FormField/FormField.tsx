@@ -5,7 +5,7 @@ import { ErrorMessage, Field, useField } from "formik";
 
 interface FormFieldProps<V> {
   name: string;
-  label: string;
+  label?: string;
   required?: boolean;
   className?: string;
   classNameInner?: string;
@@ -31,13 +31,15 @@ function FormField<V>({
   // eslint-disable-next-line no-empty-pattern
   const [{}, { value }, { setValue }] = useField<V>(name);
   return (
-    <div className={cn("formField", className)}>
-      <div className="formField__label">
-        {label} {required && <span className="formField__required">*</span>}
-        <span className="formField__error">
-          <ErrorMessage name={name} />
-        </span>
-      </div>
+    <div className={cn("formField", className, { disabled: true })}>
+      {label && (
+        <div className="formField__label">
+          {label} {required && <span className="formField__required">*</span>}
+          <span className="formField__error">
+            <ErrorMessage name={name} />
+          </span>
+        </div>
+      )}
       <Field {...props} name={name} className={classNameInner}>
         {children &&
           (() =>

@@ -15,7 +15,7 @@ interface ComboboxProps<T> extends FormikCompatible<Maybe<T>> {
   toOption: (arg: T) => SelectOption;
   isLoading?: boolean;
   styles?: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>>;
-
+  isDisabled?: boolean;
   [prop: string]: any;
 }
 
@@ -29,11 +29,12 @@ export default function Combobox<T>({
   onChange,
   styles,
   isLoading,
+  isDisabled = false,
   ...props
 }: ComboboxProps<T>): React.ReactElement {
-  const mergedStyles: StylesConfig<SelectOption, false, GroupTypeBase<SelectOption>> = {
+  const mergedStyles = {
     // Colorize message when error happened
-    noOptionsMessage: provided =>
+    noOptionsMessage: (provided: any) =>
       optionsLoadable.state === "hasError"
         ? {
             ...provided,
@@ -41,8 +42,25 @@ export default function Combobox<T>({
           }
         : { ...provided },
     // Show loading indicator on loading
-    loadingIndicator: provided =>
+    loadingIndicator: (provided: any) =>
       optionsLoadable.state === "loading" ? { visibility: "hidden" } : { ...provided },
+    option: (provided: any, state: any) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#bfe5d2" : state.isFocused ? "#edf8f2" : "white",
+      color: "#515151",
+      "&:active": {
+        backgroundColor: "#bfe5d2",
+      },
+    }),
+    control: (provided: any, state: any) => ({
+      ...provided,
+      borderColor: "hsl(0, 0%, 80%)",
+      // This line disable the blue border
+      boxShadow: state.isFocused ? 0 : 0,
+      "&:hover": {
+        borderColor: "hsl(0, 0%, 80%)",
+      },
+    }),
     ...styles,
   };
   return (
@@ -72,6 +90,7 @@ export default function Combobox<T>({
         (optionsLoadable.state === "hasValue" && optionsLoadable.contents.map(toOption)) ||
         undefined
       }
+      isDisabled={isDisabled}
     />
   );
 }

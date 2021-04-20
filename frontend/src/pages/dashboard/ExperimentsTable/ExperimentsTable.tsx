@@ -77,22 +77,26 @@ export function ExperimentsTableSuspendable({
             expTableSize === "minimized" ? "experimentsTable__showCheckbox" : ""
           }`}
         >
-          <input
-            type="checkbox"
-            checked={selectedExperiments.has(exp.id)}
-            onChange={e => {
-              if (e.target.checked) {
-                addSubExperiment(exp.primarySubExperiment.id);
-              } else {
-                // TODO fix it
-                if (selectedSubexperiments.size === 1) {
-                  setShowEntries("all");
-                }
+          <label className="ednaCheckbox" htmlFor={exp.id.toString()}>
+            <input
+              id={exp.id.toString()}
+              type="checkbox"
+              checked={selectedExperiments.has(exp.id)}
+              onChange={e => {
+                if (e.target.checked) {
+                  addSubExperiment(exp.primarySubExperiment.id);
+                } else {
+                  // TODO fix it
+                  if (selectedSubexperiments.size === 1) {
+                    setShowEntries("all");
+                  }
 
-                removeSubExperiments(exp.subExperiments);
-              }
-            }}
-          />
+                  removeSubExperiments(exp.subExperiments);
+                }
+              }}
+            />
+            <span className="ednaCheckbox__checkmark" />
+          </label>
         </td>
       ),
     }),
