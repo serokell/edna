@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import React from "react";
-import { useRecoilValue, useRecoilValueLoadable, useSetRecoilState } from "recoil";
+import { useRecoilValueLoadable, useSetRecoilState } from "recoil";
 import { DescriptiveSelector } from "../../components/DescriptiveSelector/DescriptiveSelector";
 import {
   compoundSelectedQuery,
@@ -128,15 +128,15 @@ export function CompoundSelector({ className }: SelectorProps): React.ReactEleme
 }
 
 export function TargetSelector({ className }: SelectorProps): React.ReactElement {
-  const compoundsLoadable = useRecoilValueLoadable(targetsQuery);
-  const targetSelected = useRecoilValue(targetSelectedQuery);
+  const targetsLoadable = useRecoilValueLoadable(targetsQuery);
+  const targetSelected = useRecoilValueLoadable(targetSelectedQuery);
   const setTargetSelected = useSetRecoilState(targetIdSelectedAtom);
   return (
     <DescriptiveSelector<TargetDto>
       className={className}
-      value={targetSelected}
+      value={targetSelected.state === "hasValue" ? targetSelected.contents : undefined}
       onChange={x => setTargetSelected(x?.id)}
-      optionsLoadable={compoundsLoadable}
+      optionsLoadable={targetsLoadable}
       toEntityProperties={t => [{ label: "Added:", value: formatAsDate(t.item.additionDate) }]}
       placeholder="Select a target"
       placeholderEmpty="No targets"

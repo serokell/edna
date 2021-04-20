@@ -23,6 +23,7 @@ interface ButtonProps {
   loading?: boolean;
   active?: boolean;
   onClick?: () => void;
+  propagate?: boolean;
 
   [prop: string]: any;
 }
@@ -39,6 +40,7 @@ export function Button({
   isSubmit,
   active,
   onClick,
+  propagate,
   ...props
 }: ButtonProps): React.ReactElement {
   const btnSize = size ?? "default";
@@ -51,7 +53,9 @@ export function Button({
         if (onClick) {
           onClick();
         }
-        e.stopPropagation();
+        if (!propagate) {
+          e.stopPropagation();
+        }
       }}
       {...props}
       disabled={disabled}

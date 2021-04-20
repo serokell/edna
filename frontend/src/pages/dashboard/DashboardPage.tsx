@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { FunctionComponent } from "react";
-import { useRecoilValue, waitForAll } from "recoil";
+import React, { FunctionComponent, useEffect } from "react";
+import { useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
+import { useLocation } from "react-router-dom";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CompoundSelector, ProjectSelector, TargetSelector } from "./EntitySelector";
 import "./DashboardPage.scss";
@@ -11,9 +12,12 @@ import { ExperimentsTableSuspendable } from "./ExperimentsTable/ExperimentsTable
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import cn from "../../utils/bemUtils";
 import {
+  compoundIdSelectedAtom,
   experimentsTableSizeAtom,
   newSubexperimentAtom,
+  projectSelectedIdAtom,
   selectedSubExperimentsColorAtom,
+  targetIdSelectedAtom,
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
 import { selectedSubExperimentsQuery } from "../../store/selectors";
@@ -27,6 +31,19 @@ export const DashboardPage: FunctionComponent = () => {
   const plotlyClassName = dashboardPage("chart", { size: negateTableSize(expTableSize) });
   const experimentsClassName = dashboardPage("experiments", { size: expTableSize });
   const newSubexperiment = useRecoilValue(newSubexperimentAtom);
+  const setProjectSelectedIdAtom = useSetRecoilState(projectSelectedIdAtom);
+  const setCompoundSelectedIdAtom = useSetRecoilState(compoundIdSelectedAtom);
+  const setTargetSelectedIdAtom = useSetRecoilState(targetIdSelectedAtom);
+
+  const loc = useLocation();
+  useEffect(() => {
+    if (isDefined(loc.state)) {
+      const st = loc.state as any;
+      setProjectSelectedIdAtom(st.projectId);
+      setCompoundSelectedIdAtom(st.compoundId);
+      setTargetSelectedIdAtom(st.targetId);
+    }
+  }, [loc.state, setProjectSelectedIdAtom, setCompoundSelectedIdAtom, setTargetSelectedIdAtom]);
 
   return (
     <PageLayout>

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { FunctionComponent, ReactElement } from "react";
+import React, { FunctionComponent, ReactElement, useState } from "react";
 import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
 import Api from "../../api/api";
@@ -40,6 +40,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const compoundsRefresher = useCompoundsRefresher();
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
   const methodologiesRefresher = useMethodologiesRefresher();
+  const [currentProject, setCurrentProject] = useState<Maybe<ProjectDto>>(undefined);
 
   return (
     <PageLayout>
@@ -51,6 +52,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           description: "",
         }}
         validate={values => {
+          setCurrentProject(values.project);
           const errors: any = {};
           if (!isDefined(values.file)) {
             errors.file = "File required";
@@ -67,8 +69,8 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           try {
             const apiType = uploadFormToApi(form);
             if (apiType && excelFile?.state === "parsed") {
-              await Api.uploadExperiments(apiType);
-              setExcelFile({ state: "added", targets: excelFile.targets });
+              const targets = await Api.uploadExperiments(apiType);
+              setExcelFile({ state: "added", targets });
               projectsRefresher();
               targetsRefresher();
               compoundsRefresher();
@@ -104,7 +106,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             {(excelFile?.state === "parsed" || excelFile?.state === "added") && (
               <UploadPreviewTable
-                viewEnabled={excelFile.state === "added"}
+                projectId={excelFile.state === "added" ? currentProject?.id : undefined}
                 className="uploadingForm__previewTable"
                 targets={excelFile.targets}
               />
