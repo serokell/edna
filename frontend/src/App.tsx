@@ -12,6 +12,7 @@ import {
   excelFileAtom,
   experimentsTableSizeAtom,
   modalDialogAtom,
+  newSubexperimentAtom,
   projectSelectedIdAtom,
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
@@ -25,6 +26,8 @@ import { AddLinkDialog } from "./components/dialogs/AddLinkDialog";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { chartColors } from "./store/types";
 import { SimpleDialog } from "./components/dialogs/SimpleDialog";
+import { RenameSubexperimentDialog } from "./components/dialogs/RenameSubexperimentDialog";
+import { DeleteSubexperimentDialog } from "./components/dialogs/DeleteSubexperimentDialog";
 
 export const App: FunctionComponent = (): ReactElement => {
   const modalDialog = useRecoilValue(modalDialogAtom);
@@ -34,6 +37,7 @@ export const App: FunctionComponent = (): ReactElement => {
   const resetCompoundIdSelected = useResetRecoilState(compoundIdSelectedAtom);
   const resetTargetIdSelected = useResetRecoilState(targetIdSelectedAtom);
   const resetExperimentsTableSizeAtom = useResetRecoilState(experimentsTableSizeAtom);
+  const resetNewSubExperiment = useResetRecoilState(newSubexperimentAtom);
   const setSelectedSubExperimentsIds = useSetRecoilState(selectedSubExperimentsIdsAtom);
   const selectedSubExperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
 
@@ -62,6 +66,7 @@ export const App: FunctionComponent = (): ReactElement => {
       resetProjectSelectedId();
       resetCompoundIdSelected();
       resetTargetIdSelected();
+      resetNewSubExperiment();
       resetExperimentsTableSizeAtom();
       // For some weird reason reset doesn't update selectedExperimentsQuery selector
       setSelectedSubExperimentsIds(new Set<number>());
@@ -89,6 +94,15 @@ export const App: FunctionComponent = (): ReactElement => {
       )}
       {modalDialog?.kind === "failed-recompute-ic50" && (
         <SimpleDialog title="Failed to recompute IC50" description={modalDialog.reason} />
+      )}
+      {modalDialog?.kind === "show-experiment-metadata" && (
+        <SimpleDialog title="Metadata" description={modalDialog.description} btnText="Close" />
+      )}
+      {modalDialog?.kind === "rename-subexperiment" && (
+        <RenameSubexperimentDialog name={modalDialog.name} subId={modalDialog.subId} />
+      )}
+      {modalDialog?.kind === "delete-subexperiment" && (
+        <DeleteSubexperimentDialog subexperiment={modalDialog.subexperiment} />
       )}
       <Switch>
         <Route path="/upload">

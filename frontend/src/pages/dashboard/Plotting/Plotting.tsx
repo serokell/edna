@@ -48,9 +48,11 @@ export default function PlotlyChart({
       title: "Concentration [uM]",
     },
     yaxis: {
+      autorange: true,
       title: "Signal",
     },
     showlegend: false,
+    height: 411,
     margin: {
       t: 0,
       r: 0,

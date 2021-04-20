@@ -4,6 +4,7 @@ import {
   CompoundDto,
   ExperimentsWithMeanDto,
   MeasurementDto,
+  ExperimentMetadataDto,
   MethodologyDto,
   ParsedExcelDto,
   ProjectDto,
@@ -87,6 +88,15 @@ interface EdnaApiInterface {
   newSubexperiment: (
     subExperimentId: number,
     sub: AnalyzeNewSubexperimentApi
+  ) => Promise<SubExperimentDto>;
+
+  fetchExperimentMetadata: (experimentId: number) => Promise<ExperimentMetadataDto>;
+  makePrimary: (subExperimentId: number) => Promise<SubExperimentDto>;
+  renameSubexperiment: (subExperimentId: number, newName: string) => Promise<SubExperimentDto>;
+  deleteSubexperiment: (subExperimentId: number) => Promise<any>;
+  changeSuspiciousFlag: (
+    subExperimentId: number,
+    isSuspicious: boolean
   ) => Promise<SubExperimentDto>;
 }
 
@@ -225,6 +235,34 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
 
     newSubexperiment: async (subExperimentId: number, sub: AnalyzeNewSubexperimentApi) => {
       return axios.post(`/subExperiment/${subExperimentId}/new`, sub).then(res => res.data);
+    },
+
+    fetchExperimentMetadata: async (experimentId: number) => {
+      return axios.get(`/experiment/${experimentId}/metadata`).then(res => res.data);
+    },
+
+    makePrimary: async (subExperimentId: number) => {
+      return axios.post(`/subExperiment/primary/${subExperimentId}`).then(res => res.data);
+    },
+
+    renameSubexperiment: async (subExperimentId: number, newName: string) => {
+      return axios
+        .put(`/subExperiment/name/${subExperimentId}`, `"${newName}"`, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(res => res.data);
+    },
+
+    deleteSubexperiment: async (subExperimentId: number) => {
+      return axios.delete(`/subExperiment/${subExperimentId}`).then(res => res.data);
+    },
+
+    changeSuspiciousFlag: async (subExperimentId: number, isSuspicious: boolean) => {
+      return axios
+        .put(`/subExperiment/suspicious/${subExperimentId}`, `${isSuspicious}`, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(res => res.data);
     },
   };
 }

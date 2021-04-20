@@ -4,10 +4,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { targetsQuery } from "../../store/selectors";
 import { TargetDto } from "../../api/types";
-import { extraFormatter, formatDateTimeDto } from "../../utils/utils";
+import { formatAsDate, formatAsDateTime } from "../../utils/utils";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Button } from "../../components/Button/Button";
 import { Table } from "../../components/Table/Table";
+import { ExtraFormatter } from "../../components/ExtraFormatter";
+import { Tooltip } from "../../components/Tooltip/Tooltip";
 
 export function TargetsSuspendable(): React.ReactElement {
   const targets = useRecoilValue(targetsQuery);
@@ -19,11 +21,15 @@ export function TargetsSuspendable(): React.ReactElement {
       },
       {
         Header: "Projects",
-        accessor: (t: TargetDto) => extraFormatter(t.item.projects),
+        accessor: (t: TargetDto) => <ExtraFormatter items={t.item.projects} />,
       },
       {
         Header: "Addition date",
-        accessor: (t: TargetDto) => formatDateTimeDto(t.item.additionDate),
+        accessor: (t: TargetDto) => (
+          <Tooltip text={formatAsDateTime(t.item.additionDate)}>
+            {formatAsDate(t.item.additionDate)}
+          </Tooltip>
+        ),
       },
     ],
     []

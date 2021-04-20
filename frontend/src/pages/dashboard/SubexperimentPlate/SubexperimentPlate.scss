@@ -2,16 +2,21 @@
 @import "src/styles/fonts";
 
 .subexperimentPlate {
+  position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 165 * $px;
+  width: 165 * $px;
   padding: (10 * $px) (16 * $px);
+  cursor: default;
   border: (2 * $px) solid $color-stroke2;
   border-radius: 3 * $px;
 
   &__head {
     @include paragraph-p2;
     margin-bottom: 7 * $px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__satisfactoryStatus {

@@ -1,16 +1,18 @@
-import { useRecoilValue, waitForAll } from "recoil";
-import React, { useState } from "react";
+import { useRecoilCallback, useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
+import React, { useEffect, useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
 import { v4 as uuidv4 } from "uuid";
 import {
+  experimentMetadata,
   experimentsTableSizeAtom,
+  modalDialogAtom,
   selectedSubExperimentsIdsAtom,
   subExperimentsMetaAtom,
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
 import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../../store/selectors";
-import { formatDateTimeDto, formatIC50 } from "../../../utils/utils";
+import { formatAsDate, formatIC50, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -23,6 +25,9 @@ import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
 import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
 import cn from "../../../utils/bemUtils";
 import "../IC50Line.scss";
+import DownloadSvg from "../../../assets/svg/download.svg";
+import { ContextItem } from "../../../components/ContextActions/ContextItems";
+import { Tooltip } from "../../../components/Tooltip/Tooltip";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -38,6 +43,29 @@ export function ExperimentsTableSuspendable({
   const removeSubExperiments = useRemoveSubExperiments();
   const selectedExperiments = useRecoilValue(selectedExperimentsQuery);
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
+  const setModalDialog = useSetRecoilState(modalDialogAtom);
+
+  useEffect(() => {
+    const subsToRemove = Array.from(selectedSubexperiments).filter(
+      subId => !isDefined(experiments.find(e => e.subExperiments.find(s => s === subId)))
+    );
+    if (subsToRemove.length !== 0) {
+      removeSubExperiments(subsToRemove);
+    }
+  }, [selectedSubexperiments, removeSubExperiments, experiments]);
+
+  useEffect(() => {
+    if (selectedExperiments.size === 0) {
+      setShowEntries("all");
+    }
+  }, [selectedExperiments.size]);
+
+  const cacheMetadata = useRecoilCallback(
+    ({ snapshot }) => (experimentId: number) => {
+      return snapshot.getPromise(experimentMetadata(experimentId));
+    },
+    [experimentMetadata]
+  );
 
   const compoundColumn = React.useMemo(
     () => ({
@@ -60,9 +88,13 @@ export function ExperimentsTableSuspendable({
       Header: "IC50",
       accessor: (e: Experiment) =>
         "Right" in e.primarySubExperiment.item.result ? (
-          formatIC50(e.primarySubExperiment.item.result.Right[2])
+          <Tooltip text={`${e.primarySubExperiment.item.result.Right[2]}`}>
+            {formatIC50(e.primarySubExperiment.item.result.Right[2])}
+          </Tooltip>
         ) : (
-          <span className="ic50__valueNone" />
+          <Tooltip text={e.primarySubExperiment.item.result.Left} type="error">
+            <span className="ic50__valueNone" />
+          </Tooltip>
         ),
     }),
     []
@@ -86,11 +118,6 @@ export function ExperimentsTableSuspendable({
                 if (e.target.checked) {
                   addSubExperiment(exp.primarySubExperiment.id);
                 } else {
-                  // TODO fix it
-                  if (selectedSubexperiments.size === 1) {
-                    setShowEntries("all");
-                  }
-
                   removeSubExperiments(exp.subExperiments);
                 }
               }}
@@ -100,13 +127,7 @@ export function ExperimentsTableSuspendable({
         </td>
       ),
     }),
-    [
-      expTableSize,
-      selectedSubexperiments,
-      selectedExperiments,
-      addSubExperiment,
-      removeSubExperiments,
-    ]
+    [expTableSize, selectedExperiments, addSubExperiment, removeSubExperiments]
   );
 
   const minimizedColumns: Column<Experiment>[] = React.useMemo(
@@ -114,6 +135,7 @@ export function ExperimentsTableSuspendable({
     [compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
   );
 
+  // TODO implement file downloading
   const expandedColumns: Column<Experiment>[] = React.useMemo(
     () => [
       compoundColumn,
@@ -125,15 +147,40 @@ export function ExperimentsTableSuspendable({
       },
       {
         Header: "Upload data",
-        accessor: (e: Experiment) => formatDateTimeDto(e.uploadDate),
+        accessor: (e: Experiment) => formatAsDate(e.uploadDate),
       },
       showCheckboxColumn,
       {
         id: "actions",
-        accessor: () => <ContextActions actions={[]} />,
+        accessor: (e: Experiment) => (
+          <ContextActions
+            actions={[
+              <ContextItem
+                key="metadata"
+                type="metadata"
+                onClick={async () => {
+                  const metadata = await cacheMetadata(e.id);
+                  setModalDialog({
+                    kind: "show-experiment-metadata",
+                    description: [metadata.description].concat(metadata.fileMetadata),
+                  });
+                }}
+              />,
+              <a
+                key="download"
+                download
+                className="contextActions__item"
+                href={`/api/experiment/${e.id}/file`}
+              >
+                <DownloadSvg />
+                Download
+              </a>,
+            ]}
+          />
+        ),
       },
     ],
-    [compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
+    [setModalDialog, cacheMetadata, compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
   );
 
   return (
@@ -233,6 +280,7 @@ function ExperimentsCollapse({
         <SubexperimentPlate
           className={experimentsTable("subexperiment", { expanded })}
           key={uuidv4()}
+          isPrimary={experiment.primarySubExperiment.id === s.id}
           subexperiment={s}
         />
       ))}

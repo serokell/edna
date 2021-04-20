@@ -1,31 +1,31 @@
 import React from "react";
 import { useSetRecoilState } from "recoil";
-import { MethodologyDto } from "../../api/types";
+import { SubExperimentDto } from "../../api/types";
 import { modalDialogAtom } from "../../store/atoms";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
 import { Button } from "../Button/Button";
 import Api from "../../api/api";
-import { useMethodologiesRefresher } from "../../store/updaters";
+import { useFilteredExperimentsRefresher } from "../../store/updaters";
 
-interface DeleteMethodologyDialogProps {
-  methodology: MethodologyDto;
+interface DeleteSubexperimentDialogProps {
+  subexperiment: SubExperimentDto;
 }
 
-export function DeleteMethodologyDialog({
-  methodology,
-}: DeleteMethodologyDialogProps): React.ReactElement {
+export function DeleteSubexperimentDialog({
+  subexperiment,
+}: DeleteSubexperimentDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const refreshMethodologies = useMethodologiesRefresher();
+  const refreshFiltered = useFilteredExperimentsRefresher();
 
   return (
     <DialogLayout
       dialogClass="secondaryDialogWindow"
       size="small"
-      title="Delete methodology"
+      title="Delete subexperiment"
       onClose={() => setModalDialog(undefined)}
       description={
         <>
-          Are you sure you want to delete the <b>{methodology.item.name}</b> methodology? This
+          Are you sure you want to delete the <b>{subexperiment.item.name}</b> subexperiment? This
           action cannot be undone
         </>
       }
@@ -50,11 +50,11 @@ export function DeleteMethodologyDialog({
         initialValues: {},
         onSubmit: async () => {
           try {
-            await Api.deleteMethodology(methodology.id);
+            await Api.deleteSubexperiment(subexperiment.id);
+            refreshFiltered();
             setModalDialog(undefined);
-            refreshMethodologies();
           } catch (ex) {
-            console.log("Error on methodology delete", ex.message);
+            console.log("Error on subexperiment delete", ex.message);
           }
         },
       }}

@@ -101,3 +101,8 @@ export type ExperimentsWithMeanDto = {
   experiments: ExperimentDto[];
   meanIC50?: number;
 };
+
+export type ExperimentMetadataDto = {
+  description: string;
+  fileMetadata: string[];
+};

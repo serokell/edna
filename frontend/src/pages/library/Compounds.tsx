@@ -8,7 +8,7 @@ import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Table } from "../../components/Table/Table";
-import { EditContextItem } from "../../components/ContextActions/ContextItems";
+import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 export function CompoundsSuspendable(): React.ReactElement {
   const compounds = useRecoilValue(compoundsQuery);
@@ -61,8 +61,9 @@ export function CompoundsSuspendable(): React.ReactElement {
         accessor: (c: CompoundDto) => (
           <ContextActions
             actions={[
-              <EditContextItem
+              <ContextItem
                 key="edit"
+                type="edit"
                 onClick={() => {
                   setModalDialog({
                     kind: "add-edit-link",
