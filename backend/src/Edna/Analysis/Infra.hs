@@ -21,7 +21,7 @@ import Edna.Setup (Edna)
 -- They indicate a bug in Python code or incorrect environment (e. g. mismatched
 -- versions of Haskell and Python code).
 data PythonError
-  = PyExitFailure ExitCode
+  = PyExitFailure ExitCode String
   -- ^ Python process exited with non-zero code.
   | PyInvalidFormat Text
   -- ^ Python process produced output that we can't parse.
@@ -29,7 +29,9 @@ data PythonError
 
 instance Buildable PythonError where
   build = \case
-    PyExitFailure ec -> "python call exited with " <> build (show @String ec)
+    PyExitFailure ec err ->
+      "python call exited with " <> build (show @String ec) <>
+      ", stderr:\n" <> build err
     PyInvalidFormat err -> "failed to decode python output: " <> build err
 
 instance Exception PythonError where
@@ -56,7 +58,12 @@ callPythonAnalysis pyPath request = do
     (proc "python3" [pyPath, requestString])
     { cwd = Just analysisDir, std_out = CreatePipe, std_err = CreatePipe}
     ""
-  unless (null err) $ logDebug $ "Unexpected python errors: " <> toText err
+  let isSuccess = exitCode == ExitSuccess
+  -- Logging with debug severity in case of success.
+  -- Not logging in case of failure because the whole stderr will be provided
+  -- in the thrown exception.
+  when (not (null err) && isSuccess) $
+    logDebug $ "Unexpected python stderr: " <> toText err
+  unless isSuccess $ throwM $ PyExitFailure exitCode err
   logDebug $ toText $ "Python data response: " <> out
-  unless (exitCode == ExitSuccess) $ throwM $ PyExitFailure exitCode
   either (throwM . PyInvalidFormat . toText) pure $ eitherDecode (encodeUtf8 out)
