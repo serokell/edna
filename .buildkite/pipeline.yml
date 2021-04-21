@@ -40,11 +40,11 @@ steps:
   - wait
   - label: Deploy staging
     commands:
-      - nix-shell --run 'deploy .#castor'
+      - nix-shell --run 'deploy .#staging'
     branches: "master"
   - label: Deploy demo
     commands:
-      - nix-shell --run 'deploy .#jishui'
+      - nix-shell --run 'deploy .#demo'
     branches: "demo"
   - label: Push backend image to registry
     commands:

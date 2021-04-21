@@ -40,7 +40,7 @@
             path = docker-frontend; }
           ];
       in {
-        hostname = "${hostName}.gemini.serokell.team";
+        hostname = "${hostName}.edna.serokell.team";
         sshOpts = [ "-p" "17788" ];
         profiles.edna-docker = {
           sshUser = "deploy";
@@ -55,8 +55,8 @@
     # Do not roll back profile closure deployment
     deploy.magicRollback = false;
 
-    deploy.nodes.castor = mkEdnaNode "castor";
-    deploy.nodes.jishui = mkEdnaNode "jishui";
+    deploy.nodes.staging = mkEdnaNode "staging";
+    deploy.nodes.demo = mkEdnaNode "demo";
 
     checks = mapAttrs (_: lib: lib.deployChecks self.deploy) deploy-rs.lib;
   })
