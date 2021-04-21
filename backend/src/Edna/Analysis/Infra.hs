@@ -10,9 +10,8 @@ import Universum
 import Data.Aeson (FromJSON(..), ToJSON(..), eitherDecode, encode)
 import Fmt (Buildable(..), pretty)
 import System.Environment (lookupEnv)
-import System.Exit (ExitCode(..))
 import System.FilePath ((</>))
-import System.Process (StdStream(..), cwd, proc, readCreateProcessWithExitCode, std_err, std_out)
+import System.Process.Typed (proc, readProcess_, setWorkingDir)
 
 import Edna.Logging (logDebug)
 import Edna.Setup (Edna)
@@ -21,17 +20,12 @@ import Edna.Setup (Edna)
 -- They indicate a bug in Python code or incorrect environment (e. g. mismatched
 -- versions of Haskell and Python code).
 data PythonError
-  = PyExitFailure ExitCode String
-  -- ^ Python process exited with non-zero code.
-  | PyInvalidFormat Text
+  = PyInvalidFormat Text
   -- ^ Python process produced output that we can't parse.
   deriving stock (Show, Eq)
 
 instance Buildable PythonError where
   build = \case
-    PyExitFailure ec err ->
-      "python call exited with " <> build (show @String ec) <>
-      ", stderr:\n" <> build err
     PyInvalidFormat err -> "failed to decode python output: " <> build err
 
 instance Exception PythonError where
@@ -54,16 +48,12 @@ callPythonAnalysis pyPath request = do
   logDebug $ toText $ "Python data request: " <> requestString
   analysisDir <- liftIO $
     fromMaybe (".." </> "analysis") <$> lookupEnv "EDNA_ANALYSIS_DIR"
-  (exitCode, out, err) <- liftIO $ readCreateProcessWithExitCode
-    (proc "python3" [pyPath, requestString])
-    { cwd = Just analysisDir, std_out = CreatePipe, std_err = CreatePipe}
-    ""
-  let isSuccess = exitCode == ExitSuccess
-  -- Logging with debug severity in case of success.
-  -- Not logging in case of failure because the whole stderr will be provided
-  -- in the thrown exception.
-  when (not (null err) && isSuccess) $
-    logDebug $ "Unexpected python stderr: " <> toText err
-  unless isSuccess $ throwM $ PyExitFailure exitCode err
-  logDebug $ toText $ "Python data response: " <> out
-  either (throwM . PyInvalidFormat . toText) pure $ eitherDecode (encodeUtf8 out)
+  let processConfig =
+        setWorkingDir analysisDir $ proc "python3" [pyPath, requestString]
+  -- @readProcess_@ automatically captures stdout and stderr.
+  -- It also checks the exit code and throws an exception if it's not 0.
+  (out, err) <- readProcess_ processConfig
+  unless (null err) $
+    logDebug $ "Unexpected python stderr: " <> decodeUtf8 err
+  logDebug $ "Python data response: " <> decodeUtf8 out
+  either (throwM . PyInvalidFormat . toText) pure $ eitherDecode out
