@@ -1,3 +1,4 @@
+import io
 import json
 import sys
 from typing import Any
@@ -12,8 +13,8 @@ def stderr_print(*args, **kwargs):  # type: ignore
     print(*args, file=sys.stderr, **kwargs)
 
 
-def main(argv: Any) -> None:
-    data = json.loads(argv[0])
+def main(inp: io.IOBase) -> None:
+    data = json.load(inp)
 
     response = []
 
@@ -58,4 +59,4 @@ def main(argv: Any) -> None:
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main(sys.stdin)

@@ -11,7 +11,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..), eitherDecode, encode)
 import Fmt (Buildable(..), pretty)
 import System.Environment (lookupEnv)
 import System.FilePath ((</>))
-import System.Process.Typed (proc, readProcess_, setWorkingDir)
+import System.Process.Typed (byteStringInput, proc, readProcess_, setStdin, setWorkingDir)
 
 import Edna.Logging (logDebug)
 import Edna.Setup (Edna)
@@ -44,12 +44,14 @@ instance Exception PythonError where
 callPythonAnalysis ::
   (ToJSON inp, FromJSON out) => FilePath -> inp -> Edna out
 callPythonAnalysis pyPath request = do
-  let requestString = decodeUtf8 $ encode request
-  logDebug $ toText $ "Python data request: " <> requestString
+  let requestJSON = encode request
+  logDebug $ "Python data request: " <> decodeUtf8 requestJSON
   analysisDir <- liftIO $
     fromMaybe (".." </> "analysis") <$> lookupEnv "EDNA_ANALYSIS_DIR"
   let processConfig =
-        setWorkingDir analysisDir $ proc "python3" [pyPath, requestString]
+        setStdin (byteStringInput requestJSON) $
+        setWorkingDir analysisDir $
+        proc "python3" [pyPath]
   -- @readProcess_@ automatically captures stdout and stderr.
   -- It also checks the exit code and throws an exception if it's not 0.
   (out, err) <- readProcess_ processConfig

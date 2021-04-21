@@ -26,6 +26,8 @@ JSON containing list of experiments in the form:
 ...]
 ```
 
+It's expected to be passed to the standard input (`stdin`).
+
 ### Output format
 
 JSON containing list of calculated values per each experiment:
