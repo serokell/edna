@@ -4,6 +4,8 @@
 
 module Edna.ExperimentReader.Types
   ( Measurement (..)
+  , measurementToPair
+  , measurementToPairMaybe
   , TargetMeasurements (..)
   , FileMetadata (..)
   , FileContents (..)
@@ -38,6 +40,16 @@ data Measurement = Measurement
   , mIsOutlier :: Bool
   -- ^ Whether this measurement was explicitly marked as outlier.
   } deriving stock (Show, Eq)
+
+-- | Convert 'Measurement' to @(concentration, signal)@ pair ignoring
+-- the 'mIsOutlier' field.
+measurementToPair :: Measurement -> (Double, Double)
+measurementToPair Measurement {..} = (mConcentration, mSignal)
+
+-- | Convert 'Measurement' to @(concentration, signal)@ pair if it's not
+-- an outlier.
+measurementToPairMaybe :: Measurement -> Maybe (Double, Double)
+measurementToPairMaybe m = measurementToPair m <$ guard (not $ mIsOutlier m)
 
 -- | All measurements for one target.
 -- Keys are compound names, corresponding values are measurements for
