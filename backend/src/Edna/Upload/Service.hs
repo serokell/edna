@@ -26,7 +26,7 @@ import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema
   (MeasurementRec, MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.ExperimentReader.Parser (parseExperimentXls)
-import Edna.ExperimentReader.Types as EReader
+import Edna.ExperimentReader.Types
 import Edna.Library.DB.Query (getMethodologyById, getProjectById)
 import Edna.Library.DB.Schema as LDB
 import Edna.Logging (logDebug, logMessage)
@@ -150,9 +150,7 @@ insertExperiments expFileId experiments = do
     Params4PLReq
     { plreqExperiment = eId
     , plreqFindOutliers = True
-    , plreqData =
-        map (\m -> (EReader.mConcentration m, EReader.mSignal m)) $
-          filter (not . EReader.mIsOutlier) ms
+    , plreqData = mapMaybe measurementToPairMaybe ms
     }
   -- Sorted by experiment IDs
   subExps <- UQ.insertSubExperiments analysisResults
@@ -207,7 +205,7 @@ insertMeasurements subExps measurements eitherResp = do
     autoRemovedIds :: [MeasurementRec] -> NonEmpty Word -> [MeasurementId]
     autoRemovedIds measurementRecs (HS.fromList . toList -> outliers) =
       let sortedMeasurements = sortWith
-            (\(_, m) -> (EReader.mConcentration m, EReader.mSignal m)) $
+            (\(_, m) -> measurementToPair m) $
             zip [0..] measurements
           sortedRecs = sortWith
             (\MeasurementRec {..} -> (mConcentration, mSignal)) measurementRecs

@@ -19,7 +19,7 @@ import qualified Edna.Library.Service as Library
 import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
 import Edna.Dashboard.Web.Types
   (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), SubExperimentResp(..))
-import Edna.ExperimentReader.Types (FileContents(..), Measurement(..))
+import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), measurementToPair)
 import Edna.Library.Web.Types (CompoundResp(crName), ProjectReq(..), TargetResp(..))
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
@@ -82,7 +82,7 @@ spec = withContext $ startWithInitial $ do
       secondaryMeasurements <- wItem <<$>> Dashboard.getMeasurements secondarySubExpId
       secondarySubExperiment <- wItem <$> Dashboard.getSubExperiment secondarySubExpId
       [(_, Right Params4PLResp {..})] <- analyse4PL [Params4PLReq (SqlId 1) True $
-        map (\m -> (mConcentration m, mSignal m)) autoOutlierMeasurements]
+        map measurementToPair autoOutlierMeasurements]
       let Just (autoOutliers, secondaryParams4PL) = plrspNewSubExp
       let onlyDisabled = filter (not . mrIsEnabled)
       liftIO $ do
