@@ -19,6 +19,7 @@ import Servant
   (Application, Handler, NoContent(..), Server, hoistServer, serve, throwError, (:<|>)(..))
 import Servant.Util.Combinators.Logging (ServantLogConfig(..), serverWithLogging)
 
+import Edna.Analysis.FourPL (check4PLConfiguration)
 import Edna.Config.Definition (LoggingConfig(..), acListenAddr, acServeDocs, ecApi, ecLogging)
 import Edna.Config.Utils (fromConfig)
 import Edna.DB.Initialisation (schemaInit)
@@ -83,6 +84,7 @@ ednaToHandler ctx action =
 -- | Runs the web server which serves Edna API.
 edna :: Edna ()
 edna = do
+  check4PLConfiguration
   schemaInit
   listenAddr <- fromConfig $ ecApi . acListenAddr
   withDocs <- fromConfig $ ecApi . acServeDocs
