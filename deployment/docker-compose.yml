@@ -40,6 +40,7 @@ services:
 
   frontend:
     image: "ghcr.io/serokell/edna-frontend:latest"
+    restart: always
     depends_on:
       - backend
     ports:
