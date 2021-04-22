@@ -1,6 +1,8 @@
 { dockerTools
 , backend
 , frontend
+, locale
+, glibcLocales
 , linkFarm
 , runCommand
 , writeTextDir }:
@@ -24,10 +26,19 @@ in
     contents = [
       backend
       init-sql
+
+      # Unicode support
+      locale
+      glibcLocales
     ];
 
     config = {
       Entrypoint = "/bin/edna-server";
+      Env = [
+        "LANG=en_US.UTF-8"
+        "LC_ALL=en_US.UTF-8"
+        "LOCALE_ARCHIVE=/lib/locale/locale-archive"
+      ];
     };
   };
 
