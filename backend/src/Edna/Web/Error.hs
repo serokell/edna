@@ -10,7 +10,7 @@ to Servant errors.
 
 module Edna.Web.Error
   ( ToServerError (..)
-  , defaultToServerError
+  , prettyErr
   ) where
 
 import Universum
@@ -25,11 +25,10 @@ class Exception e => ToServerError e where
   toServerError :: e -> ServerError
 
   default toServerError :: Buildable e => e -> ServerError
-  toServerError = defaultToServerError
+  toServerError = prettyErr err400
 
--- | Default implementation of 'toServerError' that returns HTTP code 400
--- (bad request).
-defaultToServerError :: Buildable e => e -> ServerError
-defaultToServerError err = err400 { errBody = prettyErr }
-  where
-    prettyErr = encodeUtf8 @Text $ pretty err
+-- | Helper for creating toServerError' implementations
+prettyErr :: Buildable e => ServerError -> e -> ServerError
+prettyErr statusCode err = statusCode
+  { errBody = encodeUtf8 @Text $ pretty err
+  }
