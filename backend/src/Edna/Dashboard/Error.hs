@@ -11,10 +11,10 @@ module Edna.Dashboard.Error
 import Universum
 
 import Fmt (Buildable(..), pretty)
-import Servant (ServerError(..), err400, err404)
+import Servant (err400, err404)
 
 import Edna.Util (ExperimentId, SubExperimentId)
-import Edna.Web.Error (ToServerError(..))
+import Edna.Web.Error (ToServerError(..), prettyErr)
 
 data DashboardError
   = DESubExperimentNotFound SubExperimentId
@@ -35,8 +35,6 @@ instance Exception DashboardError where
 
 instance ToServerError DashboardError where
   toServerError err = case err of
-    DESubExperimentNotFound _ -> err404 { errBody = prettyErr }
-    DEExperimentNotFound _ -> err404 { errBody = prettyErr }
-    DECantDeletePrimary _ -> err400 { errBody = prettyErr }
-    where
-      prettyErr = encodeUtf8 @Text $ pretty err
+    DESubExperimentNotFound _ -> prettyErr err404 err
+    DEExperimentNotFound _    -> prettyErr err404 err
+    DECantDeletePrimary _     -> prettyErr err400 err

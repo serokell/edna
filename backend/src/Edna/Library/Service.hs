@@ -134,6 +134,9 @@ updateMethodology
   -> MethodologyReq
   -> Edna (WithId 'MethodologyId MethodologyResp)
 updateMethodology mId@(SqlId methodologyId) tm@MethodologyReq{..} = transact $ do
+  -- we get methodology first here to ensure that it exists, so we can send
+  -- proper http code
+  _ <- getMethodology mId
   existingMethodology <- Q.getMethodologyByName mrqName
   case existingMethodology of
     Just tmRec -> ensureOrThrow (LEMethodologyNameExists mrqName) $
@@ -179,6 +182,9 @@ updateProject
   -> ProjectReq
   -> Edna (WithId 'ProjectId ProjectResp)
 updateProject pId@(SqlId projectId) p@ProjectReq{..} = transact $ do
+  -- we get project first here to ensure that it exists, so we can send
+  -- proper http code
+  _ <- getProject pId
   existingProject <- Q.getProjectByName prqName
   case existingProject of
     Just pRec -> ensureOrThrow (LEProjectNameExists prqName) $

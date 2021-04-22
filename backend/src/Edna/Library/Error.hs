@@ -11,9 +11,10 @@ module Edna.Library.Error
 import Universum
 
 import Fmt (Buildable(..), pretty, (+|), (|+))
+import Servant (err400, err404)
 
 import Edna.Util (CompoundId, MethodologyId, ProjectId, TargetId)
-import Edna.Web.Error (ToServerError(..))
+import Edna.Web.Error (ToServerError(..), prettyErr)
 
 data LibraryError
   = LETargetNotFound TargetId
@@ -24,7 +25,6 @@ data LibraryError
   | LEProjectNameExists Text
   | LEInvalidURI Text
   deriving stock (Show, Eq)
-  deriving anyclass (ToServerError)
 
 instance Buildable LibraryError where
   build = \case
@@ -32,9 +32,20 @@ instance Buildable LibraryError where
     LECompoundNotFound i -> "Compound not found: " <> build i
     LEMethodologyNotFound i -> "Methodology not found: " <> build i
     LEProjectNotFound i -> "Project not found: " <> build i
-    LEMethodologyNameExists t -> "Methodology with name: " +| t |+ " already exists"
-    LEProjectNameExists t -> "Project with name: " +| t |+ " already exists"
-    LEInvalidURI u -> "Invlalid URI: " <> build u
+    LEMethodologyNameExists t -> "Methodology with name: `" +| t |+ "` already exists"
+    LEProjectNameExists t -> "Project with name: `" +| t |+ "` already exists"
+    LEInvalidURI u -> "Invalid URI: " <> build u
 
 instance Exception LibraryError where
   displayException = pretty
+
+instance ToServerError LibraryError where
+  toServerError err = case err of
+    LETargetNotFound _        -> prettyErr err404 err
+    LECompoundNotFound _      -> prettyErr err404 err
+    LEMethodologyNotFound _   -> prettyErr err404 err
+    LEProjectNotFound _       -> prettyErr err404 err
+
+    LEMethodologyNameExists _ -> prettyErr err400 err
+    LEProjectNameExists _     -> prettyErr err400 err
+    LEInvalidURI _            -> prettyErr err400 err
