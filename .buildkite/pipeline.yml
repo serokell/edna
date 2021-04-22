@@ -1,7 +1,13 @@
 steps:
+# Checks for the whole repo
   - label: check trailing whitespace
     commands:
       - .buildkite/check-trailing-whitespace.sh
+  - label: reuse lint
+    commands:
+      - nix-shell --run 'reuse lint'
+
+# Checks for the backend
   - label: validate cabal files
     commands:
       - nix-shell --run 'cd backend && scripts/validate-cabal-files.sh'
@@ -21,6 +27,8 @@ steps:
   - label: backend hlint
     commands:
       - nix-shell --run 'hlint backend -j --hint backend/.hlint.yaml'
+
+# Checks for the frontend
   - label: frontend build
     commands:
       - nix-build -A packages.x86_64-linux.frontend
@@ -37,7 +45,10 @@ steps:
   - label: frontend stylelint
     commands:
       - nix-build -A checks.x86_64-linux.frontend-stylelint
+
+# Deploy and upload
   - wait
+
   - label: Deploy staging
     commands:
       - nix-shell --run 'deploy .#staging'
