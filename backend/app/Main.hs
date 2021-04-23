@@ -14,12 +14,13 @@ import Options.Applicative (execParser, fullDesc, helper, info, progDesc)
 
 import Edna.Config.Definition (defaultEdnaConfig)
 import Edna.Config.Utils (configPathParser)
+import Edna.Logging (logUnconditionally)
 import Edna.Setup (runEdna)
 import Edna.Web.Server (edna)
 
 main :: IO ()
 main = withUtf8 $ do
-  hPutStrLn @Text stderr "Edna server is started"
+  logUnconditionally "Edna server is started"
   configPath <- execParser $
     info (helper <*> configPathParser) $
     fullDesc <> progDesc "Edna API server."

@@ -32,6 +32,7 @@ module Edna.Util
   , buildFromJSON
   , oneOrError
   , uncurry3
+  , logUnconditionally
   ) where
 
 import Universum
@@ -195,6 +196,20 @@ buildFromJSON x = "" +| decodeUtf8 @Text (encode x) |+ ""
 
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c
+
+-- | Write a logging message unconditionally.
+-- This function has 2 purposes:
+--
+-- 1. Ensures that logging goes to @stderr@.
+-- 2. Prints the message and newline character together, as opposed to
+-- @hPutStrLn@ which prints them as 2 different calls. When 2 messages are printed
+-- concurrently using @hPutStrLn@, they may be printed on the same line followed
+-- by 2 newline characters.
+--
+-- This function is not in 'Edna.Logging' to make it available for more modules
+-- (avoiding cyclic dependencies).
+logUnconditionally :: MonadIO m => Text -> m ()
+logUnconditionally msg = hPutStr stderr (msg <> "\n")
 
 ----------------
 -- SqlId

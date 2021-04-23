@@ -30,6 +30,7 @@ import Edna.DB.Initialisation (schemaInit)
 import Edna.Dashboard.Error (DashboardError)
 import Edna.ExperimentReader.Error (ExperimentParsingError)
 import Edna.Library.Error (LibraryError)
+import Edna.Logging (logUnconditionally)
 import Edna.Orphans ()
 import Edna.Setup (Edna, EdnaContext)
 import Edna.Upload.Error (UploadApiError, UploadError)
@@ -98,7 +99,7 @@ edna = do
   server <- ednaServer <$> ask
   let
     servantLogConfig :: ServantLogConfig
-    servantLogConfig = ServantLogConfig (hPutStrLn stderr)
+    servantLogConfig = ServantLogConfig logUnconditionally
 
     serverWithDocs :: Server EdnaAPIWithDocs
     serverWithDocs = withSwaggerUI ednaAPI ednaApiSwagger server
