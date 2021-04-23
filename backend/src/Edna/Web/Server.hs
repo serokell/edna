@@ -18,7 +18,7 @@ import Network.Wai (Middleware)
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Middleware.RequestLogger
   (Destination(..), IPAddrSource(..), OutputFormat(..), RequestLoggerSettings(..), mkRequestLogger)
-import RIO (runRIO)
+import RIO (BufferMode(LineBuffering), hSetBuffering, runRIO)
 import Servant
   (Application, Handler, NoContent(..), Server, hoistServer, serve, throwError, (:<|>)(..))
 import Servant.Util.Combinators.Logging (ServantLogConfig(..), serverWithLogging)
@@ -88,6 +88,8 @@ ednaToHandler ctx action =
 -- | Runs the web server which serves Edna API.
 edna :: Edna ()
 edna = do
+  -- We print logs to stderr and LineBuffering is most appropriate for logging.
+  hSetBuffering stderr LineBuffering
   check4PLConfiguration
   schemaInit
   listenAddr <- fromConfig $ ecApi . acListenAddr
