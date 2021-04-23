@@ -16,7 +16,8 @@ bug-reports:    https://github.com/serokell/edna/issues
 author:         Serokell <hi@serokell.io>
 maintainer:     Serokell <hi@serokell.io>
 copyright:      2021 Serokell <https://serokell.io>
--- TODO: add license
+license:        AGPL-3.0-or-later
+license-file:   LICENSE
 build-type:     Simple
 extra-source-files: sql/init.sql, ./resources/testSheets/**/*
 
