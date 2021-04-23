@@ -19,7 +19,7 @@ copyright:      2021 Serokell <https://serokell.io>
 license:        AGPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
-extra-source-files: sql/init.sql, ./resources/testSheets/**/*
+extra-source-files: sql/init.sql, ./resources/testSheets/**/*.xlsx
 
 source-repository head
   type: git
@@ -75,7 +75,6 @@ library
       Edna.Util
       Edna.Util.URI
   other-modules:
-      Paths_edna
       Edna.Analysis.Infra
       Edna.Web.Error
   hs-source-dirs:
@@ -120,8 +119,6 @@ library
 executable edna-server
   import: common-options
   main-is: Main.hs
-  other-modules:
-      Paths_edna
   hs-source-dirs:
       app
   build-depends:
@@ -151,7 +148,6 @@ test-suite edna-test
       Test.UploadSpec
       Test.Util
       Test.Util.URISpec
-      Paths_edna
   hs-source-dirs:
       test
   ghc-options:
