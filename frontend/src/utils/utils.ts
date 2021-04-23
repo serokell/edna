@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // For testing and mocking purposes
 import { RefObject, useEffect } from "react";
 import { DateTimeDto } from "../api/types";

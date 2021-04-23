@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 -- | Random data generators for Edna's types.
 --
 -- We are using @hedgehog@ by default because it's superior to @QuickCheck@.

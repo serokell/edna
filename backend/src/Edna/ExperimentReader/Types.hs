@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- https://github.com/serokell/universum/issues/208
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}

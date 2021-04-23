@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2020 Tocqueville Group
+#
+# SPDX-License-Identifier: MIT
+
 # This script generates cabal.project, cabal.project.freeze files.
 
 set -e

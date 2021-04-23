@@ -1,5 +1,5 @@
 <!--
-   - SPDX-FileCopyrightText: 2018-2021 Serokell <https://serokell.io>
+   - SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
    -
    - SPDX-License-Identifier: CC0-1.0
    -->
@@ -42,9 +42,9 @@ but, basically, it all boils down to the following:
     file – it is not as hard as it might sound):
 
     ```haskell
-    -- SPDX-FileCopyrightText: 2020 Serokell <https://serokell.io/>
+    -- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io/>
     --
-    -- SPDX-License-Identifier: LicenseRef-ReplaceMe
+    -- SPDX-License-Identifier: AGPL-3.0-or-later
     ```
 
     (This is an example for Haskell; adapt it as needed for other languages.)

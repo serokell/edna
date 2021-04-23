@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # Setup temporary DB for testing.
 # This is a helper script for the Makefile we are using.
 # It prints PostgreSQL connection string that we then put into a certain env var.

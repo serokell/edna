@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # snapshot used for the ./scripts/generate-cabal-files.sh script
 name: stack2cabal-snapshot
 

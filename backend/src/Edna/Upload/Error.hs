@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 -- | Errors that can happen during file upload.
 
 module Edna.Upload.Error

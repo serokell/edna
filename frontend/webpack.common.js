@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
 // eslint-disable-next-line @typescript-eslint/no-var-requires

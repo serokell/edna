@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 { haskell-nix, ephemeralpg, lib, makeWrapper, analysis-env, EDNA_ANALYSIS_DIR }:
 let
 

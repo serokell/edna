@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Basic state should be here
 import { atom, atomFamily } from "recoil";
 import { NewSubExperiment, ExperimentsTableSize, FileUploadState, ModalDialogState } from "./types";

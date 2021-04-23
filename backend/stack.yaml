@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # Note that CI/CD pipelines use Nix to build backend.
 # They use haskell.nix which depends on hackage.nix and stackage.nix which
 # contain snapshots of Hackage and Stackage respectively.

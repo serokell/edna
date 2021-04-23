@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React from "react";
 import { useRecoilValue } from "recoil";
 import SuccCheckmark from "../../assets/svg/success-checkmark.svg";

@@ -1,4 +1,8 @@
 cabal-version:  2.4
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 name:           edna
 -- When you think it's ready to be released, set the version to something like 0.1.0.
 version:        0

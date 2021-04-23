@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { FunctionComponent, ReactElement, useEffect } from "react";
 import { Route, Switch, useLocation } from "react-router-dom";
 import { Redirect } from "react-router";

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Modifying functions which keeps remote state and atoms in sync
 // All updaters return () => (args) => Promise to make possible to call
 // an updater in a React component, to receive necessary hooks.
