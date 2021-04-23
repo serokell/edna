@@ -20,7 +20,8 @@ export function CreateProjectButton({ className }: CreateProjectButtonProps): Re
       className={className}
       onClick={() => setModalDialog({ kind: "create-edit-project" })}
     >
-      <PlusSvg /> project
+      <PlusSvg />
+      project
     </Button>
   );
 }
