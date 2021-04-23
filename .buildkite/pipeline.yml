@@ -59,7 +59,7 @@ steps:
   - label: Deploy staging
     commands:
       - nix-shell --run 'deploy .#staging'
-    branches: "master"
+    branches: "gromak/edna91-investigate"
   - label: Deploy demo
     commands:
       - nix-shell --run 'deploy .#demo'
