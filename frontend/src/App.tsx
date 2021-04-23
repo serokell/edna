@@ -112,6 +112,7 @@ export const App: FunctionComponent = (): ReactElement => {
         <Route path="/upload">
           <UploadPage />
         </Route>
+
         <Route path="/library">
           <LibraryPage />
         </Route>
