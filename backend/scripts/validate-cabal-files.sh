@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Tocqueville Group
+#
+# SPDX-License-Identifier: MIT
+
 # This script checks whether cabal.project and cabal.project.freeze files are up-to-date.
 # It expects `stack2cabal` executable to be available in `$PATH`.
 

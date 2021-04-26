@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Edna deployment
 
 The [docker-compose configuration file](./docker-compose.yml) declares how to deploy Edna using images from GitHub Container Registry:

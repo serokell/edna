@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 {-|
 Module which contains the exception classes used in Edna
 server handlers and defines the way they are transformed

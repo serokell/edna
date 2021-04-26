@@ -6,3 +6,19 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Files: .github/*
 Copyright: 2019 Serokell <https://serokell.io>
 License: CC0-1.0
+
+Files: analysis/tests/sample_data/*
+Copyright: 2021 Serokell <https://serokell.io>
+License: AGPL-3.0-or-later
+
+Files: backend/resources/testSheets/* backend/resources/testSheets/exampleSheets/*
+Copyright: 2021 Serokell <https://serokell.io>
+License: AGPL-3.0-or-later
+
+Files: frontend/src/assets/fonts/PTRootUI/*
+Copyright: Paratype
+License: OFL-1.1-RFN
+
+Files: frontend/src/assets/svg/*.svg
+Copyright: 2021 Serokell <https://serokell.io>
+License: AGPL-3.0-or-later

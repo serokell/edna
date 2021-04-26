@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import * as PlotlyBasic from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import React, { useState } from "react";

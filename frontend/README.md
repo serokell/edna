@@ -1,16 +1,12 @@
 <!--
-   - SPDX-FileCopyrightText: 2019-2021 Serokell <https://serokell.io>
+   - SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
    -
-   - SPDX-License-Identifier: LicenseRef-ReplaceMe
+   - SPDX-License-Identifier: AGPL-3.0-or-later
    -->
 
 # Edna Web App
 
-<!--
-TODO: CI and license badges!
-
-[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-   -->
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 ## Build
 

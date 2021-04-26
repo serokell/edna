@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 {
   inputs = {
     nixpkgs.url = "github:serokell/nixpkgs";
@@ -128,7 +132,7 @@
         buildInputs = with pkgs.haskellPackages; [
           cabal-install hpack hlint self.packages.${system}.stack2cabal
           deploy-rs.defaultPackage.${system}
-          pkgs.skopeo
+          pkgs.skopeo pkgs.reuse
           self.packages.${system}.analysis-env
         ];
       };

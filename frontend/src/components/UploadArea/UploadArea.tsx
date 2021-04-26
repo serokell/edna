@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { FunctionComponent, ReactElement, useRef } from "react";
 import "./UploadArea.scss";
 import { useSetRecoilState } from "recoil";

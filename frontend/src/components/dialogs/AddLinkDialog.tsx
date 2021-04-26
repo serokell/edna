@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { modalDialogAtom } from "../../store/atoms";

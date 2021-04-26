@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 -- | Types that exist specifically for Dashboard API.
 
 module Edna.Dashboard.Web.Types

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 -- Ongoing project in a company.
 -- Experiment data is grouped into projects, i. e. each experiment fully
 -- belongs to a single project.

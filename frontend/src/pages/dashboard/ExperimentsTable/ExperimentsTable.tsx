@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useRecoilCallback, useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
 import React, { useEffect, useState } from "react";
 import { Column } from "react-table";
