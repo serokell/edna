@@ -26,12 +26,12 @@ export type ParsedExcelDto = {
   compounds: ParsedCompoundDto[];
 };
 
-export type ResultDto =
+export type ResultDto<T = number[]> =
   | {
       Left: string;
     }
   | {
-      Right: number[];
+      Right: T;
     };
 
 export type SubExperimentDto = Dto<{
@@ -99,6 +99,7 @@ export type ExperimentDto = Dto<{
   uploadDate: DateTimeDto;
   subExperiments: number[];
   primarySubExperiment: number;
+  primaryIC50: ResultDto<number>;
 }>;
 
 export type ExperimentsWithMeanDto = {

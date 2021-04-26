@@ -150,7 +150,8 @@ export const filteredExperimentsQuery = selector<ExperimentsWithMean>({
           methodologyName,
           uploadDate: e.item.uploadDate,
           subExperiments: e.item.subExperiments,
-          primarySubExperiment: get(subExperimentsMetaAtom(e.item.primarySubExperiment)),
+          primarySubExperimentId: e.item.primarySubExperiment,
+          primaryIC50: e.item.primaryIC50,
         };
       })
       .filter(
