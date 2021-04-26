@@ -94,7 +94,7 @@ export function Table<T extends object>({
                   );
                 })}
               </tr>
-              {collapsible && (
+              {collapsible && shownColl[i] && (
                 <tr>
                   <td
                     colSpan={columns.length}
