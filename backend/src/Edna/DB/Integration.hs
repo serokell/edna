@@ -34,6 +34,7 @@ import Database.PostgreSQL.Simple.Transaction (withTransactionSerializable)
 import RIO (withRunInIO)
 
 import Edna.DB.Connection (ConnPool(..))
+import Edna.Logging (logUnconditionally)
 import Edna.Setup (Edna, edConnectionPool, edDebugDB)
 
 withConnection :: (Connection -> Edna a) -> Edna a
@@ -49,7 +50,7 @@ runPg :: Pg a -> Edna a
 runPg pg = withConnection $ \conn ->
   view edDebugDB >>= liftIO . \case
     False -> runBeamPostgres conn pg
-    True -> runBeamPostgresDebug (hPutStrLn stderr) conn pg
+    True -> runBeamPostgresDebug (logUnconditionally . toText) conn pg
 
 runInsert' :: SqlInsert Postgres table -> Edna ()
 runInsert' = runPg . runInsert

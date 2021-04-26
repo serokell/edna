@@ -18,7 +18,7 @@ import Data.Time.Clock (nominalDay)
 import Database.Beam.Postgres (Connection, close, connectPostgreSQL)
 
 import Edna.Config.Definition (EdnaConfig, dbConnString, dbMaxConnections, ecDb)
-import Edna.Util (ConnString(..))
+import Edna.Util (ConnString(..), logUnconditionally)
 
 -- | Database connection pool. One @Connection@ can not be used simultaneously
 -- by multiple threads, so we need a pool of connections to allow for
@@ -56,7 +56,7 @@ createConnPool (ConnString connStr) maxConnsNum = liftIO $ ConnPool <$>
     withRetry :: Word -> IO a -> IO a
     withRetry n action = action `catchIOError` \e -> do
       when (n == 0) $ throwM e
-      hPutStrLn @Text stderr "Trying to connect to the DB…"
+      logUnconditionally "Trying to connect to the DB…"
       threadDelay aSecond
       withRetry (n - 1) action
 
