@@ -70,3 +70,17 @@ export function useClickOutsideCallback(ref: RefObject<HTMLElement>, onOutside: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref]);
 }
+
+export function linspace(start: number, stop: number, len: number): number[] {
+  const step = (stop - start) / (len - 1);
+  return Array.from({ length: len }, (_, i) => start + step * i);
+}
+
+export function logspace(start: number, stop: number, len: number): number[] {
+  const startPoint = Math.log10(start);
+  const endPoint = Math.log10(stop);
+
+  const linPoints = linspace(startPoint, endPoint, len);
+
+  return Array.from(linPoints, (p: number) => 10 ** p);
+}

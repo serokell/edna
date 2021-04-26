@@ -13,7 +13,7 @@ import { PlotMarker } from "plotly.js-basic-dist";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { SuccessSubExperimentWithMeasurements } from "../../../store/types";
 import { newSubexperimentAtom } from "../../../store/atoms";
-import { isDefined } from "../../../utils/utils";
+import { isDefined, logspace } from "../../../utils/utils";
 
 const plotConfig: Partial<PlotlyBasic.Config> = {
   displaylogo: false,
@@ -105,12 +105,15 @@ export default function PlotlyChart({
   });
 
   const plTraces: Plotly.Data[] = subExperiments.map(({ subexperiment, color }) => {
+    const x = logspace(
+      subexperiment.measurements[0].item.concentration,
+      subexperiment.measurements[subexperiment.measurements.length - 1].item.concentration,
+      1000
+    );
     return {
       name: "4PL",
-      x: subexperiment.measurements.map(a => a.item.concentration),
-      y: subexperiment.measurements.map(a =>
-        fourPL(subexperiment.meta.item.result.Right, a.item.concentration)
-      ),
+      x,
+      y: x.map(a => fourPL(subexperiment.meta.item.result.Right, a)),
       type: "scatter",
       mode: "lines",
       marker: { color },
