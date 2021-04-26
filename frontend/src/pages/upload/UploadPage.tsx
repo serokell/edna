@@ -26,6 +26,7 @@ import { methodologiesQuery, projectsQuery } from "../../store/selectors";
 import {
   useCompoundsRefresher,
   useFilteredExperimentsRefresher,
+  useMethodologiesRefresher,
   useProjectRefresher,
   useTargetsRefresher,
 } from "../../store/updaters";
@@ -38,6 +39,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const targetsRefresher = useTargetsRefresher();
   const compoundsRefresher = useCompoundsRefresher();
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
+  const methodologiesRefresher = useMethodologiesRefresher();
 
   return (
     <PageLayout>
@@ -70,6 +72,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               projectsRefresher();
               targetsRefresher();
               compoundsRefresher();
+              methodologiesRefresher();
               filteredExperimentsRefresher();
             }
           } catch (ex) {
