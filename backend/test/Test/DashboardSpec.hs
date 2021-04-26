@@ -165,6 +165,9 @@ gettersSpec = do
         Right Params4PL {..} <- analyse4PLOne (mapMaybe measurementToPairMaybe measurements)
         liftIO $ do
           length erExperiments `shouldBe` 1
+          -- It's checked above for better error message
+          let [WithId _ expResp] = erExperiments
+          erPrimaryIC50 expResp `shouldBe` Right p4plC
           erMeanIC50 `shouldBe` Just p4plC
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) -> do
             erTarget `shouldBe` targetId

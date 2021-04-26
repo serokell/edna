@@ -78,6 +78,11 @@ data ExperimentResp = ExperimentResp
   -- Usually their number is small (≤2, maybe 3).
   , erPrimarySubExperiment :: SubExperimentId
   -- ^ Idenfitier of the primary sub-experiment from this experiment.
+  , erPrimaryIC50 :: Either Text Double
+  -- ^ IC50 value computed for the primary sub-experiment. It's provided here
+  -- as an optimization. It's possible to get this value by querying sub-experiment
+  -- data (since @erPrimarySubExperiment@) is provided, but it would work slower.
+  -- @Left err@ may be provided if analysis failed for the primary sub-experiment.
   } deriving stock (Generic, Show)
 
 instance Buildable ExperimentResp where
@@ -85,7 +90,8 @@ instance Buildable ExperimentResp where
     "Project " +| erProject |+ ", compound " +| erCompound |+ ", target " +| erTarget |+
     ", methodology " +| erMethodology |+ ", upload date: " +| iso8601Show erUploadDate |+
     ", sub-experiments: " +| map unSqlId erSubExperiments |+
-    ", primary: " +| erPrimarySubExperiment |+ ""
+    ", primary: " +| erPrimarySubExperiment |+
+    ", IC50: " +| either build build erPrimaryIC50 |+ ""
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
