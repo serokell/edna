@@ -9,7 +9,7 @@ import Universum
 import Test.Hspec (Spec, describe, it, shouldBe, shouldSatisfy)
 
 import Edna.Analysis.FourPL
-import Edna.ExperimentReader.Types (Measurement(..))
+import Edna.ExperimentReader.Types (measurementToPair)
 import Edna.Util (SqlId(..))
 
 import Test.Orphans ()
@@ -27,8 +27,7 @@ spec = withContext do
         expId `shouldBe` experimentId
         resp `shouldSatisfy` isLeft
     it "returns a reasonable result for sample data" $ runTestEdna $ do
-      let points = autoOutlierMeasurements <&>
-            \Measurement {..} -> (mConcentration, mSignal)
+      let points = map measurementToPair autoOutlierMeasurements
       [(expId, Right resp)] <- analyse4PL [req points]
       liftIO $ do
         expId `shouldBe` experimentId

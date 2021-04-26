@@ -26,6 +26,7 @@ module Test.SampleData
   -- ↓ Violating style guide a bit, hopefully that's ok ↓
   , targetName1, targetName2, targetName3, targetName4
   , compoundName1, compoundName2, compoundName3, compoundName4, compoundName5
+  , targetMeasurements1, targetMeasurements2, targetMeasurements3, targetMeasurements4
   , m1, m2, m3, m4, m5, m5Outlier, m6, m7, m8, m9, m10
   , autoOutlierMeasurements
 

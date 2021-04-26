@@ -1,3 +1,4 @@
+import io
 import json
 import os
 
@@ -6,6 +7,10 @@ import pytest
 
 from ic50 import *
 from ic50_analysis import main as ic50_calc
+
+
+def ic50_calc_str(arg: str):
+    return ic50_calc(io.StringIO(arg))
 
 
 @pytest.fixture
@@ -47,7 +52,7 @@ def test_one_outlier(load_sample_json):  # type: ignore
 def test_no_exceptions(load_sample_json):
     exp = [load_sample_json['sane']]
     try:
-        ic50_calc([json.dumps(exp)])
+        ic50_calc_str(json.dumps(exp))
     except Exception:
         assert False
 
@@ -74,7 +79,7 @@ def test_shuffle_points_outliers(load_sample_json):
 def test_single_concentration(load_sample_json):  # type: ignore
     exp = [load_sample_json['single_concentration']]
     try:
-        ic50_calc([json.dumps(exp)])
+        ic50_calc_str(json.dumps(exp))
     except Exception:
         assert False
 
@@ -83,7 +88,7 @@ def test_single_concentration(load_sample_json):  # type: ignore
 def test_little_data(load_sample_json):  # type: ignore
     exp = [load_sample_json['little_data']]
     try:
-        ic50_calc([json.dumps(exp)])
+        ic50_calc_str(json.dumps(exp))
     except Exception:
         assert False
 
@@ -91,6 +96,6 @@ def test_little_data(load_sample_json):  # type: ignore
 # noinspection PyBroadException
 def test_sample_data_files(load_sample_data):
     try:
-        ic50_calc([load_sample_data])
+        ic50_calc_str(load_sample_data)
     except Exception:
         assert False

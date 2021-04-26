@@ -7,6 +7,7 @@ module Edna.Analysis.FourPL
   , Params4PLReq (..)
   , analyse4PL
   , analyse4PLOne
+  , check4PLConfiguration
   ) where
 
 import Universum
@@ -14,10 +15,12 @@ import Universum
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.TH (deriveFromJSON, deriveToJSON)
 import Data.Swagger (ToSchema(..))
-import Fmt (Buildable(..), genericF, tupleF)
+import Fmt (Buildable(..), genericF, tupleF, (+|), (|+))
 import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
 
 import Edna.Analysis.Infra (PythonError(..), callPythonAnalysis)
+import Edna.Logging (logMessage)
+import Edna.Orphans ()
 import Edna.Setup (Edna)
 import Edna.Util (ExperimentId, SqlId(..), ednaAesonPythonOptions)
 
@@ -138,3 +141,22 @@ analyse4PLOne points = do
     [(_, eitherResp)] -> pure $ plrspParams <$> eitherResp
     resps -> throwM . PyInvalidFormat $
       "Unexpected number of responses for single request " <> show (length resps)
+
+----------------
+-- Configuration check
+----------------
+
+-- | This function checks whether environment is configured correctly and allows
+-- us to successfully call 4PL analysis in Python. Basically it means that @python@
+-- executable itself is available, all code we want to execute is available, as
+-- well as all dependencies of this code.
+-- If we fail to call 4PL analysis, a detailed message will be printed.
+-- We don't crash in this case because many functions still work even without Python.
+check4PLConfiguration :: Edna ()
+check4PLConfiguration = void (analyse4PL []) `catchAny` \e -> logMessage $
+  "Failed to perform dummy analysis with Python: " +| displayException e |+ "\n"
+  +| "Most likely something is wrong with Python configuration.\n"
+  +| "If you are using a Docker image, it's a bug in the image."
+  +| " If you run backend yourself, make sure you are inside `poetry shell`."
+  +| " Alternatively, you can manually install python and all dependencies yourself."
+  +| " You may continue using the application if you don't need features that use Python analysis."

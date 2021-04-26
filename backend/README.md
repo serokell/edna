@@ -8,6 +8,7 @@ You can use [Stack](http://haskellstack.org/) or [Cabal](https://www.haskell.org
 Run `stack build` or `cabal build`.
 
 We also provide a [Makefile](./Makefile) to facilitate building and testing during development.
+By default it uses `stack`, but you can set `EDNA_USE_CABAL=1` to use `cabal`.
 
 ## Usage instructions
 
@@ -19,6 +20,10 @@ There, do `poetry install` to install dependencies and then `poetry shell` to ma
 Depending on the tool you used to build `edna-server` you need to run of these commands:
 * `stack exec -- edna-server -c dev-config.yaml`
 * `cabal run -- edna-server -c dev-config.yaml`
+
+Alternatively, you can use `make run` command which does what's written above.
+Set `RUN_ARGUMENTS` to command line options you want to pass.
+Example: `RUN_ARGUMENTS='-c dev-config.yaml' make run`.
 
 You can update `dev-config.yaml` as you wish before running.
 If you use the config from this repository:

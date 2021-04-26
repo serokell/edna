@@ -8,11 +8,13 @@ module Test.DashboardSpec
 
 import Universum
 
+import qualified Data.Map.Strict as Map
+
 import RIO (runRIO)
 import Test.Hspec
   (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldSatisfy, shouldThrow)
 
-import Edna.Analysis.FourPL (analyse4PLOne)
+import Edna.Analysis.FourPL (Params4PL(..), analyse4PLOne)
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
@@ -21,7 +23,8 @@ import Edna.Dashboard.Service
 import Edna.Dashboard.Web.Types
   (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..),
   MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
-import Edna.ExperimentReader.Types (FileMetadata(unFileMetadata), Measurement(..))
+import Edna.ExperimentReader.Types
+  (FileMetadata(unFileMetadata), Measurement(..), measurementToPairMaybe)
 import Edna.Setup (EdnaContext)
 import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId)
 import Edna.Web.Types (WithId(..))
@@ -152,14 +155,16 @@ gettersSpec = do
       it "filters by 3 filters correctly and returns mean IC50" $ runTestEdna $ do
         let compoundId = SqlId 2
         let targetId = SqlId 2
+        let measurements = targetMeasurements2 Map.! compoundName2
         ExperimentsResp {..} <-
           getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
+        Right Params4PL {..} <- analyse4PLOne (mapMaybe measurementToPairMaybe measurements)
         liftIO $ do
           length erExperiments `shouldBe` 1
-          -- TODO: EDNA-85 Make this test more robust
-          erMeanIC50 `shouldBe` Just 51.02596976392316
-          forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
+          erMeanIC50 `shouldBe` Just p4plC
+          forM_ erExperiments $ \(WithId _ ExperimentResp {..}) -> do
             erTarget `shouldBe` targetId
+            erCompound `shouldBe` compoundId
     describe "getExperimentMetadata" $ do
       it "returns correct metadata for all known experiments" $ runTestEdna $ do
         forM_ validExperimentIds $ \expId -> do
