@@ -137,7 +137,7 @@ getExperiments :: Maybe ProjectId -> Maybe CompoundId -> Maybe TargetId ->
 getExperiments mProj mComp mTarget = do
   pairs <- Q.getExperiments mProj mComp mTarget
   meanIC50 <- case (mComp, mTarget) of
-    (Just _, Just _) -> Just <$> computeMeanIC50 (map snd pairs)
+    (Just _, Just _) -> computeMeanIC50 (map snd pairs)
     _ -> pure Nothing
   return ExperimentsResp
     { erExperiments = map (uncurry WithId) pairs
@@ -146,15 +146,15 @@ getExperiments mProj mComp mTarget = do
 
 -- It may be not the most efficient solution to compute it every time,
 -- but let's not optimize prematurely.
-computeMeanIC50 :: [ExperimentResp] -> Edna Double
+computeMeanIC50 :: [ExperimentResp] -> Edna (Maybe Double)
 computeMeanIC50 resps = do
   avg . mapMaybe (rightToMaybe . second p4plC) <$>
     mapM (getDefaultResult . erPrimarySubExperiment) resps
   where
-    avg :: [Double] -> Double
+    avg :: [Double] -> Maybe Double
     avg items
-      | null items = 0
-      | otherwise = sum items / fromIntegral (length items)
+      | null items = Nothing
+      | otherwise = Just $ sum items / fromIntegral (length items)
 
     getDefaultResult :: SubExperimentId -> Edna AnalysisResult
     getDefaultResult subExpId = do
