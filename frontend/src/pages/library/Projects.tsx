@@ -18,15 +18,19 @@ import { Tooltip } from "../../components/Tooltip/Tooltip";
 
 export function ProjectsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const projects = useRecoilValue(projectsQuery);
+  // TODO request here only 1st page to check projects emptiness
+  const projectsChunk = useRecoilValue(projectsQuery({}));
+
   const projectColumns = React.useMemo(
     () => [
       {
         Header: "Project",
+        id: "name",
         accessor: (p: ProjectDto) => p.item.name,
       },
       {
         Header: "Compounds",
+        disableSortBy: true,
         accessor: (p: ProjectDto) => (
           <span className="project__compounds">
             <ExtraFormatter items={p.item.compoundNames} />
@@ -35,6 +39,7 @@ export function ProjectsSuspendable(): React.ReactElement {
       },
       {
         Header: "Creation date",
+        id: "creationDate",
         accessor: (p: ProjectDto) => (
           <Tooltip text={formatAsDateTime(p.item.creationDate)}>
             {formatAsDate(p.item.creationDate)}
@@ -43,6 +48,7 @@ export function ProjectsSuspendable(): React.ReactElement {
       },
       {
         Header: "Last update",
+        id: "lastUpdate",
         accessor: (p: ProjectDto) => (
           <Tooltip text={formatAsDateTime(p.item.lastUpdate)}>
             {formatAsDate(p.item.lastUpdate)}
@@ -51,6 +57,7 @@ export function ProjectsSuspendable(): React.ReactElement {
       },
       {
         id: "actions",
+        disableSortBy: true,
         accessor: (p: ProjectDto) => (
           <ContextActions
             actions={[
@@ -71,7 +78,7 @@ export function ProjectsSuspendable(): React.ReactElement {
     ],
     [setModalDialog]
   );
-  return projects.length === 0 ? (
+  return projectsChunk.length === 0 ? (
     <EmptyPlaceholder
       title="No projects created yet"
       description="All created projects will be displayed here"
@@ -82,6 +89,6 @@ export function ProjectsSuspendable(): React.ReactElement {
       }
     />
   ) : (
-    <Table data={projects} columns={projectColumns} />
+    <Table dataOrQuery={projectsQuery} columns={projectColumns} />
   );
 }

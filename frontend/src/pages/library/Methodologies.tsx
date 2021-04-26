@@ -17,7 +17,8 @@ import { ExtraFormatter } from "../../components/ExtraFormatter";
 
 export function MethodsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const methodologies = useRecoilValue(methodologiesQuery);
+  // TODO request here only 1st page to check methodologies emptiness
+  const methodologiesChunk = useRecoilValue(methodologiesQuery({}));
   const methodologyColumns: Column<MethodologyDto>[] = React.useMemo(
     () => [
       {
@@ -26,10 +27,12 @@ export function MethodsSuspendable(): React.ReactElement {
       },
       {
         Header: "Projects",
+        disableSortBy: true,
         accessor: (t: MethodologyDto) => <ExtraFormatter items={t.item.projects} />,
       },
       {
         Header: "Confluence link",
+        disableSortBy: true,
         id: "link",
         accessor: (m: MethodologyDto) => {
           if (m.item.confluence)
@@ -58,6 +61,7 @@ export function MethodsSuspendable(): React.ReactElement {
       },
       {
         Header: "Description",
+        disableSortBy: true,
         id: "description",
         accessor: (m: MethodologyDto) => {
           return (
@@ -81,6 +85,7 @@ export function MethodsSuspendable(): React.ReactElement {
 
       {
         id: "actions",
+        disableSortBy: true,
         accessor: (m: MethodologyDto) => (
           <ContextActions
             actions={[
@@ -112,7 +117,7 @@ export function MethodsSuspendable(): React.ReactElement {
     [setModalDialog]
   );
 
-  return methodologies.length === 0 ? (
+  return methodologiesChunk.length === 0 ? (
     <EmptyPlaceholder
       title="No methodologies created yet"
       description="All created methodologies will be displayed here"
@@ -124,7 +129,7 @@ export function MethodsSuspendable(): React.ReactElement {
     />
   ) : (
     <Table
-      data={methodologies}
+      dataOrQuery={methodologiesQuery}
       columns={methodologyColumns}
       columnExtras={{
         link: { manualCellRendering: true },

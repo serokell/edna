@@ -6,27 +6,38 @@
 // All updaters return () => (args) => Promise to make possible to call
 // an updater in a React component, to receive necessary hooks.
 
-import { RecoilState, useRecoilCallback, useSetRecoilState } from "recoil";
+import {
+  RecoilState,
+  useRecoilCallback,
+  useRecoilValue,
+  useResetRecoilState,
+  useSetRecoilState,
+} from "recoil";
 import {
   colorsCounterAtom,
+  compoundIdSelectedAtom,
   compoundsReqIdAtom,
+  experimentsTableSizeAtom,
   filteredExperimentsReqIdAtom,
   methodologiesRequestIdAtom,
   newSubexperimentAtom,
+  projectSelectedIdAtom,
   projectsRequestIdAtom,
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
+  targetIdSelectedAtom,
   targetsRequestIdAtom,
 } from "./atoms";
-import { minAmountColor } from "./selectors";
+import { minAmountColorQuery } from "./selectors";
 import { isDefined } from "../utils/utils";
+import { chartColors } from "./types";
 
 function useQueryRefresher(reqId: RecoilState<number>): () => void {
   const setReqId = useSetRecoilState(reqId);
   return () => setReqId(req => req + 1);
 }
 
-export function useProjectRefresher(): () => void {
+export function useProjectsRefresher(): () => void {
   return useQueryRefresher(projectsRequestIdAtom);
 }
 
@@ -49,7 +60,7 @@ export function useFilteredExperimentsRefresher(): () => void {
 export function useAddSubExperiment(): (subExp: number) => void {
   return useRecoilCallback(
     ({ set, snapshot }) => async (id: number) => {
-      const newCol = await snapshot.getPromise(minAmountColor);
+      const newCol = await snapshot.getPromise(minAmountColorQuery);
       set(colorsCounterAtom(newCol), prevAm => prevAm + 1);
       set(selectedSubExperimentsColorAtom(id), newCol);
       set(selectedSubExperimentsIdsAtom, old => new Set(old.add(id)));
@@ -81,4 +92,54 @@ export function useRemoveSubExperiments(): (subExps: number[]) => void {
     },
     [selectedSubExperimentsIdsAtom]
   );
+}
+
+export function useLibraryRefresher(): () => void {
+  const projects = useProjectsRefresher();
+  const compounds = useCompoundsRefresher();
+  const targets = useTargetsRefresher();
+  const methodologies = useMethodologiesRefresher();
+  return () => {
+    projects();
+    compounds();
+    targets();
+    methodologies();
+  };
+}
+
+export function useDashboardRefresher(): () => void {
+  const resetProjectSelectedId = useResetRecoilState(projectSelectedIdAtom);
+  const resetCompoundIdSelected = useResetRecoilState(compoundIdSelectedAtom);
+  const resetTargetIdSelected = useResetRecoilState(targetIdSelectedAtom);
+  const resetExperimentsTableSizeAtom = useResetRecoilState(experimentsTableSizeAtom);
+  const resetNewSubExperiment = useResetRecoilState(newSubexperimentAtom);
+  const setSelectedSubExperimentsIds = useSetRecoilState(selectedSubExperimentsIdsAtom);
+  const experimentsRefresher = useFilteredExperimentsRefresher();
+  const selectedSubExperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
+
+  const resetColorsCounter = useRecoilCallback(({ reset }) => () => {
+    for (let i = 0; i < chartColors.length; i++) {
+      reset(colorsCounterAtom(chartColors[i]));
+    }
+  });
+
+  const resetSubexperimentsColors = useRecoilCallback(({ reset }) => () => {
+    const arr = Array.from(selectedSubExperiments);
+    for (let i = 0; i < arr.length; i++) {
+      reset(selectedSubExperimentsColorAtom(arr[i]));
+    }
+  });
+
+  return () => {
+    resetColorsCounter();
+    resetSubexperimentsColors();
+    resetProjectSelectedId();
+    resetCompoundIdSelected();
+    resetTargetIdSelected();
+    resetNewSubExperiment();
+    resetExperimentsTableSizeAtom();
+    experimentsRefresher();
+    // For some weird reason reset doesn't update selectedExperimentsQuery selector
+    setSelectedSubExperimentsIds(new Set<number>());
+  };
 }

@@ -28,15 +28,16 @@ import {
   useCompoundsRefresher,
   useFilteredExperimentsRefresher,
   useMethodologiesRefresher,
-  useProjectRefresher,
+  useProjectsRefresher,
   useTargetsRefresher,
 } from "../../store/updaters";
 
 export const UploadPage: FunctionComponent = (): ReactElement => {
-  const projectsLoadable = useRecoilValueLoadable(projectsQuery);
-  const methodologiesLoadable = useRecoilValueLoadable(methodologiesQuery);
+  // TODO make it async
+  const projectsLoadable = useRecoilValueLoadable(projectsQuery({}));
+  const methodologiesLoadable = useRecoilValueLoadable(methodologiesQuery({}));
   const [excelFile, setExcelFile] = useRecoilState(excelFileAtom);
-  const projectsRefresher = useProjectRefresher();
+  const projectsRefresher = useProjectsRefresher();
   const targetsRefresher = useTargetsRefresher();
   const compoundsRefresher = useCompoundsRefresher();
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();

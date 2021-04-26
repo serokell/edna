@@ -15,17 +15,20 @@ import { Table } from "../../components/Table/Table";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 export function CompoundsSuspendable(): React.ReactElement {
-  const compounds = useRecoilValue(compoundsQuery);
+  // TODO request here only 1st page to check compounds emptiness
+  const compoundsChunk = useRecoilValue(compoundsQuery({}));
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const compoundsColumns = React.useMemo(
     () => [
       {
-        Header: "Compounds",
+        Header: "Compound",
+        id: "name",
         accessor: (c: CompoundDto) => c.item.name,
       },
       {
         Header: "MDe link",
         id: "mde",
+        disableSortBy: true,
         accessor: (c: CompoundDto) => (
           <td className={`ednaTable__cell${c.item.mde ? "" : " libraryTable__cellBtn"}`}>
             {c.item.mde ? (
@@ -49,6 +52,7 @@ export function CompoundsSuspendable(): React.ReactElement {
       },
       {
         Header: "ChemSoft link",
+        disableSortBy: true,
         id: "chemsoft",
         accessor: (c: CompoundDto) => (
           <td className={`ednaTable__cell${c.item.chemSoft ? "" : " libraryTable__cellBtn"}`}>
@@ -73,6 +77,7 @@ export function CompoundsSuspendable(): React.ReactElement {
       },
       {
         id: "actions",
+        disableSortBy: true,
         accessor: (c: CompoundDto) => (
           <ContextActions
             actions={[
@@ -105,7 +110,7 @@ export function CompoundsSuspendable(): React.ReactElement {
     ],
     [setModalDialog]
   );
-  return compounds.length === 0 ? (
+  return compoundsChunk.length === 0 ? (
     <EmptyPlaceholder
       title="No compounds added yet"
       description="To add compounds add new experiments"
@@ -117,7 +122,7 @@ export function CompoundsSuspendable(): React.ReactElement {
     />
   ) : (
     <Table
-      data={compounds}
+      dataOrQuery={compoundsQuery}
       columns={compoundsColumns}
       columnExtras={{
         chemsoft: { manualCellRendering: true },

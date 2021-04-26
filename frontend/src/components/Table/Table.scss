@@ -36,6 +36,21 @@ $cell-indent: 22 * $px;
     }
   }
 
+  &__sortSign {
+    margin-left: 22 * $px;
+    visibility: hidden;
+
+    &_desc {
+      svg {
+        transform: rotate(180deg);
+      }
+    }
+
+    &_vis {
+      visibility: visible;
+    }
+  }
+
   &__headRightBorder {
     $height: 20 * $px;
     position: absolute;
@@ -87,6 +102,13 @@ $cell-indent: 22 * $px;
         cursor: pointer;
       }
     }
+  }
+
+  &__error {
+    display: table-cell;
+    padding: 20 * $px;
+    color: $color-help-red;
+    text-align: center;
   }
 
   tr:last-child .ednaTable__cell {

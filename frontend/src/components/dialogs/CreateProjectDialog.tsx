@@ -13,7 +13,7 @@ import Api from "../../api/api";
 import "../RoundSpinner.scss";
 import { CreateDialogFooter, FormState } from "../DialogLayout/CreateDialogFooter";
 import { toCreateProjectArgsApi } from "../../api/EdnaApi";
-import { useProjectRefresher } from "../../store/updaters";
+import { useProjectsRefresher } from "../../store/updaters";
 import { CreateProjectForm, toCreateProjectForm } from "./types";
 import { ProjectDto } from "../../api/types";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
@@ -24,7 +24,7 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ editing }: CreateProjectDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
-  const refreshProjects = useProjectRefresher();
+  const refreshProjects = useProjectsRefresher();
   const [formState, setFormState] = useState<FormState>();
 
   return (
