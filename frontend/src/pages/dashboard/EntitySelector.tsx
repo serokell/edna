@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React from "react";
-import { useRecoilValueLoadable, useSetRecoilState } from "recoil";
+import React, { useCallback } from "react";
+import { useRecoilValueLoadable, useSetRecoilState, waitForAll } from "recoil";
+import { Experiment } from "store/types";
 import { DescriptiveSelector } from "../../components/DescriptiveSelector/DescriptiveSelector";
 import {
   compoundSelectedQuery,
@@ -20,20 +21,49 @@ import {
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
-import { formatAsDate } from "../../utils/utils";
+import { formatAsDate, isDefined } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 interface SelectorProps {
   className?: string;
+  experiments?: Experiment[];
 }
 
-export function ProjectSelector({ className }: SelectorProps): React.ReactElement {
+export function ProjectSelector({ className, experiments }: SelectorProps): React.ReactElement {
+  const filterNeeds = useRecoilValueLoadable(
+    waitForAll([compoundSelectedQuery, targetSelectedQuery])
+  );
   // TODO make it async one day?
   const projectsL = useRecoilValueLoadable(projectsQuery({}));
   const projectSelectedL = useRecoilValueLoadable(projectSelectedQuery);
   const setProjectSelected = useSetRecoilState(projectSelectedIdAtom);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
+
+  const projectsFilter = useCallback(
+    (projects: ProjectDto[]) => {
+      if (filterNeeds.state === "hasValue" && filterNeeds.contents && experiments) {
+        const [selectedCompound, selectedTarget] = filterNeeds.contents;
+        const projectNames = experiments
+          .filter(
+            experiment =>
+              (isDefined(selectedCompound)
+                ? experiment.compoundName === selectedCompound.item.name
+                : true) &&
+              (isDefined(selectedTarget)
+                ? experiment.targetName === selectedTarget.item.name
+                : true)
+          )
+          .map(experiment => experiment.projectName);
+
+        return projects.filter(
+          project => !!projectNames.find(projectName => projectName === project.item.name)
+        );
+      }
+      return undefined;
+    },
+    [filterNeeds, experiments]
+  );
 
   return (
     <DescriptiveSelector<ProjectDto>
@@ -66,16 +96,45 @@ export function ProjectSelector({ className }: SelectorProps): React.ReactElemen
           }}
         />,
       ]}
+      optionsFilter={projectsFilter}
     />
   );
 }
 
-export function CompoundSelector({ className }: SelectorProps): React.ReactElement {
+export function CompoundSelector({ className, experiments }: SelectorProps): React.ReactElement {
+  const filterNeeds = useRecoilValueLoadable(
+    waitForAll([projectSelectedQuery, targetSelectedQuery])
+  );
   // TODO make it async one day?
   const compoundsL = useRecoilValueLoadable(compoundsQuery({}));
   const compoundSelectedL = useRecoilValueLoadable(compoundSelectedQuery);
   const setCompoundSelected = useSetRecoilState(compoundIdSelectedAtom);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
+
+  const compoundsFilter = useCallback(
+    (compounds: CompoundDto[]) => {
+      if (filterNeeds.state === "hasValue" && filterNeeds.contents && experiments) {
+        const [selectedProject, selectedTarget] = filterNeeds.contents;
+        const compoundNames = experiments
+          .filter(
+            experiment =>
+              (isDefined(selectedProject)
+                ? experiment.projectName === selectedProject.item.name
+                : true) &&
+              (isDefined(selectedTarget)
+                ? experiment.targetName === selectedTarget.item.name
+                : true)
+          )
+          .map(experiment => experiment.compoundName);
+
+        return compounds.filter(
+          compound => !!compoundNames.find(compoundName => compoundName === compound.item.name)
+        );
+      }
+      return undefined;
+    },
+    [filterNeeds, experiments]
+  );
 
   return (
     <DescriptiveSelector<CompoundDto>
@@ -154,15 +213,44 @@ export function CompoundSelector({ className }: SelectorProps): React.ReactEleme
           }}
         />,
       ]}
+      optionsFilter={compoundsFilter}
     />
   );
 }
 
-export function TargetSelector({ className }: SelectorProps): React.ReactElement {
-  // TODO make it async one day?
+export function TargetSelector({ className, experiments }: SelectorProps): React.ReactElement {
+  const filterNeeds = useRecoilValueLoadable(
+    waitForAll([compoundSelectedQuery, projectSelectedQuery])
+  );
   const targetsLoadable = useRecoilValueLoadable(targetsQuery({}));
   const targetSelected = useRecoilValueLoadable(targetSelectedQuery);
   const setTargetSelected = useSetRecoilState(targetIdSelectedAtom);
+
+  const targetsFilter = useCallback(
+    (targets: TargetDto[]) => {
+      if (filterNeeds.state === "hasValue" && filterNeeds.contents && experiments) {
+        const [selectedCompound, selectedProject] = filterNeeds.contents;
+        const targetNames = experiments
+          .filter(
+            experiment =>
+              (isDefined(selectedProject)
+                ? experiment.projectName === selectedProject.item.name
+                : true) &&
+              (isDefined(selectedCompound)
+                ? experiment.compoundName === selectedCompound.item.name
+                : true)
+          )
+          .map(experiment => experiment.targetName);
+
+        return targets.filter(
+          target => !!targetNames.find(targetName => targetName === target.item.name)
+        );
+      }
+      return undefined;
+    },
+    [filterNeeds, experiments]
+  );
+
   return (
     <DescriptiveSelector<TargetDto>
       className={className}
@@ -173,6 +261,7 @@ export function TargetSelector({ className }: SelectorProps): React.ReactElement
       placeholder="Select a target"
       placeholderEmpty="No targets"
       toOption={c => ({ value: `${c.id}`, label: c.item.name })}
+      optionsFilter={targetsFilter}
     />
   );
 }
