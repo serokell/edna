@@ -17,9 +17,8 @@ import Database.Beam.Postgres (Postgres)
 import Database.Beam.Postgres.Syntax (PgCommandSyntax(..), PgCommandType(..), emit)
 
 import Edna.Config.Definition (DbInit(..), dbInitialisation, ecDb)
-import Edna.Config.Utils (fromConfig)
 import Edna.DB.Integration (runPg, transact)
-import Edna.Setup (Edna)
+import Edna.Setup (Edna, fromConfig)
 import Edna.Util (DatabaseInitOption(..))
 
 schemaInit :: Edna ()

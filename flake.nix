@@ -132,7 +132,10 @@
         buildInputs = with pkgs.haskellPackages; [
           cabal-install hpack hlint self.packages.${system}.stack2cabal
           deploy-rs.defaultPackage.${system}
-          pkgs.skopeo pkgs.reuse
+          pkgs.skopeo
+          pkgs.reuse
+          pkgs.bats
+          backend.server
           self.packages.${system}.analysis-env
         ];
       };

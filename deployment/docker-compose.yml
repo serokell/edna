@@ -3,9 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 version: '3.7'
+
+# All backend configuration may be read from `config.yaml`.
+# `env_file` and `environment` are provided just as an example.
+# `environment` is necessary to properly propagate all relevant
+# env vars to running container, e. g. if we pass `--env-file`
+# via command line.
 services:
   backend:
     image: "ghcr.io/serokell/edna-backend:latest"
+    restart: always
     depends_on:
       - postgres
     volumes:
@@ -15,28 +22,52 @@ services:
     ports:
       - 9000:9000
     command: --config /config.yaml
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - EDNA_API_LISTEN_ADDR=${EDNA_API_LISTEN_ADDR}
+      - EDNA_API_SERVE_DOCS=${EDNA_API_SERVE_DOCS}
+      - EDNA_DB_MAX_CONNECTIONS=${EDNA_DB_MAX_CONNECTIONS}
+      - EDNA_DB_INITIALISATION_MODE=${EDNA_DB_INITIALISATION_MODE}
+      - EDNA_DB_INITIALISATION_INIT_SCRIPT=${EDNA_DB_INITIALISATION_INIT_SCRIPT}
+      - EDNA_DB_DEBUG=${EDNA_DB_DEBUG}
+      - EDNA_LOGGING=${EDNA_LOGGING}
+
   frontend:
     image: "ghcr.io/serokell/edna-frontend:latest"
+    restart: always
     depends_on:
       - backend
     ports:
-      - 8080:80
+      - ${FRONTEND_PORT}:80
     networks:
       - edna-network
+
   postgres:
     image: postgres
     container_name: postgres
+    restart: always
     ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: ednauser
-      POSTGRES_PASSWORD: ednapass
-      POSTGRES_DB: ednadb
+      - ${POSTGRES_PORT}:5432
     volumes:
       - edna-db-data:/var/lib/postgresql/data/
     networks:
       - edna-network
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
 networks:
   edna-network: { }
+
 volumes:
   edna-db-data:

@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[submodule "backend/scripts/test_helpers/bats-assert"]
+	path = backend/scripts/test_helpers/bats-assert
+	url = git@github.com:bats-core/bats-assert.git
+[submodule "backend/scripts/test_helpers/bats-support"]
+	path = backend/scripts/test_helpers/bats-support
+	url = git@github.com:bats-core/bats-support.git

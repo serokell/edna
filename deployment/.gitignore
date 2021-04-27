@@ -2,8 +2,4 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-dist-newstyle/
-.stack-work/
-stack.yaml.lock
-cabal.project.local
-hie.yaml
+.env.*

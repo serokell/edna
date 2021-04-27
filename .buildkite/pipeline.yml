@@ -21,6 +21,9 @@ steps:
   - label: backend lib
     commands:
       - nix-build -A packages.x86_64-linux.backend-lib
+  - label: backend bats
+    commands:
+    - nix-shell --run 'bats backend/scripts/test.bats'
   - label: backend test
     commands:
       - nix-build -A checks.x86_64-linux.backend-test

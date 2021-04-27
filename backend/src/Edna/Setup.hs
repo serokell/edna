@@ -4,7 +4,9 @@
 
 module Edna.Setup
   ( Edna
+  , dumpConfig
   , runEdna
+  , fromConfig
 
   , EdnaContext (..)
   , edConfig
@@ -14,14 +16,14 @@ module Edna.Setup
 
 import Universum
 
-import qualified Data.Char as C
-
-import Lens.Micro.Platform (makeLenses)
+import qualified Data.ByteString as B
+import qualified Data.Yaml as Y
+import Lens.Micro.Platform (Getting, makeLenses)
 import RIO (RIO, runRIO)
-import System.Environment (lookupEnv)
 
-import Edna.Config.Definition (EdnaConfig(..))
-import Edna.DB.Connection (ConnPool(..), withPostgresConn)
+import Edna.Config.Definition (EdnaConfig)
+import Edna.Config.Environment (askDebugDB)
+import Edna.DB.Connection (ConnPool, withPostgresConn)
 
 data EdnaContext = EdnaContext
   { _edConfig :: !EdnaConfig
@@ -32,6 +34,9 @@ data EdnaContext = EdnaContext
 makeLenses ''EdnaContext
 
 type Edna = RIO EdnaContext
+
+fromConfig :: Getting a EdnaConfig a -> Edna a
+fromConfig getter = view (edConfig . getter)
 
 -- | Create 'EdnaContext' and run 'Edna' action with this context.
 runEdna :: EdnaConfig -> Edna a -> IO a
@@ -45,11 +50,6 @@ runEdna config action = do
           }
     runRIO ednaContext action
 
--- If @EDNA_DEBUG_DB@ environment variable is set to @1@
--- or @TRUE@ (case-insensitive), we will run postgres with
--- debug logging.
-askDebugDB :: IO Bool
-askDebugDB = lookupEnv "EDNA_DEBUG_DB" <&> \case
-  Just "1"                       -> True
-  Just (map C.toLower -> "true") -> True
-  _                              -> False
+-- | Dump config to stdout
+dumpConfig :: EdnaConfig -> IO ()
+dumpConfig = B.putStr . Y.encode
