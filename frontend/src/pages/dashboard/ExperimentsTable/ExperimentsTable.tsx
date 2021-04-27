@@ -91,12 +91,10 @@ export function ExperimentsTableSuspendable({
     () => ({
       Header: "IC50",
       accessor: (e: Experiment) =>
-        "Right" in e.primarySubExperiment.item.result ? (
-          <Tooltip text={`${e.primarySubExperiment.item.result.Right[2]}`}>
-            {formatIC50(e.primarySubExperiment.item.result.Right[2])}
-          </Tooltip>
+        "Right" in e.primaryIC50 ? (
+          <Tooltip text={`${e.primaryIC50.Right}`}>{formatIC50(e.primaryIC50.Right)}</Tooltip>
         ) : (
-          <Tooltip text={e.primarySubExperiment.item.result.Left} type="error">
+          <Tooltip text={e.primaryIC50.Left} type="error">
             <span className="ic50__valueNone" />
           </Tooltip>
         ),
@@ -120,7 +118,7 @@ export function ExperimentsTableSuspendable({
               checked={selectedExperiments.has(exp.id)}
               onChange={e => {
                 if (e.target.checked) {
-                  addSubExperiment(exp.primarySubExperiment.id);
+                  addSubExperiment(exp.primarySubExperimentId);
                 } else {
                   removeSubExperiments(exp.subExperiments);
                 }
@@ -284,7 +282,7 @@ function ExperimentsCollapse({
         <SubexperimentPlate
           className={experimentsTable("subexperiment", { expanded })}
           key={uuidv4()}
-          isPrimary={experiment.primarySubExperiment.id === s.id}
+          isPrimary={experiment.primarySubExperimentId === s.id}
           subexperiment={s}
         />
       ))}

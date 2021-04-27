@@ -13,6 +13,7 @@ import {
   MeasurementDto,
   DateTimeDto,
   SuccessSubExperimentDto,
+  ResultDto,
 } from "../api/types";
 
 export interface Experiment {
@@ -23,7 +24,8 @@ export interface Experiment {
   methodologyName?: string;
   uploadDate: DateTimeDto;
   subExperiments: number[];
-  primarySubExperiment: SubExperimentDto;
+  primarySubExperimentId: number;
+  primaryIC50: ResultDto<number>;
 }
 
 export type ExperimentsWithMean = {

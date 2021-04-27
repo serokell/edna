@@ -182,6 +182,7 @@ genExperimentResp = do
   erUploadDate <- genUTCTime
   erSubExperiments <- Gen.list (Range.linear 1 5) genSqlId
   erPrimarySubExperiment <- Gen.element erSubExperiments
+  erPrimaryIC50 <- Gen.either genDescription genDoubleSmallPrec
   return ExperimentResp {..}
 
 genSubExperimentResp :: MonadGen m => m SubExperimentResp
