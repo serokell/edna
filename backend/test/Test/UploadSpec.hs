@@ -15,6 +15,7 @@ import qualified Data.Set as Set
 
 import Data.List ((!!))
 import RIO (runRIO)
+import Servant.Util (fullContent, noSorting)
 import Test.Hspec (Spec, beforeAllWith, describe, it, shouldBe, shouldThrow)
 
 import qualified Edna.Dashboard.Service as Dashboard
@@ -63,8 +64,8 @@ spec = withContext $ startWithInitial $ do
         "blob" sampleFile
       summary2 <- uploadFile' (SqlId 2) (SqlId 2) "file description 2" "file name 2"
         "blob2" sampleFile2
-      targets <- Library.getTargets Nothing Nothing Nothing
-      compounds <- Library.getCompounds Nothing Nothing Nothing
+      targets <- Library.getTargets noSorting fullContent
+      compounds <- Library.getCompounds noSorting fullContent
       experiments <- Dashboard.getExperiments Nothing Nothing Nothing
       liftIO $ do
         summary `shouldBe` sortFileSummary sampleFileSummary'

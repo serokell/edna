@@ -29,28 +29,39 @@ import qualified Edna.Library.DB.Query as Q
 
 import Database.Beam.Backend (SqlSerial(..))
 import Servant.API (NoContent(..))
+import Servant.Util (PaginationSpec)
 
 import Edna.Library.DB.Schema
-  (CompoundRec, CompoundT(..), ProjectT(..), TestMethodologyRec, TestMethodologyT(..))
+  (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
+  TestMethodologyT(..))
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Web.Types
-  (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..), ProjectResp,
-  TargetResp)
+  (CompoundResp(..), CompoundSortingSpec, MethodologyReq(..), MethodologyResp(..),
+  MethodologySortingSpec, ProjectReq(..), ProjectResp(..), ProjectSortingSpec, TargetResp(..),
+  TargetSortingSpec)
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
-import Edna.Util (IdType(..), SqlId(..), ensureOrThrow, justOrThrow, localToUTC, nothingOrThrow)
+import Edna.Util
+  (IdType(..), SqlId(..), ensureOrThrow, fromSqlSerial, justOrThrow, localToUTC, nothingOrThrow)
 import Edna.Util.URI (parseURI, renderURI)
-import Edna.Web.Types (StubSortBy, URI, WithId(..))
+import Edna.Web.Types (URI, WithId(..))
+
+targetToResp :: (TargetRec, [Text]) -> WithId 'TargetId TargetResp
+targetToResp (TargetRec {..}, projects) = WithId (fromSqlSerial tTargetId)
+  TargetResp
+  { trName = tName
+  , trProjects = projects
+  , trAdditionDate = localToUTC tAdditionDate
+  }
 
 -- | Get target with given ID.
 getTarget :: SqlId 'TargetId -> Edna (WithId 'TargetId TargetResp)
-getTarget targetSqlId =
+getTarget targetSqlId = fmap targetToResp $
   Q.getTargetById targetSqlId >>= justOrThrow (LETargetNotFound targetSqlId)
 
 -- | Get all targets with optional pagination and sorting.
--- Pagination and sorting parameters are currently ignored.
-getTargets :: Maybe Word -> Maybe Word -> Maybe StubSortBy -> Edna [WithId 'TargetId TargetResp]
-getTargets _ _ _ = Q.getTargets
+getTargets :: TargetSortingSpec -> PaginationSpec -> Edna [WithId 'TargetId TargetResp]
+getTargets sorting pagination = map targetToResp <$> Q.getTargets sorting pagination
 
 compoundToResp :: CompoundRec -> Edna (WithId 'CompoundId CompoundResp)
 compoundToResp CompoundRec{..} = do
@@ -69,12 +80,11 @@ getCompound :: SqlId 'CompoundId -> Edna (WithId 'CompoundId CompoundResp)
 getCompound compoundSqlId = Q.getCompoundById compoundSqlId >>=
   justOrThrow (LECompoundNotFound compoundSqlId) >>= compoundToResp
 
+-- | Get all compounds with optional pagination and sorting.
 getCompounds
-  :: Maybe Word
-  -> Maybe Word
-  -> Maybe StubSortBy
-  -> Edna [WithId 'CompoundId CompoundResp]
-getCompounds _ _ _ = Q.getCompounds >>= mapM compoundToResp
+  :: CompoundSortingSpec -> PaginationSpec -> Edna [WithId 'CompoundId CompoundResp]
+getCompounds sorting pagination =
+  Q.getCompounds sorting pagination >>= mapM compoundToResp
 
 editChemSoft :: SqlId 'CompoundId -> URI -> Edna (WithId 'CompoundId CompoundResp)
 editChemSoft compoundSqlId uri = do
@@ -106,12 +116,11 @@ getMethodology :: SqlId 'MethodologyId -> Edna (WithId 'MethodologyId Methodolog
 getMethodology methodologySqlId = Q.getMethodologyById methodologySqlId >>=
   justOrThrow (LEMethodologyNotFound methodologySqlId) >>= methodologyToResp
 
+-- | Get all methodologies with optional pagination and sorting.
 getMethodologies
-  :: Maybe Word
-  -> Maybe Word
-  -> Maybe StubSortBy
-  -> Edna [WithId 'MethodologyId MethodologyResp]
-getMethodologies _ _ _ = Q.getMethodologies >>= mapM methodologyToResp
+  :: MethodologySortingSpec -> PaginationSpec -> Edna [WithId 'MethodologyId MethodologyResp]
+getMethodologies sorting pagination =
+  Q.getMethodologies sorting pagination >>= mapM methodologyToResp
 
 addMethodology :: MethodologyReq -> Edna (WithId 'MethodologyId MethodologyResp)
 addMethodology tm@MethodologyReq{..} = do
@@ -136,12 +145,26 @@ deleteMethodology methodologySqlId =
   NoContent <$ unlessM (Q.deleteMethodology methodologySqlId)
   (throwM $ LEMethodologyNotFound methodologySqlId)
 
-getProject :: SqlId 'ProjectId -> Edna (WithId 'ProjectId ProjectResp)
-getProject projectSqlId =
-  Q.getProjectWithCompoundsById projectSqlId >>= justOrThrow (LEProjectNotFound projectSqlId)
+projectToResp :: (ProjectRec, [Text]) -> WithId 'ProjectId ProjectResp
+projectToResp (ProjectRec {..}, compounds) = WithId (fromSqlSerial pProjectId)
+  ProjectResp
+  { prName = pName
+  , prDescription = pDescription
+  , prCreationDate = localToUTC pCreationDate
+  , prLastUpdate = localToUTC pLastUpdate
+  , prCompoundNames = compounds
+  }
 
-getProjects :: Maybe Word -> Maybe Word -> Maybe StubSortBy -> Edna [WithId 'ProjectId ProjectResp]
-getProjects _ _ _ = Q.getProjectsWithCompounds
+getProject :: SqlId 'ProjectId -> Edna (WithId 'ProjectId ProjectResp)
+getProject projectSqlId = fmap projectToResp $
+  Q.getProjectWithCompoundsById projectSqlId >>=
+  justOrThrow (LEProjectNotFound projectSqlId)
+
+-- | Get all projects with optional pagination and sorting.
+getProjects ::
+  ProjectSortingSpec -> PaginationSpec -> Edna [WithId 'ProjectId ProjectResp]
+getProjects sorting pagination =
+  map projectToResp <$> Q.getProjectsWithCompounds sorting pagination
 
 addProject :: ProjectReq -> Edna (WithId 'ProjectId ProjectResp)
 addProject p@ProjectReq{..} = do

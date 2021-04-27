@@ -2,6 +2,10 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
+-- beam types are just too complex
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
+
 module Edna.Library.DB.Query
   ( getTargetById
   , getTargets
@@ -30,15 +34,21 @@ module Edna.Library.DB.Query
 
 import Universum
 
-import qualified Data.List as L
-import qualified Data.List.NonEmpty as NE
+import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HashSet
+import qualified Data.Set as Set
 import qualified Database.Beam.Postgres.Full as Pg
 
 import Database.Beam.Backend (SqlSerial(..))
-import Database.Beam.Postgres (now_, pgNubBy_)
+import Database.Beam.Postgres (Postgres, now_)
 import Database.Beam.Query
-  (all_, asc_, cast_, default_, filter_, guard_, insert, insertExpressions, int, just_, leftJoin_,
-  lookup_, orderBy_, select, update, val_, (<-.), (==.))
+  (Q, all_, cast_, default_, filter_, guard_, insert, insertExpressions, int, just_, leftJoin_,
+  lookup_, select, update, val_, (<-.), (==.))
+import Lens.Micro (at)
+import Servant.Util (HList(..), PaginationSpec(..), (.*.))
+import Servant.Util.Beam.Postgres (paginate_, sortBy_)
+import Servant.Util.Combinators.Sorting.Backend (fieldSort)
+import Servant.Util.Dummy.Pagination (paginate)
 
 import Edna.DB.Integration
   (runDeleteReturningList', runInsert', runInsertReturningOne', runSelectReturningList',
@@ -48,69 +58,71 @@ import Edna.Dashboard.DB.Schema (ExperimentT(..))
 import Edna.Library.DB.Schema as LDB
   (CompoundRec, CompoundT(..), PrimaryKey(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..),
   TestMethodologyRec, TestMethodologyT(..))
-import Edna.Library.Web.Types (MethodologyReq(..), ProjectReq(..), ProjectResp(..), TargetResp(..))
+import Edna.Library.Web.Types
+  (CompoundSortingSpec, MethodologyReq(..), MethodologySortingSpec, ProjectReq(..),
+  ProjectSortingSpec, TargetSortingSpec)
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
-import Edna.Util as U
-  (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId, justOrError, localToUTC)
+import Edna.Util as U (CompoundId, MethodologyId, ProjectId, SqlId(..), TargetId, justOrError)
 import Edna.Util.URI (renderURI)
-import Edna.Web.Types (WithId(..))
+
+-- General notes for this module:
+--
+-- 1. We can't use @pgNubBy_@ in queries returning @(MainItem, [ItemsBelongToIt])@ because
+-- "SELECT DISTINCT ON expressions must match initial ORDER BY expressions".
+-- 2. Also in such cases we can't use @paginate_@ easily, because we want to paginate
+-- only main items, but we may get @[(mainItem, smth1), (mainItem, smth2)]@ as
+-- two different items which we want to treat as one item.
 
 --------------------------
 -- Target
 --------------------------
 
-targetToDomain :: TargetId -> TargetRec -> [Maybe ProjectRec] -> WithId 'U.TargetId TargetResp
-targetToDomain targetSqlId TargetRec{..} projects = WithId targetSqlId $ TargetResp
-  { trName = tName
-  , trProjects = mapMaybe (fmap pName) projects
-  , trAdditionDate = localToUTC tAdditionDate
-  }
+-- | Return target by its ID along with all projects where this target is involved.
+getTargetById :: TargetId -> Edna (Maybe (TargetRec, [Text]))
+getTargetById = fmap listToMaybe . targetsWithProjects . Left
 
--- TODO maybe we should move it to Service layer
--- | Return API value of the target by its ID
-getTargetById :: TargetId -> Edna (Maybe (WithId 'U.TargetId TargetResp))
-getTargetById targetSqlId = do
-  targetWithProjects <- targetsWithProjects $ Just targetSqlId
-  case targetWithProjects of
-    [] -> pure Nothing
-    xs@((target, _) : _) -> pure $ Just $ targetToDomain targetSqlId target $ map snd xs
+-- | Return all targets sorted and paginated according to
+-- provided specifications along with projects where targets are involved.
+getTargets ::
+  TargetSortingSpec -> PaginationSpec -> Edna [(TargetRec, [Text])]
+getTargets sorting pagination =
+  targetsWithProjects $ Right (sorting, pagination)
 
--- TODO maybe we should move it to Service layer
--- | Return API values of all targets
-getTargets :: Edna [WithId 'U.TargetId TargetResp]
-getTargets = do
-  targets <- targetsWithProjects Nothing
-  let groupedTargets =
-        L.groupBy (\(t1, _) (t2, _) -> tTargetId t1 == tTargetId t2) targets
-  pure $ foldr getTarget [] groupedTargets
+-- | Combines targets with projects to which they relate.
+-- If specific target was passed, use only this target in query.
+-- Otherwise, pagination and sorting parameters are passed and taken into account.
+targetsWithProjects ::
+  Either TargetId (TargetSortingSpec, PaginationSpec) -> Edna [(TargetRec, [Text])]
+targetsWithProjects targetIdEither =
+  groupAndPaginate (snd <$> rightToMaybe targetIdEither) (unSerial . tTargetId) <$>
+  case targetIdEither of
+    Left targetSqlId ->
+      runSelectReturningList' $ select $
+      filter_ (specificTarget targetSqlId) baseQuery
+    Right (sorting, _) ->
+      runSelectReturningList' $ select $
+      sortBy_ sorting sortingApp baseQuery
   where
-    getTarget target targets = case target of
-      xs@((t, _) : _) ->
-        targetToDomain (SqlId $ unSerial $ tTargetId t) t (map snd xs) : targets
-      _ -> targets
+    baseQuery :: Q Postgres EdnaSchema s _
+    baseQuery = do
+      let EdnaSchema {..} = ednaSchema
+      targets <- all_ esTarget
+      experiments <- leftJoin_ (all_ esExperiment) $
+        \e -> eTargetId e ==. cast_ (tTargetId targets) int
+      files <- leftJoin_ (all_ esExperimentFile) $
+        \f -> just_ (cast_ (efExperimentFileId f) int) ==. eExperimentFileId experiments
+      projects <- leftJoin_ (all_ esProject) $
+        \p -> just_ (cast_ (pProjectId p) int) ==. efProjectId files
+      pure (targets, pName projects)
 
--- | Combines targets with projects to which they relate
--- If specific target was passed, use only this target in query
-targetsWithProjects :: Maybe TargetId -> Edna [(TargetRec, Maybe ProjectRec)]
-targetsWithProjects targetSqlId = runSelectReturningList' $ select $
-  orderBy_ (\(t, _) -> asc_ $ tTargetId t) $
-  pgNubBy_ (bimap tTargetId pProjectId) $
-  filter_ specificTarget do
-    let EdnaSchema {..} = ednaSchema
-    targets <- all_ esTarget
-    experiments <- leftJoin_ (all_ esExperiment) $
-      \e -> eTargetId e ==. cast_ (tTargetId targets) int
-    files <- leftJoin_ (all_ esExperimentFile) $
-      \f -> just_ (cast_ (efExperimentFileId f) int) ==. eExperimentFileId experiments
-    projects <- leftJoin_ (all_ esProject) $
-      \p -> just_ (cast_ (pProjectId p) int) ==. efProjectId files
-    pure (targets, projects)
-  where
-    specificTarget = case targetSqlId of
-      Just (SqlId targetId) -> \(t, _) ->
-        tTargetId t ==. val_ (SqlSerial targetId)
-      Nothing -> \_ -> val_ True
+    specificTarget (SqlId targetId) (t, _)=
+      tTargetId t ==. val_ (SqlSerial targetId)
+
+    sortingApp (TargetRec {..}, _) =
+      fieldSort @"name" tName .*.
+      fieldSort @"additionDate" tAdditionDate .*.
+      HNil
 
 -- | Get target by its name. Return nothing if there is no such target.
 getTargetByName :: Text -> Edna (Maybe TargetRec)
@@ -140,9 +152,15 @@ getCompoundById (SqlId compoundId) = runSelectReturningOne' $ select $ do
   guard_ (cCompoundId compounds ==. val_ (SqlSerial compoundId))
   pure compounds
 
--- | Get all compounds
-getCompounds :: Edna [CompoundRec]
-getCompounds = runSelectReturningList' $ select $ all_ $ esCompound ednaSchema
+-- | Get compounds sorted and paginated according to provided specifications.
+getCompounds :: CompoundSortingSpec -> PaginationSpec -> Edna [CompoundRec]
+getCompounds sorting pagination = runSelectReturningList' $ select $
+  paginate_ pagination $ sortBy_ sorting sortingApp $ all_ $ esCompound ednaSchema
+  where
+    sortingApp CompoundRec {..} =
+      fieldSort @"name" cName .*.
+      fieldSort @"additionDate" cAdditionDate .*.
+      HNil
 
 -- | Edit ChemSoft link of a given compound
 editCompoundChemSoft :: CompoundId -> Text -> Edna ()
@@ -179,7 +197,7 @@ insertCompound compoundName = do
 
 -- | Get methodology by its name. Return nothing if there is no such methodology.
 getMethodologyById :: MethodologyId -> Edna (Maybe (TestMethodologyRec, [Text]))
-getMethodologyById = fmap listToMaybe . getMethodology' . Just
+getMethodologyById = fmap listToMaybe . getMethodology' . Left
 
 -- | Get methodology by its name. Return nothing if there is no such methodology.
 getMethodologyByName :: Text -> Edna (Maybe TestMethodologyRec)
@@ -188,28 +206,37 @@ getMethodologyByName name = runSelectReturningOne' $ select $ do
   guard_ (LDB.tmName methodologies ==. val_ name)
   pure methodologies
 
--- | Get all methodologies
-getMethodologies :: Edna [(TestMethodologyRec, [Text])]
-getMethodologies = getMethodology' Nothing
+-- | Get methodologies sorted and paginated according to provided specifications.
+getMethodologies ::
+  MethodologySortingSpec -> PaginationSpec -> Edna [(TestMethodologyRec, [Text])]
+getMethodologies sorting pagination =
+  getMethodology' $ Right (sorting, pagination)
 
-getMethodology' :: Maybe MethodologyId -> Edna [(TestMethodologyRec, [Text])]
-getMethodology' mMethodologyId =
-  fmap convert $
-  runSelectReturningList' $ select $
-  pgNubBy_ (bimap tmTestMethodologyId pProjectId) $ do
-    tm <- all_ $ esTestMethodology ednaSchema
-    whenJust mMethodologyId $ \(SqlId methodId) ->
-      guard_ (tmTestMethodologyId tm ==. val_ (SqlSerial methodId))
-    experimentFile <- leftJoin_ (all_ $ esExperimentFile ednaSchema) $
-      \ef -> just_ (cast_ (tmTestMethodologyId tm) int) ==. efMethodologyId ef
-    project <- leftJoin_ (all_ $ esProject ednaSchema) $
-      \p -> just_ (cast_ (pProjectId p) int) ==. efProjectId experimentFile
-    return (tm, project)
+getMethodology' ::
+  Either MethodologyId (MethodologySortingSpec, PaginationSpec) ->
+  Edna [(TestMethodologyRec, [Text])]
+getMethodology' eMethodologyId =
+  groupAndPaginate (snd <$> rightToMaybe eMethodologyId) (unSerial . tmTestMethodologyId) <$>
+  case eMethodologyId of
+    Left _ -> runSelectReturningList' $ select baseQuery
+    Right (sorting, _) ->
+      runSelectReturningList' $ select $
+      sortBy_ sorting sortingApp baseQuery
   where
-    convert :: [(TestMethodologyRec, Maybe ProjectRec)] -> [(TestMethodologyRec, [Text])]
-    convert =
-      map (\ne -> (fst $ head ne, map pName . mapMaybe snd . toList $ ne)) .
-      NE.groupAllWith (tmTestMethodologyId . fst)
+    baseQuery :: Q Postgres EdnaSchema s _
+    baseQuery = do
+      tm <- all_ $ esTestMethodology ednaSchema
+      whenLeft eMethodologyId $ \(SqlId methodId) ->
+        guard_ (tmTestMethodologyId tm ==. val_ (SqlSerial methodId))
+      experimentFile <- leftJoin_ (all_ $ esExperimentFile ednaSchema) $
+        \ef -> just_ (cast_ (tmTestMethodologyId tm) int) ==. efMethodologyId ef
+      project <- leftJoin_ (all_ $ esProject ednaSchema) $
+        \p -> just_ (cast_ (pProjectId p) int) ==. efProjectId experimentFile
+      return (tm, pName project)
+
+    sortingApp (TestMethodologyRec {..}, _) =
+      fieldSort @"name" tmName .*.
+      HNil
 
 -- | Insert methodology and return its DB value.
 -- Fails if methodology with this name already exists
@@ -247,19 +274,6 @@ deleteMethodology (SqlId methodologyId) =
 -- Project
 --------------------------
 
-projectToDomain
-  :: ProjectId
-  -> ProjectRec
-  -> [Maybe CompoundRec]
-  -> WithId 'U.ProjectId ProjectResp
-projectToDomain projectSqlId ProjectRec{..} compounds = WithId projectSqlId $ ProjectResp
-  { prName = pName
-  , prDescription = pDescription
-  , prCreationDate = localToUTC pCreationDate
-  , prLastUpdate = localToUTC pLastUpdate
-  , prCompoundNames = mapMaybe (fmap cName) compounds
-  }
-
 -- | Get project by its ID. Return nothing if there is no such project.
 getProjectById :: ProjectId -> Edna (Maybe ProjectRec)
 getProjectById (SqlId projectId) = runSelectReturningOne' $
@@ -272,49 +286,52 @@ getProjectByName name = runSelectReturningOne' $ select $ do
   guard_ (pName projects ==. val_ name)
   pure projects
 
--- TODO maybe we should move it to Service layer
--- | Return API value of the project by its ID
-getProjectWithCompoundsById :: ProjectId -> Edna (Maybe (WithId 'U.ProjectId ProjectResp))
-getProjectWithCompoundsById projectSqlId = do
-  projectWithCompounds <- projectsWithCompounds $ Just projectSqlId
-  case projectWithCompounds of
-    [] -> pure Nothing
-    xs@((project, _) : _) -> pure $ Just $ projectToDomain projectSqlId project $ map snd xs
+-- | Return project by its ID along with all compounds used in this project.
+getProjectWithCompoundsById :: ProjectId -> Edna (Maybe (ProjectRec, [Text]))
+getProjectWithCompoundsById = fmap listToMaybe . projectsWithCompounds . Left
 
--- TODO maybe we should move it to Service layer
--- | Return API values of all projects
-getProjectsWithCompounds :: Edna [WithId 'U.ProjectId ProjectResp]
-getProjectsWithCompounds = do
-  projects <- projectsWithCompounds Nothing
-  let groupedProjects = L.groupBy
-        (\(p1, _) (p2, _) -> pProjectId p1 == pProjectId p2) projects
-  pure $ foldr getProject [] groupedProjects
-  where
-    getProject project projects = case project of
-      xs@((p, _) : _) ->
-        projectToDomain (SqlId $ unSerial $ pProjectId p) p (map snd xs) : projects
-      _ -> projects
+-- | Return all projects sorted and paginated according to
+-- provided specifications along with compounds used in these projects.
+getProjectsWithCompounds ::
+  ProjectSortingSpec -> PaginationSpec -> Edna [(ProjectRec, [Text])]
+getProjectsWithCompounds sorting pagination =
+  projectsWithCompounds $ Right (sorting, pagination)
 
--- | Combines project with compounds to which they relate
--- If specific project was passed, use only this project in query
-projectsWithCompounds :: Maybe ProjectId -> Edna [(ProjectRec, Maybe CompoundRec)]
-projectsWithCompounds projectSqlId = runSelectReturningList' $ select $
-  orderBy_ (\(t, _) -> asc_ $ pProjectId t) $
-  pgNubBy_ (bimap pProjectId cCompoundId) $
-  filter_ specificProject do
-    let EdnaSchema {..} = ednaSchema
-    projects <- all_ esProject
-    files <- leftJoin_ (all_ esExperimentFile) $
-      \f -> efProjectId f ==. cast_ (pProjectId projects) int
-    experiments <- leftJoin_ (all_ esExperiment) $
-      \e -> eExperimentFileId e ==. cast_ (efExperimentFileId files) int
-    compounds <- leftJoin_ (all_ esCompound) $
-      \c -> just_ (cast_ (cCompoundId c) int) ==. eCompoundId experiments
-    pure (projects, compounds)
+-- | Combines project with compounds to which they relate.
+-- If specific project was passed, use only this project in query.
+-- Otherwise, pagination and sorting parameters are passed and taken into account.
+projectsWithCompounds ::
+  Either ProjectId (ProjectSortingSpec, PaginationSpec) ->
+  Edna [(ProjectRec, [Text])]
+projectsWithCompounds projectIdEither =
+  groupAndPaginate (snd <$> rightToMaybe projectIdEither) (unSerial . pProjectId) <$>
+  case projectIdEither of
+    Left projectSqlId ->
+      runSelectReturningList' $ select $
+      filter_ (specificProject projectSqlId) baseQuery
+    Right (sorting, _) ->
+      runSelectReturningList' $ select $ sortBy_ sorting sortingApp baseQuery
   where
-    specificProject = case projectSqlId of
-      Just (SqlId projectId) -> \(t, _) -> pProjectId t ==. val_ (SqlSerial projectId)
-      Nothing -> \_ -> val_ True
+    baseQuery :: Q Postgres EdnaSchema s _
+    baseQuery = do
+      let EdnaSchema {..} = ednaSchema
+      projects <- all_ esProject
+      files <- leftJoin_ (all_ esExperimentFile) $
+        \f -> efProjectId f ==. cast_ (pProjectId projects) int
+      experiments <- leftJoin_ (all_ esExperiment) $
+        \e -> eExperimentFileId e ==. cast_ (efExperimentFileId files) int
+      compounds <- leftJoin_ (all_ esCompound) $
+        \c -> just_ (cast_ (cCompoundId c) int) ==. eCompoundId experiments
+      pure (projects, cName compounds)
+
+    specificProject (SqlId projectId) (p, _)=
+      pProjectId p ==. val_ (SqlSerial projectId)
+
+    sortingApp (ProjectRec {..}, _) =
+      fieldSort @"name" pName .*.
+      fieldSort @"creationDate" pCreationDate .*.
+      fieldSort @"lastUpdate" pLastUpdate .*.
+      HNil
 
 -- | Insert project and return its DB value
 -- Fails if project with this name already exists
@@ -346,3 +363,40 @@ touchProject (SqlId projectId) =
   runUpdate' $ update (esProject ednaSchema)
     (\p -> LDB.pLastUpdate p <-. now_)
     (\p -> pProjectId p ==. val_ (SqlSerial projectId))
+
+----------------
+-- Helpers
+----------------
+
+-- This function is helpful for queries where we use left join and get
+-- pairs of items. The first item is the main and legendary one, it is requested.
+-- We call it @boka@. Each @boka@ has a list of grandchildren, we call them
+-- @joka@. There can be multiple items with the same @boka@ values. @boka@
+-- has a primary key that we use for identification.
+-- There are 3 goals here:
+--
+-- 1. Group items with the same @boka@ value.
+-- 2. Preserving sorting of items.
+-- 3. Carefully apply pagination, it should be applied __after__ grouping.
+groupAndPaginate :: forall boka joka pk.
+  (Hashable pk, Eq pk, Ord joka) =>
+  Maybe PaginationSpec -> (boka -> pk) ->
+  [(boka, Maybe joka)] -> [(boka, [joka])]
+groupAndPaginate mPagination toPrimaryKey items =
+  maybe id paginate mPagination $ snd $ foldr (step . fst) (mempty, []) items
+  where
+    step :: boka -> (HashSet pk, [(boka, [joka])]) -> (HashSet pk, [(boka, [joka])])
+    step boka acc@(visited, res)
+      | HashSet.member pk visited = acc
+      | otherwise =
+        ( HashSet.insert pk visited
+        , (boka, maybe [] toList $ bokaToJokas ^. at pk) : res
+        )
+      where
+        pk = toPrimaryKey boka
+
+    bokaToJokas :: HashMap pk (Set joka)
+    bokaToJokas = foldl' innerStep mempty items
+      where
+        innerStep acc (boka, mJoka) =
+          maybe acc (\joka -> HM.insertWith Set.union (toPrimaryKey boka) (one joka) acc) mJoka

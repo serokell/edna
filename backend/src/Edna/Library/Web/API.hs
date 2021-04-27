@@ -25,9 +25,10 @@ module Edna.Library.Web.API
 import Universum
 
 import Servant (ReqBody)
-import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, QueryParam, Summary, (:>))
+import Servant.API (Capture, Delete, Get, JSON, NoContent, Post, Put, Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
+import Servant.Util (PaginationParams, SortingParamsOf)
 
 import Edna.Library.Service
   (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound, getCompounds,
@@ -37,11 +38,7 @@ import Edna.Library.Web.Types
   (CompoundResp, MethodologyReq, MethodologyResp, ProjectReq, ProjectResp, TargetResp)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), MethodologyId, SqlId(..))
-import Edna.Web.Types (StubSortBy, URI, WithId)
-
--- TODO: pagination and sorting are just stubs for now (everywhere).
--- Most likely we will use @servant-util@ to implement them,
--- but let's do it later.
+import Edna.Web.Types (URI, WithId)
 
 -- | Endpoints related to projects.
 data ProjectEndpoints route = ProjectEndpoints
@@ -64,9 +61,8 @@ data ProjectEndpoints route = ProjectEndpoints
     peGetProjects :: route
       :- "projects"
       :> Summary "Get known projects"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
+      :> SortingParamsOf ProjectResp
+      :> PaginationParams
       :> Get '[JSON] [WithId 'ProjectId ProjectResp]
 
   , -- | Get project data by ID
@@ -115,9 +111,8 @@ data MethodologyEndpoints route = MethodologyEndpoints
     meGetMethodologies :: route
       :- "methodologies"
       :> Summary "Get known methodologies"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
+      :> SortingParamsOf MethodologyResp
+      :> PaginationParams
       :> Get '[JSON] [WithId 'MethodologyId MethodologyResp]
 
   , -- | Get methodology data by ID
@@ -145,9 +140,8 @@ data TargetEndpoints route = TargetEndpoints
     teGetTargets :: route
       :- "targets"
       :> Summary "Get known targets"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
+      :> SortingParamsOf TargetResp
+      :> PaginationParams
       :> Get '[JSON] [WithId 'TargetId TargetResp]
 
   , -- | Get target data by ID
@@ -190,9 +184,8 @@ data CompoundEndpoints route = CompoundEndpoints
     ceGetCompounds :: route
       :- "compounds"
       :> Summary "Get known compounds"
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
+      :> SortingParamsOf CompoundResp
+      :> PaginationParams
       :> Get '[JSON] [WithId 'CompoundId CompoundResp]
 
   , -- | Get compound data by ID

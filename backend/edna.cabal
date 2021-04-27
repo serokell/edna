@@ -107,6 +107,7 @@ library
     servant-swagger-ui-core,
     servant-swagger-ui,
     servant-util,
+    servant-util-beam-pg,
     split,
     swagger2,
     text,
@@ -194,5 +195,6 @@ test-suite edna-test
     , QuickCheck
     , rio
     , servant-swagger
+    , servant-util
     , unordered-containers
     , xlsx

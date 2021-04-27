@@ -10,6 +10,7 @@ source-repository-package
     location: https://github.com/serokell/servant-util
     tag: 3dff2de34cce90c4d1dab68e03d30f8939fd52ca
     subdir: servant-util
+            servant-util-beam-pg
 
 allow-older: *
 allow-newer: *
