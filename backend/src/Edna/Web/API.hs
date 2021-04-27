@@ -13,26 +13,17 @@ module Edna.Web.API
 
 import Universum
 
-import Servant.API (GetNoContent, JSON, Post, Summary, (:<|>), (:>))
+import Servant.API (GetNoContent, Summary, (:<|>), (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
-import Servant.Multipart (Mem, MultipartForm)
 
 import qualified Edna.Dashboard.Web.API as Dashboard
 import qualified Edna.Upload.Web.API as Upload
 
 import Edna.Library.Web.API (CompoundAPI, MethodologyAPI, ProjectAPI, TargetAPI)
-import Edna.Upload.Web.Types (FileBS)
 
 -- | API endpoints specification.
 data EdnaEndpoints route = EdnaEndpoints
-  { -- | Legacy: upload one experiment
-    eeUploadExperiment :: route
-      :- "experiment"
-      :> Summary "Upload an EXCEL file describing one experiment"
-      :> MultipartForm Mem FileBS
-      :> Post '[JSON] [Upload.ExperimentalMeasurement]
-
-  , eeFileUploadEndpoints :: route :- "file" :> Upload.FileUploadAPI
+  { eeFileUploadEndpoints :: route :- "file" :> Upload.FileUploadAPI
   , eeProjectEndpoints :: route :- ProjectAPI
   , eeMethodologyEndpoints :: route :- MethodologyAPI
   , eeCompoundEndpoints :: route :- CompoundAPI

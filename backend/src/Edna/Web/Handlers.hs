@@ -21,8 +21,7 @@ type EdnaHandlers m = ToServant EdnaEndpoints (AsServerT m)
 -- | Server handler implementation for Edna API.
 ednaHandlers :: EdnaHandlers Edna
 ednaHandlers = genericServerT EdnaEndpoints
-  { eeUploadExperiment = Upload.uploadExperiment
-  , eeFileUploadEndpoints = Upload.fileUploadEndpoints
+  { eeFileUploadEndpoints = Upload.fileUploadEndpoints
   , eeProjectEndpoints = Library.projectEndpoints
   , eeMethodologyEndpoints = Library.methodologyEndpoints
   , eeCompoundEndpoints = Library.compoundEndpoints
