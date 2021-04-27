@@ -65,7 +65,6 @@ import Edna.ExperimentReader.Types
 import Edna.Library.Web.Types
   (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..), ProjectResp(..),
   TargetResp(..))
-import Edna.Upload.Web.API (ExperimentalMeasurement(..))
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..))
 import Edna.Util (SqlId(..), localToUTC)
 import Edna.Web.Types
@@ -276,18 +275,6 @@ genDoubleSmallPrec = divideBy128 <$> Gen.word64 (Range.constant 0 300)
 ----------------
 -- QuickCheck
 ----------------
-
--- This type is legacy and will likely be removed and replaced by something
--- else, so we are defining a dummy instance for now and now @hedgehog@
--- generator.
-instance Arbitrary ExperimentalMeasurement where
-  arbitrary = pure ExperimentalMeasurement
-    { emCompoundId = "aa"
-    , emTargetId = "qq"
-    , emConcentration = 0
-    , emSignal = 0
-    , emOutlier = True
-    }
 
 deriving newtype instance Arbitrary (SqlId t)
 
