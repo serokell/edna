@@ -112,6 +112,7 @@ export const App: FunctionComponent = (): ReactElement => {
         <Route path="/upload">
           <UploadPage />
         </Route>
+
         <Route path="/library">
           <LibraryPage />
         </Route>
@@ -123,7 +124,7 @@ export const App: FunctionComponent = (): ReactElement => {
         <Redirect exact from="/" to="/upload" />
 
         <Route path="*">
-          <NotFound />
+          <NotFound page />
         </Route>
       </Switch>
     </>

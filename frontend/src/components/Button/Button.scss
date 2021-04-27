@@ -115,9 +115,10 @@
 
 .roundedButton {
   @include snd-btn;
-
   padding: (10 * $px) (21 * $px);
   font-size: 14 * $px;
+
+  font-weight: 700;
   line-height: 18 * $px;
   color: $color-green;
   background-color: $color-light-green;

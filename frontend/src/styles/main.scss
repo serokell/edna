@@ -19,6 +19,13 @@ body {
   font-family: "PT Root UI", serif;
 }
 
+input,
+textarea,
+button,
+select {
+  font-family: inherit;
+}
+
 .ednaInput,
 .ednaTextarea {
   box-sizing: border-box;

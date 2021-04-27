@@ -2,9 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import cx from "classnames";
 import "./LibraryPage.scss";
+import { Route, Switch, Link, useLocation } from "react-router-dom";
+import { Redirect } from "react-router";
 import { SuspenseSpinner } from "../../components/Spinner/SuspsenseSpinner";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CreateMethodologyButton } from "../../components/buttons/CreateMethodologyButton";
@@ -14,21 +16,23 @@ import { ProjectsSuspendable } from "./Projects";
 import { CompoundsSuspendable } from "./Compounds";
 import { MethodsSuspendable } from "./Methodologies";
 import { TargetsSuspendable } from "./Targets";
+import { NotFound } from "../../components/NotFound/NotFound";
+import { Maybe } from "../../utils/utils";
 
 export const LibraryPage: FunctionComponent = () => {
   return (
     <PageLayout>
       <EntitiesTab
         renderAddButton={activeTab => {
-          if (activeTab === "project")
+          if (activeTab === "projects")
             return <CreateProjectButton className="libraryPage__addBtn" />;
-          if (activeTab === "methodology")
+          if (activeTab === "methodologies")
             return <CreateMethodologyButton className="libraryPage__addBtn" />;
           return <></>;
         }}
         render={entity => {
+          // TODO work out error placeholder better
           return (
-            // TODO work out it's better
             <ErrorPlaceholder>
               <SuspenseSpinner>{suspendables[entity]()}</SuspenseSpinner>
             </ErrorPlaceholder>
@@ -40,17 +44,19 @@ export const LibraryPage: FunctionComponent = () => {
 };
 
 const entities = {
-  project: "Projects",
-  compound: "Compounds",
-  target: "Targets",
-  methodology: "Methodologies",
+  projects: "Projects",
+  compounds: "Compounds",
+  targets: "Targets",
+  methodologies: "Methodologies",
 };
 
+const entitiesFlds: EntityType[] = Object.keys(entities) as EntityType[];
+
 const suspendables = {
-  project: () => <ProjectsSuspendable />,
-  compound: () => <CompoundsSuspendable />,
-  target: () => <TargetsSuspendable />,
-  methodology: () => <MethodsSuspendable />,
+  projects: () => <ProjectsSuspendable />,
+  compounds: () => <CompoundsSuspendable />,
+  targets: () => <TargetsSuspendable />,
+  methodologies: () => <MethodsSuspendable />,
 };
 
 type EntityType = keyof typeof entities;
@@ -61,24 +67,45 @@ interface EntitiesTabProps {
 }
 
 function EntitiesTab({ render, renderAddButton }: EntitiesTabProps) {
-  const [entityTab, setEntityTab] = useState<EntityType>("project");
+  const { pathname } = useLocation();
+  const [entityTab, setEntityTab] = useState<Maybe<EntityType>>(undefined);
+
+  useEffect(() => {
+    setEntityTab(entitiesFlds.find(fld => pathname.endsWith(fld)));
+  }, [pathname]);
+
+  const renderRoute = (entity: EntityType) => (
+    <Route key={entity} path={`/library/${entity}`}>
+      {render(entity)}
+    </Route>
+  );
 
   return (
     <>
       <div className="entityTabs">
         {Object.entries(entities).map(([tpStr, title]) => (
-          <div
+          <Link
             key={tpStr}
+            to={`/library/${tpStr}`}
             className={cx("entityTabs__tab", entityTab === tpStr && "entityTabs__tab_active")}
             onClick={() => setEntityTab(tpStr as EntityType)}
           >
             {title}
-          </div>
+          </Link>
         ))}
 
-        {renderAddButton(entityTab)}
+        {entityTab && renderAddButton(entityTab)}
       </div>
-      {render(entityTab)}
+
+      <Switch>
+        {entitiesFlds.map(entity => renderRoute(entity))}
+
+        <Redirect exact from="/library" to="/library/projects" />
+
+        <Route path="*">
+          <NotFound />
+        </Route>
+      </Switch>
     </>
   );
 }

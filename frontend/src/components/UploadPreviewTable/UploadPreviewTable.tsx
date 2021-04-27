@@ -6,15 +6,17 @@ import React from "react";
 import "./UploadPreviewTable.scss";
 import cx from "classnames";
 import { Column } from "react-table";
+import { Link } from "react-router-dom";
 import { Button } from "../Button/Button";
 import { ParsedExcelDto } from "../../api/types";
 import { Table } from "../Table/Table";
 import "../Table/Table.scss";
+import { isDefined } from "../../utils/utils";
 
 interface UploadTableProps {
   className?: string;
   targets: ParsedExcelDto[];
-  viewEnabled: boolean;
+  projectId?: number;
 }
 
 interface PreviewRow {
@@ -27,7 +29,7 @@ interface PreviewRow {
 export function UploadPreviewTable({
   className,
   targets,
-  viewEnabled,
+  projectId,
 }: UploadTableProps): React.ReactElement {
   const previewColumns: Column<PreviewRow>[] = React.useMemo(
     () => [
@@ -42,17 +44,33 @@ export function UploadPreviewTable({
 
       {
         id: "actions",
-        accessor: () => (
-          // TODO add link
-          <td className="ednaTable__cell uploadPreviewTable__actions">
-            <Button type="link" disabled={!viewEnabled}>
+        accessor: (p: PreviewRow) => {
+          const disabled = !projectId || !isDefined(p.compoundId) || !isDefined(p.targetId);
+          const viewBtn = (
+            <Button propagate type="link" disabled={disabled}>
               View
             </Button>
-          </td>
-        ),
+          );
+          return (
+            <td className="ednaTable__cell uploadPreviewTable__actions">
+              {disabled ? (
+                viewBtn
+              ) : (
+                <Link
+                  to={{
+                    pathname: "/dashboard",
+                    state: { projectId, compoundId: p.compoundId, targetId: p.targetId },
+                  }}
+                >
+                  {viewBtn}
+                </Link>
+              )}
+            </td>
+          );
+        },
       },
     ],
-    [viewEnabled]
+    [projectId]
   );
 
   const data: PreviewRow[] = [];

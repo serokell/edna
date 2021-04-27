@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { FunctionComponent, ReactElement } from "react";
+import React, { FunctionComponent, ReactElement, useState } from "react";
 import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
+import { Prompt } from "react-router-dom";
 import Api from "../../api/api";
 import "../../components/Spinner/Spinner.scss";
 import FormField from "../../components/FormField/FormField";
@@ -40,8 +41,24 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const compoundsRefresher = useCompoundsRefresher();
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
   const methodologiesRefresher = useMethodologiesRefresher();
+  const [currentProject, setCurrentProject] = useState<Maybe<ProjectDto>>(undefined);
+  const [hasUnsavedFields, setHasUnsavedFields] = useState(false);
+  const showPrompt = (ch: React.ReactNode) => (
+    <>
+      <Prompt
+        when={hasUnsavedFields}
+        message={loc => {
+          if (loc.pathname === "/upload") {
+            return true;
+          }
+          return "All unsaved data will be lost if you leave the page. Do you really want to leave the page?";
+        }}
+      />
+      {ch}
+    </>
+  );
 
-  return (
+  return showPrompt(
     <PageLayout>
       <Formik<UploadForm>
         initialValues={{
@@ -51,6 +68,10 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           description: "",
         }}
         validate={values => {
+          setHasUnsavedFields(
+            !!values.file || !!values.project || !!values.methodology || !!values.description
+          );
+          setCurrentProject(values.project);
           const errors: any = {};
           if (!isDefined(values.file)) {
             errors.file = "File required";
@@ -67,8 +88,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           try {
             const apiType = uploadFormToApi(form);
             if (apiType && excelFile?.state === "parsed") {
-              await Api.uploadExperiments(apiType);
-              setExcelFile({ state: "added", targets: excelFile.targets });
+              const targets = await Api.uploadExperiments(apiType);
+              setExcelFile({ state: "added", targets });
+              setHasUnsavedFields(false);
               projectsRefresher();
               targetsRefresher();
               compoundsRefresher();
@@ -104,7 +126,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             {(excelFile?.state === "parsed" || excelFile?.state === "added") && (
               <UploadPreviewTable
-                viewEnabled={excelFile.state === "added"}
+                projectId={excelFile.state === "added" ? currentProject?.id : undefined}
                 className="uploadingForm__previewTable"
                 targets={excelFile.targets}
               />
@@ -181,7 +203,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
               <Button
                 type="text"
                 tabIndex={5}
+                disabled={!isAdded(excelFile) && !hasUnsavedFields}
                 onClick={() => {
+                  setHasUnsavedFields(false);
                   setExcelFile(undefined);
                   resetForm();
                 }}

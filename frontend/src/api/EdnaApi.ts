@@ -63,7 +63,7 @@ interface EdnaApiInterface {
     onUploadProgress: (percent: number) => void
   ) => Promise<ParsedExcelDto[]>;
 
-  uploadExperiments(form: UploadExperimentsArgsApi): Promise<unknown>;
+  uploadExperiments(form: UploadExperimentsArgsApi): Promise<ParsedExcelDto[]>;
 
   fetchProjects: () => Promise<ProjectDto[]>;
   createProject: (args: CreateProjectArgsApi) => Promise<ProjectDto>;
@@ -151,11 +151,13 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         formData.append("description", form.description);
       }
 
-      return axios.post("/file/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      return axios
+        .post("/file/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then(x => x.data);
     },
 
     createProject: async (args: CreateProjectArgsApi) => {
