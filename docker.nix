@@ -63,6 +63,7 @@ in
         listen 80 default_server;
         root /usr/share/nginx/html;
         location / {
+          add_header Cache-Control 'no-cache';
           try_files $uri /index.html =404;
         }
 
