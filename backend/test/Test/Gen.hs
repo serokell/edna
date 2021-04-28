@@ -150,6 +150,7 @@ genCompoundResp :: MonadGen m => m CompoundResp
 genCompoundResp = do
   crName <- genName
   crChemSoft <- Gen.maybe genURI
+  crMde <- Gen.maybe genURI
   crAdditionDate <- genUTCTime
   return CompoundResp {..}
 

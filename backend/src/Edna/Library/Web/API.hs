@@ -30,7 +30,7 @@ import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
 
 import Edna.Library.Service
-  (addMethodology, addProject, deleteMethodology, editChemSoft, getCompound, getCompounds,
+  (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound, getCompounds,
   getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
   updateMethodology, updateProject)
 import Edna.Library.Web.Types
@@ -177,6 +177,15 @@ data CompoundEndpoints route = CompoundEndpoints
       :> ReqBody '[JSON] URI
       :> Put '[JSON] (WithId 'CompoundId CompoundResp)
 
+  , -- | Edit MDe link for the compound with given ID
+    ceEditMde :: route
+      :- "compound"
+      :> "mde"
+      :> Summary "Update Mde link of a compound"
+      :> Capture "compoundId" (SqlId 'CompoundId)
+      :> ReqBody '[JSON] URI
+      :> Put '[JSON] (WithId 'CompoundId CompoundResp)
+
   , -- | Get known compounds with optional pagination and sorting
     ceGetCompounds :: route
       :- "compounds"
@@ -199,6 +208,7 @@ type CompoundAPI = ToServant CompoundEndpoints AsApi
 compoundEndpoints :: ToServant CompoundEndpoints (AsServerT Edna)
 compoundEndpoints = genericServerT CompoundEndpoints
   { ceEditChemSoft = editChemSoft
+  , ceEditMde = editMde
   , ceGetCompounds = getCompounds
   , ceGetCompound = getCompound
   }

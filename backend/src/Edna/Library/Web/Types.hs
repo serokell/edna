@@ -136,6 +136,8 @@ data CompoundResp = CompoundResp
   -- ^ Name of the compound, it may be changed to be a number later.
   , crChemSoft :: Maybe URI
   -- ^ Link to ChemSoft.
+  , crMde :: Maybe URI
+  -- ^ Link to MDe.
   , crAdditionDate :: UTCTime
   -- ^ Timestamp when this compound was added to the system (by uploading a file).
   } deriving stock (Generic, Show, Eq)

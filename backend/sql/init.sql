@@ -39,7 +39,8 @@ create table if not exists compound
     compound_id     serial          not null primary key,
     name            text            not null unique,
     addition_date   timestamp       not null default now(),
-    chemsoft_link   varchar(1000)   null
+    chemsoft_link   varchar(1000)   null,
+    mde_link        varchar(1000)   null
 );
 
 -- Corresponds to an Excel file.

@@ -30,6 +30,7 @@ import Edna.Library.DB.Schema
   (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
   TestMethodologyT(..))
 import Edna.Upload.DB.Schema (ExperimentFileRec, ExperimentFileT(..))
+import Edna.Util.URI (renderURI)
 import Test.Gen
   (genByteString, genDescription, genDoubleSmallPrec, genFileMetadata, genLocalTime, genName,
   genParams4PL, genURI)
@@ -59,7 +60,8 @@ genCompoundRec :: Gen.MonadGen m => Word32 -> m CompoundRec
 genCompoundRec compoundId = do
   cName <- genName
   cAdditionDate <- genLocalTime
-  cChemsoftLink <- show <<$>> Gen.maybe genURI
+  cChemsoftLink <- renderURI <<$>> Gen.maybe genURI
+  cMdeLink <- renderURI <<$>> Gen.maybe genURI
   pure CompoundRec {cCompoundId = SqlSerial compoundId, ..}
 
 genExperimentFileRec :: Gen.MonadGen m => Word32 -> Word32 -> Word32 -> m ExperimentFileRec

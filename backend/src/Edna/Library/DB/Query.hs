@@ -8,6 +8,7 @@ module Edna.Library.DB.Query
   , getCompoundById
   , getCompounds
   , editCompoundChemSoft
+  , editCompoundMde
   , getMethodologyById
   , getMethodologyByName
   , getMethodologies
@@ -149,6 +150,12 @@ editCompoundChemSoft (SqlId compoundId) link = runUpdate' $ update (esCompound e
   (\c -> cChemsoftLink c <-. val_ (Just link))
   (\c -> cCompoundId c ==. val_ (SqlSerial compoundId))
 
+-- | Edit Mde link of a given compound
+editCompoundMde :: CompoundId -> Text -> Edna ()
+editCompoundMde (SqlId compoundId) link = runUpdate' $ update (esCompound ednaSchema)
+  (\c -> cMdeLink c <-. val_ (Just link))
+  (\c -> cCompoundId c ==. val_ (SqlSerial compoundId))
+
 -- | Get compound by its name. Return nothing if there is no such compound.
 getCompoundByName :: Text -> Edna (Maybe CompoundRec)
 getCompoundByName name = runSelectReturningOne' $ select $ do
@@ -162,7 +169,7 @@ insertCompound :: Text -> Edna CompoundRec
 insertCompound compoundName = do
   runInsert' $ Pg.insert
     (esCompound ednaSchema)
-    (insertExpressions [CompoundRec default_ (val_ compoundName) default_ default_])
+    (insertExpressions [CompoundRec default_ (val_ compoundName) default_ default_ default_])
     (Pg.onConflict (Pg.conflictingFields cName) Pg.onConflictDoNothing)
   getCompoundByName compoundName >>= justOrError ("added compound not found: " <> compoundName)
 
