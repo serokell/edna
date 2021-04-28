@@ -27,6 +27,7 @@ import Database.Beam.Backend.SQL.BeamExtensions (unSerial)
 import Database.Beam.Postgres (PgJSON(..))
 import Fmt (fmt, (+|), (|+))
 import Servant.API (NoContent(..))
+import Servant.Util (PaginationSpec)
 
 import qualified Edna.Dashboard.DB.Query as Q
 import qualified Edna.Upload.DB.Query as UQ
@@ -36,8 +37,8 @@ import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
-  (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..),
-  MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
+  (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentSortingSpec,
+  ExperimentsResp(..), MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileMetadata(..))
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
@@ -133,9 +134,9 @@ analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
 -- compound ID and target ID. If filters by compound and target are specified,
 -- also compute average IC50 for them.
 getExperiments :: Maybe ProjectId -> Maybe CompoundId -> Maybe TargetId ->
-  Edna ExperimentsResp
-getExperiments mProj mComp mTarget = do
-  pairs <- Q.getExperiments mProj mComp mTarget
+  ExperimentSortingSpec -> PaginationSpec -> Edna ExperimentsResp
+getExperiments mProj mComp mTarget sorting pagination = do
+  pairs <- Q.getExperiments mProj mComp mTarget sorting pagination
   meanIC50 <- case (mComp, mTarget) of
     (Just _, Just _) -> computeMeanIC50 (map snd pairs)
     _ -> pure Nothing

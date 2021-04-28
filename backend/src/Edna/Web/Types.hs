@@ -2,13 +2,13 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
--- | Bridge types used to communicate between the server app and frontend.
+-- | Legacy module that currently defines only 'WithId' type and should probably
+-- be changed somehow.
 
 {-# LANGUAGE OverloadedLists #-}
 
 module Edna.Web.Types
   ( WithId (..)
-  , StubSortBy (..)
 
   -- * Re-exported for convenience
   , URI (..)
@@ -17,15 +17,12 @@ module Edna.Web.Types
 import Universum
 
 import Data.Aeson.TH (deriveToJSON)
-import Data.Swagger
-  (SwaggerType(..), ToParamSchema(..), ToSchema(..), declareSchemaRef, enum_, properties, required,
-  type_)
+import Data.Swagger (SwaggerType(..), ToSchema(..), declareSchemaRef, properties, required, type_)
 import Data.Swagger.Internal.Schema (unnamed)
 import Fmt (Buildable(..))
 import Lens.Micro ((?~))
 import Network.URI (URI(..))
 import Network.URI.JSON ()
-import Servant (FromHttpApiData(..))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Util (SqlId(..), ednaAesonWebOptions)
@@ -49,21 +46,6 @@ instance Buildable t => Buildable (ForResponseLog (WithId k t)) where
 instance Buildable t => Buildable (ForResponseLog [WithId k t]) where
   build = buildListForResponse (take 5)
 
--- | A stub to specify the sorting order, most likely will be replaced with
--- @servant-util@.
-data StubSortBy =
-    SortByName
-  | SortBySomething
-
-instance Buildable StubSortBy where
-  build _ = "STUB"
-
-instance FromHttpApiData StubSortBy where
-  parseQueryParam = \case
-    "name" -> pure SortByName
-    "something" -> pure SortBySomething
-    x -> Left $ "unknown sorting order: " <> x
-
 ----------------
 -- JSON
 ----------------
@@ -85,8 +67,3 @@ instance ToSchema t => ToSchema (WithId k t) where
           , ("item", itemSchema)
           ]
       & required .~ [ "id", "item" ]
-
-instance ToParamSchema StubSortBy where
-  toParamSchema _ = mempty
-     & type_ ?~ SwaggerString
-     & enum_ ?~ [ "name", "something" ]

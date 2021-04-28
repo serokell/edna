@@ -34,9 +34,6 @@ module Edna.Library.DB.Query
 
 import Universum
 
-import qualified Data.HashMap.Strict as HM
-import qualified Data.HashSet as HashSet
-import qualified Data.Set as Set
 import qualified Database.Beam.Postgres.Full as Pg
 
 import Database.Beam.Backend (SqlSerial(..))
@@ -44,16 +41,15 @@ import Database.Beam.Postgres (Postgres, now_)
 import Database.Beam.Query
   (Q, all_, cast_, default_, filter_, guard_, insert, insertExpressions, int, just_, leftJoin_,
   lookup_, select, update, val_, (<-.), (==.))
-import Lens.Micro (at)
 import Servant.Util (HList(..), PaginationSpec(..), (.*.))
 import Servant.Util.Beam.Postgres (paginate_, sortBy_)
 import Servant.Util.Combinators.Sorting.Backend (fieldSort)
-import Servant.Util.Dummy.Pagination (paginate)
 
 import Edna.DB.Integration
   (runDeleteReturningList', runInsert', runInsertReturningOne', runSelectReturningList',
   runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
+import Edna.DB.Util (groupAndPaginate)
 import Edna.Dashboard.DB.Schema (ExperimentT(..))
 import Edna.Library.DB.Schema as LDB
   (CompoundRec, CompoundT(..), PrimaryKey(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..),
@@ -363,40 +359,3 @@ touchProject (SqlId projectId) =
   runUpdate' $ update (esProject ednaSchema)
     (\p -> LDB.pLastUpdate p <-. now_)
     (\p -> pProjectId p ==. val_ (SqlSerial projectId))
-
-----------------
--- Helpers
-----------------
-
--- This function is helpful for queries where we use left join and get
--- pairs of items. The first item is the main and legendary one, it is requested.
--- We call it @boka@. Each @boka@ has a list of grandchildren, we call them
--- @joka@. There can be multiple items with the same @boka@ values. @boka@
--- has a primary key that we use for identification.
--- There are 3 goals here:
---
--- 1. Group items with the same @boka@ value.
--- 2. Preserving sorting of items.
--- 3. Carefully apply pagination, it should be applied __after__ grouping.
-groupAndPaginate :: forall boka joka pk.
-  (Hashable pk, Eq pk, Ord joka) =>
-  Maybe PaginationSpec -> (boka -> pk) ->
-  [(boka, Maybe joka)] -> [(boka, [joka])]
-groupAndPaginate mPagination toPrimaryKey items =
-  maybe id paginate mPagination $ snd $ foldr (step . fst) (mempty, []) items
-  where
-    step :: boka -> (HashSet pk, [(boka, [joka])]) -> (HashSet pk, [(boka, [joka])])
-    step boka acc@(visited, res)
-      | HashSet.member pk visited = acc
-      | otherwise =
-        ( HashSet.insert pk visited
-        , (boka, maybe [] toList $ bokaToJokas ^. at pk) : res
-        )
-      where
-        pk = toPrimaryKey boka
-
-    bokaToJokas :: HashMap pk (Set joka)
-    bokaToJokas = foldl' innerStep mempty items
-      where
-        innerStep acc (boka, mJoka) =
-          maybe acc (\joka -> HM.insertWith Set.union (toPrimaryKey boka) (one joka) acc) mJoka

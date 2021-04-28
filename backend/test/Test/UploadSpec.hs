@@ -67,6 +67,7 @@ spec = withContext $ startWithInitial $ do
       targets <- Library.getTargets noSorting fullContent
       compounds <- Library.getCompounds noSorting fullContent
       experiments <- Dashboard.getExperiments Nothing Nothing Nothing
+        noSorting fullContent
       liftIO $ do
         summary `shouldBe` sortFileSummary sampleFileSummary'
         summary2 `shouldBe` sortFileSummary sampleFileSummary2
@@ -77,6 +78,7 @@ spec = withContext $ startWithInitial $ do
       projId <- wiId <$> Library.addProject (ProjectReq "autoOutlierFile" Nothing)
       void $ uploadFileTest projId (SqlId 1) autoOutlierFile
       ExperimentsResp {..} <- Dashboard.getExperiments (Just projId) Nothing Nothing
+        noSorting fullContent
       -- @autoOutlierFile@ has only 1 experiment and we are adding it into a
       -- completely new project. So we expect one experiment in the result.
       let [WithId _ ExperimentResp {..}] = erExperiments

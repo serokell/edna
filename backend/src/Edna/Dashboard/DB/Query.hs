@@ -20,8 +20,6 @@ module Edna.Dashboard.DB.Query
 
 import Universum
 
-import qualified Data.List.NonEmpty as NE
-
 import Data.Time (LocalTime)
 import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (PgJSON(..), Postgres)
@@ -30,13 +28,17 @@ import Database.Beam.Query
   (Q, QExpr, aggregate_, all_, as_, cast_, countAll_, guard_, int, leftJoin_, lookup_, select,
   subquery_, update, val_, (&&.), (<-.), (==.))
 import Fmt (pretty)
+import Servant.Util (HList(..), PaginationSpec, (.*.))
+import Servant.Util.Beam.Postgres (sortBy_)
+import Servant.Util.Combinators.Sorting.Backend (fieldSort)
 
-import Edna.Analysis.FourPL (Params4PL(..))
+import Edna.Analysis.FourPL (AnalysisResult, Params4PL(..))
 import Edna.DB.Integration
   (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
+import Edna.DB.Util (groupAndPaginate)
 import Edna.Dashboard.DB.Schema
-import Edna.Dashboard.Web.Types (ExperimentResp(..))
+import Edna.Dashboard.Web.Types (ExperimentResp(..), ExperimentSortingSpec)
 import Edna.ExperimentReader.Types (FileMetadata)
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
@@ -88,12 +90,21 @@ deleteSubExperiment (SqlId subExpId) =
      )
   ) seSubExperimentId
 
+type ExperimentTupleHelper = (ExperimentRec, Word32, Maybe Word32, LocalTime, Word32)
+type SubExperimentTupleHelper = (SqlSerial Word32, PgJSON AnalysisResult)
+
 -- | Get data about all experiments using 3 optional filters: by project ID,
 -- compound ID and target ID.
 getExperiments :: Maybe ProjectId -> Maybe CompoundId -> Maybe TargetId ->
-  Edna [(ExperimentId, ExperimentResp)]
-getExperiments mProj mComp mTarget =
-  fmap (map convert . groupSubExps) $ runSelectReturningList' $ select $ do
+  ExperimentSortingSpec -> PaginationSpec -> Edna [(ExperimentId, ExperimentResp)]
+getExperiments mProj mComp mTarget sorting pagination =
+  fmap (
+    map convert .
+    groupAndPaginate (Just pagination) (unSerial . eExperimentId . view _1) .
+    map (\(expTuple, (mId, mResult)) -> (expTuple, (,) <$> mId <*> mResult))
+    ) $
+  runSelectReturningList' $ select $
+  sortBy_ sorting sortingApp do
     experiment <- all_ $ esExperiment ednaSchema
 
     experimentFile <- all_ $ esExperimentFile ednaSchema
@@ -119,20 +130,17 @@ getExperiments mProj mComp mTarget =
         , efUploadDate experimentFile
         , pseSubExperimentId primarySubExp
         )
-      , subExperiment
+      , ( seSubExperimentId subExperiment
+        , seResult subExperiment
+        )
       )
   where
-    groupSubExps ::
-      [((ExperimentRec, Word32, Maybe Word32, LocalTime, Word32), Maybe SubExperimentRec)] ->
-      [((ExperimentRec, Word32, Maybe Word32, LocalTime, Word32), [SubExperimentRec])]
-    groupSubExps =
-      map (\ne -> (fst (head ne), mapMaybe snd (toList ne))) .
-      -- grouping by experiment ID
-      -- N.B. sorting is done by @groupAllWith@
-      NE.groupAllWith (eExperimentId . view (_1 . _1))
+    sortingApp ((_experimentRec, _projectId, _methodologyId, uploadDate, _subExpId), _) =
+      fieldSort @"uploadDate" uploadDate .*.
+      HNil
 
-    convert ::
-      ((ExperimentRec, Word32, Maybe Word32, LocalTime, Word32), [SubExperimentRec]) ->
+    convert :: HasCallStack =>
+      (ExperimentTupleHelper, [SubExperimentTupleHelper]) ->
       (ExperimentId, ExperimentResp)
     convert ((ExperimentRec {..}, projId, methodId, uploadDate, primary), subExps) =
       ( fromSqlSerial eExperimentId, ExperimentResp
@@ -141,7 +149,7 @@ getExperiments mProj mComp mTarget =
         , erTarget = SqlId eTargetId
         , erMethodology = SqlId <$> methodId
         , erUploadDate = localToUTC uploadDate
-        , erSubExperiments = map (fromSqlSerial . seSubExperimentId) subExps
+        , erSubExperiments = map (fromSqlSerial . fst) subExps
         , erPrimarySubExperiment = SqlId primary
         , erPrimaryIC50 = primaryIC50
         }
@@ -150,11 +158,11 @@ getExperiments mProj mComp mTarget =
         -- The total number of sub-experiments for one experiment is expected
         -- to be small, usually it will be less than 4, so linear search should
         -- be completely ok.
+        primaryIC50 :: HasCallStack => Either Text Double
         primaryIC50 =
-          case find ((SqlSerial primary ==) . seSubExperimentId) subExps of
+          case find ((SqlSerial primary ==) . fst) subExps of
             Nothing -> error $ "can't find primary sub-experiment: " <> pretty primary
-            Just SubExperimentRec {seResult = PgJSON analysisResult} ->
-              p4plC <$> analysisResult
+            Just (_, PgJSON analysisResult) -> p4plC <$> analysisResult
 
 -- | Get description and metadata of experiment data file storing experiment
 -- with this ID.

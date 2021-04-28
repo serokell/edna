@@ -45,6 +45,7 @@ library
       Edna.DB.Initialisation
       Edna.DB.Integration
       Edna.DB.Schema
+      Edna.DB.Util
       Edna.Dashboard.DB.Query
       Edna.Dashboard.DB.Schema
       Edna.Dashboard.Error
