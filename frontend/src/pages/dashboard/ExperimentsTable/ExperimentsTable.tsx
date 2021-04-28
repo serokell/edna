@@ -30,7 +30,7 @@ import {
   filteredExperimentsDtoQuery,
   filteredExperimentsQuery,
 } from "../../../store/selectors";
-import { formatAsDate, formatIC50, isDefined } from "../../../utils/utils";
+import { formatAsDate, formatAsDateTime, formatIC50, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -188,7 +188,9 @@ export function ExperimentsTableSuspendable({
       {
         Header: "Upload date",
         id: "uploadDate",
-        accessor: (e: Experiment) => formatAsDate(e.uploadDate),
+        accessor: (e: Experiment) => (
+          <Tooltip text={formatAsDateTime(e.uploadDate)}>{formatAsDate(e.uploadDate)}</Tooltip>
+        ),
       },
       showCheckboxColumn,
       {
