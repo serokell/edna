@@ -68,7 +68,8 @@ export type ModalDialogState =
       kind: "add-edit-link";
       target:
         | { kind: "methodology"; object: MethodologyDto }
-        | { kind: "compound"; object: CompoundDto };
+        | { kind: "compound-chemsoft"; object: CompoundDto }
+        | { kind: "compound-mde"; object: CompoundDto };
     }
   | { kind: "delete-methodology"; methodology: MethodologyDto }
   | { kind: "methodology-description"; methodology: MethodologyDto }

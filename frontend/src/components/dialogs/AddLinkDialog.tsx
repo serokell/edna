@@ -71,7 +71,8 @@ function AddLinkDialogAbstract({
 interface AddLinkDialogProps {
   target:
     | { kind: "methodology"; object: MethodologyDto }
-    | { kind: "compound"; object: CompoundDto };
+    | { kind: "compound-chemsoft"; object: CompoundDto }
+    | { kind: "compound-mde"; object: CompoundDto };
 }
 
 export function AddLinkDialog({ target }: AddLinkDialogProps): React.ReactElement {
@@ -80,12 +81,21 @@ export function AddLinkDialog({ target }: AddLinkDialogProps): React.ReactElemen
   const refreshCompounds = useCompoundsRefresher();
   const editing =
     (target.kind === "methodology" && target.object.item.confluence) ||
-    (target.kind === "compound" && target.object.item.chemSoft);
+    (target.kind === "compound-chemsoft" && target.object.item.chemSoft) ||
+    (target.kind === "compound-mde" && target.object.item.mde);
   const editingLink =
-    target.kind === "methodology" ? target.object.item.confluence : target.object.item.chemSoft;
+    target.kind === "methodology"
+      ? target.object.item.confluence
+      : target.kind === "compound-chemsoft"
+      ? target.object.item.chemSoft
+      : target.object.item.mde;
 
   const title = `${editing ? "Edit" : "Add"} ${
-    target.kind === "methodology" ? "confluence" : "ChemSoft"
+    target.kind === "methodology"
+      ? "confluence"
+      : target.kind === "compound-chemsoft"
+      ? "ChemSoft"
+      : "MDe"
   } link`;
   const descr = (
     <>
@@ -98,8 +108,11 @@ export function AddLinkDialog({ target }: AddLinkDialogProps): React.ReactElemen
       description={descr}
       link={editingLink}
       onLinkSave={async newLink => {
-        if (target.kind === "compound") {
+        if (target.kind === "compound-chemsoft") {
           await Api.updateChemSoftLink(target.object.id, newLink);
+          refreshCompounds();
+        } else if (target.kind === "compound-mde") {
+          await Api.updateMdeLink(target.object.id, newLink);
           refreshCompounds();
         } else {
           await Api.editMethodology(target.object.id, {

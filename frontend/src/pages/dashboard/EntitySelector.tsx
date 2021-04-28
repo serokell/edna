@@ -22,7 +22,6 @@ import {
 import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
 import { formatAsDate } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
-import { EntityProperty } from "../../components/DescriptiveSelector/DescriptivePlate";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 interface SelectorProps {
@@ -86,38 +85,68 @@ export function CompoundSelector({ className }: SelectorProps): React.ReactEleme
       placeholder="Select a compound"
       placeholderEmpty="No compounds"
       toEntityProperties={c => {
-        const properties: EntityProperty[] = [{ label: "MDe link:", value: <a href="mde">mde</a> }];
-        let chemsoftValue: React.ReactNode;
+        const chemsoft = c.item.chemSoft ? (
+          <a href={c.item.chemSoft}>{c.item.chemSoft}</a>
+        ) : (
+          <Button
+            type="half-rounded"
+            size="small"
+            onClick={() => {
+              setModalDialog({
+                kind: "add-edit-link",
+                target: { kind: "compound-chemsoft", object: c },
+              });
+            }}
+          >
+            Add link
+          </Button>
+        );
 
-        if (c.item.chemSoft) chemsoftValue = <a href={c.item.chemSoft}>{c.item.chemSoft}</a>;
-        else
-          chemsoftValue = (
-            <Button
-              type="half-rounded"
-              size="small"
-              onClick={() => {
-                setModalDialog({
-                  kind: "add-edit-link",
-                  target: { kind: "compound", object: c },
-                });
-              }}
-            >
-              Add link
-            </Button>
-          );
-        properties.push({ label: "Chemsoft:", value: chemsoftValue });
-        return properties;
+        const mde = c.item.mde ? (
+          <a href={c.item.mde}>{c.item.mde}</a>
+        ) : (
+          <Button
+            type="half-rounded"
+            size="small"
+            onClick={() => {
+              setModalDialog({
+                kind: "add-edit-link",
+                target: { kind: "compound-mde", object: c },
+              });
+            }}
+          >
+            Add link
+          </Button>
+        );
+        return [
+          { label: "Chemsoft:", value: chemsoft },
+          { label: "MDe link:", value: mde },
+        ];
       }}
       toOption={c => ({ value: `${c.id}`, label: c.item.name })}
       contextActions={[
         <ContextItem
           type="edit"
-          key="edit"
+          key="edit-chemsoft"
+          value="Edit ChemSoft"
           onClick={() => {
             if (compoundSelectedL.state === "hasValue" && compoundSelectedL.contents) {
               setModalDialog({
                 kind: "add-edit-link",
-                target: { kind: "compound", object: compoundSelectedL.contents },
+                target: { kind: "compound-chemsoft", object: compoundSelectedL.contents },
+              });
+            }
+          }}
+        />,
+        <ContextItem
+          type="edit"
+          key="edit-mde"
+          value="Edit Mde"
+          onClick={() => {
+            if (compoundSelectedL.state === "hasValue" && compoundSelectedL.contents) {
+              setModalDialog({
+                kind: "add-edit-link",
+                target: { kind: "compound-mde", object: compoundSelectedL.contents },
               });
             }
           }}
