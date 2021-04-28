@@ -55,6 +55,12 @@ export type SortParamsApi = {
   desc?: boolean;
 };
 
+function toApiParams(params: SortParamsApi) {
+  return {
+    sortBy: params.sortby ? (params.desc ? `desc(${params.sortby})` : `asc(${params.sortby})`) : "",
+  };
+}
+
 export function toCreateProjectArgsApi(form: CreateProjectForm): CreateProjectArgsApi {
   return {
     name: form.name,
@@ -116,10 +122,7 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     fetchCompounds: async (params: SortParamsApi): Promise<CompoundDto[]> => {
       return axios
         .get("/compounds", {
-          params: {
-            // TODO expand other fields
-            sortby: params.sortby,
-          },
+          params: toApiParams(params),
         })
         .then(proj => proj.data);
     },
@@ -143,10 +146,7 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     fetchTargets: async (params: SortParamsApi): Promise<TargetDto[]> => {
       return axios
         .get("/targets", {
-          params: {
-            // TODO expand other fields
-            sortby: params.sortby,
-          },
+          params: toApiParams(params),
         })
         .then(proj => proj.data);
     },
@@ -207,13 +207,10 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         });
     },
 
-    fetchProjects: async (params?: SortParamsApi) => {
+    fetchProjects: async (params: SortParamsApi) => {
       return axios
         .get("/projects", {
-          params: {
-            // TODO expand other fields
-            sortby: params?.sortby,
-          },
+          params: toApiParams(params),
         })
         .then(proj => proj.data);
     },
@@ -248,10 +245,7 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     fetchMethodologies: async (params: SortParamsApi) => {
       return axios
         .get("/methodologies", {
-          params: {
-            // TODO expand other fields
-            sortdy: params.sortby,
-          },
+          params: toApiParams(params),
         })
         .then(proj => proj.data);
     },
@@ -262,14 +256,14 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
       targetId?: number,
       params?: SortParamsApi
     ) => {
+      const sp = params ? toApiParams(params) : {};
       return axios
         .get("/experiments", {
           params: {
             projectId,
             compoundId,
             targetId,
-            // TODO expand other fields
-            sortby: params?.sortby,
+            ...sp,
           },
         })
         .then(experiments => experiments.data);

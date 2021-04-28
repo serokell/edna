@@ -6,7 +6,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { Column } from "react-table";
 import React from "react";
 import { modalDialogAtom } from "../../store/atoms";
-import { methodologiesQuery } from "../../store/selectors";
+import { defaultBatchQuery, methodologiesQuery } from "../../store/selectors";
 import { MethodologyDto } from "../../api/types";
 import { Button } from "../../components/Button/Button";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
@@ -18,11 +18,12 @@ import { ExtraFormatter } from "../../components/ExtraFormatter";
 export function MethodsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   // TODO request here only 1st page to check methodologies emptiness
-  const methodologiesChunk = useRecoilValue(methodologiesQuery({}));
+  const methodologiesChunk = useRecoilValue(defaultBatchQuery(methodologiesQuery));
   const methodologyColumns: Column<MethodologyDto>[] = React.useMemo(
     () => [
       {
         Header: "Methodology",
+        id: "name",
         accessor: (t: MethodologyDto) => t.item.name,
       },
       {
@@ -131,6 +132,7 @@ export function MethodsSuspendable(): React.ReactElement {
     <Table
       dataOrQuery={methodologiesQuery}
       columns={methodologyColumns}
+      defaultSortedColumn="name"
       columnExtras={{
         link: { manualCellRendering: true },
         description: { manualCellRendering: true },

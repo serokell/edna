@@ -6,7 +6,7 @@ import { useRecoilValue } from "recoil";
 import { Column } from "react-table";
 import React from "react";
 import { Link } from "react-router-dom";
-import { targetsQuery } from "../../store/selectors";
+import { defaultBatchQuery, targetsQuery } from "../../store/selectors";
 import { TargetDto } from "../../api/types";
 import { formatAsDate, formatAsDateTime } from "../../utils/utils";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
@@ -17,7 +17,7 @@ import { Tooltip } from "../../components/Tooltip/Tooltip";
 
 export function TargetsSuspendable(): React.ReactElement {
   // TODO request here only 1st page to check projects emptiness
-  const targetsChunk = useRecoilValue(targetsQuery({}));
+  const targetsChunk = useRecoilValue(defaultBatchQuery(targetsQuery));
   const targetColumns: Column<TargetDto>[] = React.useMemo(
     () => [
       {
@@ -53,6 +53,6 @@ export function TargetsSuspendable(): React.ReactElement {
       }
     />
   ) : (
-    <Table dataOrQuery={targetsQuery} columns={targetColumns} />
+    <Table dataOrQuery={targetsQuery} columns={targetColumns} defaultSortedColumn="name" />
   );
 }

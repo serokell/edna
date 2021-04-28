@@ -25,7 +25,11 @@ import {
   targetIdSelectedAtom,
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
-import { filteredExperimentsDtoQuery, filteredExperimentsQuery } from "../../../store/selectors";
+import {
+  defaultBatchQuery,
+  filteredExperimentsDtoQuery,
+  filteredExperimentsQuery,
+} from "../../../store/selectors";
 import { formatAsDate, formatIC50, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
@@ -61,7 +65,9 @@ export function ExperimentsTableSuspendable({
   const selectedTargetId = useRecoilValue(targetIdSelectedAtom);
 
   // TODO request here only 1st page to check experiments emptiness
-  const experimentsChunk = useRecoilValue(filteredExperimentsDtoQuery({})).experiments;
+  const experimentsChunk = useRecoilValue(
+    defaultBatchQuery(filteredExperimentsDtoQuery, { sortby: "uploadDate", desc: true })
+  ).experiments;
   const [showEntries, setShowEntries] = useState<ShowEntries>("all");
   const addSubExperiment = useAddSubExperiment();
   const removeSubExperiments = useRemoveSubExperiments();
@@ -102,7 +108,7 @@ export function ExperimentsTableSuspendable({
   const compoundColumn = React.useMemo(
     () => ({
       Header: "Compound",
-      id: "compound",
+      disableSortBy: true,
       accessor: (e: Experiment) => e.compoundName,
     }),
     []
@@ -111,7 +117,7 @@ export function ExperimentsTableSuspendable({
   const targetColumn = React.useMemo(
     () => ({
       Header: "Target",
-      id: "target",
+      disableSortBy: true,
       accessor: (e: Experiment) => e.targetName,
     }),
     []
@@ -120,7 +126,7 @@ export function ExperimentsTableSuspendable({
   const ic50Column = React.useMemo(
     () => ({
       Header: "IC50",
-      id: "ic50",
+      disableSortBy: true,
       accessor: (e: Experiment) =>
         "Right" in e.primaryIC50 ? (
           <Tooltip text={`${e.primaryIC50.Right}`}>{formatIC50(e.primaryIC50.Right)}</Tooltip>
@@ -176,11 +182,12 @@ export function ExperimentsTableSuspendable({
       ic50Column,
       {
         Header: "Methodology",
-        id: "methodology",
+        disableSortBy: true,
         accessor: (e: Experiment) => e.methodologyName,
       },
       {
-        Header: "Upload data",
+        Header: "Upload date",
+        id: "uploadDate",
         accessor: (e: Experiment) => formatAsDate(e.uploadDate),
       },
       showCheckboxColumn,
@@ -234,6 +241,7 @@ export function ExperimentsTableSuspendable({
           </div>
           <div className="tableContainer experimentsArea__experimentsTableContainer">
             <Table<Experiment>
+              defaultSortedColumn="uploadDate"
               small
               columns={expTableSize === "minimized" ? minimizedColumns : expandedColumns}
               dataOrQuery={params => shownExperiments([showEntries, params])}

@@ -96,6 +96,7 @@ export function UploadPreviewTable({
       <Table
         small
         dataOrQuery={constSelector(data)}
+        defaultSortedColumn="compound"
         columns={previewColumns}
         className="uploadPreviewTable"
         columnExtras={{

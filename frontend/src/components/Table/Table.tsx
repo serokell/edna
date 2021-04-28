@@ -23,6 +23,7 @@ interface TableProps<T extends object> {
   className?: string;
   small?: boolean;
   collapsible?: (x: T) => React.ReactNode;
+  defaultSortedColumn: string;
   dataOrQuery:
     | RecoilValueReadOnly<ReadonlyArray<T>>
     | ((param: SortParamsApi) => RecoilValueReadOnly<T[]>);
@@ -36,6 +37,7 @@ export function Table<T extends object>({
   small,
   collapsible,
   dataOrQuery,
+  defaultSortedColumn,
 }: TableProps<T>): React.ReactElement {
   const isConstant = isRecoilValue(dataOrQuery);
   const [data, setData] = useState<T[]>([]);
@@ -51,8 +53,16 @@ export function Table<T extends object>({
     {
       columns,
       data,
+      initialState: {
+        sortBy: [
+          {
+            id: defaultSortedColumn,
+          },
+        ],
+      },
       disableMultiSort: true,
       manualSortBy: !isConstant,
+      disableSortRemove: true,
     },
     useSortBy
   );

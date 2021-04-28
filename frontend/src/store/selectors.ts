@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Derived state should be placed here
-import { selector, selectorFamily, waitForAll } from "recoil";
+import { RecoilValueReadOnly, selector, selectorFamily, waitForAll } from "recoil";
 import {
   colorsCounterAtom,
   compoundIdSelectedAtom,
@@ -63,6 +63,16 @@ export const targetsQuery = selectorFamily({
     return Api.fetchTargets(sortingParams);
   },
 });
+
+export function defaultBatchQuery<T>(
+  sel: (params: SortParamsApi) => RecoilValueReadOnly<T>,
+  params?: SortParamsApi
+): RecoilValueReadOnly<T> {
+  if (params) {
+    return sel(params);
+  }
+  return sel({ sortby: "name", desc: false });
+}
 
 // Dashboard page
 export const projectSelectedQuery = selector<Maybe<ProjectDto>>({

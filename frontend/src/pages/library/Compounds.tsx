@@ -5,7 +5,7 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import React from "react";
 import { Link } from "react-router-dom";
-import { compoundsQuery } from "../../store/selectors";
+import { compoundsQuery, defaultBatchQuery } from "../../store/selectors";
 import { modalDialogAtom } from "../../store/atoms";
 import { CompoundDto } from "../../api/types";
 import { Button } from "../../components/Button/Button";
@@ -16,7 +16,7 @@ import { ContextItem } from "../../components/ContextActions/ContextItems";
 
 export function CompoundsSuspendable(): React.ReactElement {
   // TODO request here only 1st page to check compounds emptiness
-  const compoundsChunk = useRecoilValue(compoundsQuery({}));
+  const compoundsChunk = useRecoilValue(defaultBatchQuery(compoundsQuery));
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const compoundsColumns = React.useMemo(
     () => [
@@ -123,6 +123,7 @@ export function CompoundsSuspendable(): React.ReactElement {
   ) : (
     <Table
       dataOrQuery={compoundsQuery}
+      defaultSortedColumn="name"
       columns={compoundsColumns}
       columnExtras={{
         chemsoft: { manualCellRendering: true },

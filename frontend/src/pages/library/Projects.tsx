@@ -5,7 +5,7 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import React from "react";
 import { modalDialogAtom } from "../../store/atoms";
-import { projectsQuery } from "../../store/selectors";
+import { defaultBatchQuery, projectsQuery } from "../../store/selectors";
 import { ProjectDto } from "../../api/types";
 import { formatAsDate, formatAsDateTime } from "../../utils/utils";
 import { ContextActions } from "../../components/ContextActions/ContextActions";
@@ -19,7 +19,7 @@ import { Tooltip } from "../../components/Tooltip/Tooltip";
 export function ProjectsSuspendable(): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   // TODO request here only 1st page to check projects emptiness
-  const projectsChunk = useRecoilValue(projectsQuery({}));
+  const projectsChunk = useRecoilValue(defaultBatchQuery(projectsQuery));
 
   const projectColumns = React.useMemo(
     () => [
@@ -89,6 +89,6 @@ export function ProjectsSuspendable(): React.ReactElement {
       }
     />
   ) : (
-    <Table dataOrQuery={projectsQuery} columns={projectColumns} />
+    <Table dataOrQuery={projectsQuery} columns={projectColumns} defaultSortedColumn="name" />
   );
 }
