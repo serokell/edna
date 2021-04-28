@@ -173,14 +173,16 @@ export function Table<T extends object>({
                   title={column.canSort ? `Sort by ${column.Header}` : ""}
                 >
                   {column.render("Header")}
-                  <span
-                    className={ednaTable("sortSign", {
-                      desc: column.isSortedDesc,
-                      vis: column.isSorted,
-                    })}
-                  >
-                    <ArrowSvg />
-                  </span>
+                  {column.canSort && (
+                    <span
+                      className={ednaTable("sortSign", {
+                        desc: column.isSortedDesc,
+                        vis: column.isSorted,
+                      })}
+                    >
+                      <ArrowSvg />
+                    </span>
+                  )}
                   {i <= lastColumnWithRightBorder && (
                     <span className="ednaTable__headRightBorder" />
                   )}

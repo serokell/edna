@@ -16,6 +16,21 @@ $cell-indent: 22 * $px;
   width: 100%;
   border-spacing: 0;
 
+  &__sortSign {
+    margin-left: 22 * $px;
+    visibility: hidden;
+
+    &_desc {
+      svg {
+        transform: rotate(180deg);
+      }
+    }
+
+    &_vis {
+      visibility: visible;
+    }
+  }
+
   &__columnHead {
     position: sticky;
     top: 0;
@@ -34,19 +49,8 @@ $cell-indent: 22 * $px;
     &:last-child {
       border-right: 0;
     }
-  }
 
-  &__sortSign {
-    margin-left: 22 * $px;
-    visibility: hidden;
-
-    &_desc {
-      svg {
-        transform: rotate(180deg);
-      }
-    }
-
-    &_vis {
+    &:hover .ednaTable__sortSign {
       visibility: visible;
     }
   }
