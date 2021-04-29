@@ -49,7 +49,7 @@ export const DashboardPage: FunctionComponent = () => {
     }
   }, [loc.state, setProjectSelectedIdAtom, setCompoundSelectedIdAtom, setTargetSelectedIdAtom]);
 
-  const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery);
+  const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
   const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
 
   useEffect(() => {

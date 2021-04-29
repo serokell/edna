@@ -10,7 +10,7 @@ import { StylesConfig } from "react-select/src/styles";
 import { Maybe } from "../utils/utils";
 import { FormikCompatible } from "./FormField/FormField";
 
-export type SelectOption = { value: string; label: string };
+export type SelectOption = { value: string; label: string; isDisabled?: boolean };
 
 interface ComboboxProps<T> extends FormikCompatible<Maybe<T>> {
   optionsLoadable: Loadable<T[]>;
@@ -52,11 +52,19 @@ export default function Combobox<T>({
       optionsLoadable.state === "loading" ? { visibility: "hidden" } : { ...provided },
     option: (provided: any, state: any) => ({
       ...provided,
-      backgroundColor: state.isSelected ? "#bfe5d2" : state.isFocused ? "#edf8f2" : "white",
-      color: "#515151",
+      backgroundColor: state.isSelected
+        ? "#bfe5d2"
+        : state.isFocused
+        ? "#edf8f2"
+        : state.isDisabled
+        ? "#f0f0f0"
+        : "white",
+      color: state.isDisabled ? "rgba(25, 28, 28, 0.5)" : "#515151",
       "&:active": {
-        backgroundColor: "#bfe5d2",
+        backgroundColor: state.isDisabled ? "#f0f0f0" : "#bfe5d2",
       },
+      height: state.isDisabled ? "34px" : "40px",
+      padding: state.isDisabled ? "8px 22px" : "11px 22px",
     }),
     control: (provided: any, state: any) => ({
       ...provided,
