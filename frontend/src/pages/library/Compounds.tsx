@@ -25,40 +25,51 @@ export function CompoundsSuspendable(): React.ReactElement {
       },
       {
         Header: "MDe link",
-        // TODO form MDe link
+        id: "mde",
         accessor: (c: CompoundDto) => (
-          <a className="cellText" href={c.item.name}>
-            mde.io
-          </a>
-        ),
-      },
-      {
-        Header: "ChemSoft link",
-        id: "chemsoft",
-        accessor: (c: CompoundDto) => {
-          if (c.item.chemSoft)
-            return (
-              <td className="ednaTable__cell">
-                <a href={c.item.chemSoft}>{c.item.chemSoft}</a>
-              </td>
-            );
-          return (
-            <td className="ednaTable__cell libraryTable__cellBtn">
+          <td className={`ednaTable__cell${c.item.mde ? "" : " libraryTable__cellBtn"}`}>
+            {c.item.mde ? (
+              <a href={c.item.mde}>{c.item.mde}</a>
+            ) : (
               <Button
                 type="half-rounded"
                 size="small"
                 onClick={() => {
                   setModalDialog({
                     kind: "add-edit-link",
-                    target: { kind: "compound", object: c },
+                    target: { kind: "compound-mde", object: c },
                   });
                 }}
               >
                 Add link
               </Button>
-            </td>
-          );
-        },
+            )}
+          </td>
+        ),
+      },
+      {
+        Header: "ChemSoft link",
+        id: "chemsoft",
+        accessor: (c: CompoundDto) => (
+          <td className={`ednaTable__cell${c.item.chemSoft ? "" : " libraryTable__cellBtn"}`}>
+            {c.item.chemSoft ? (
+              <a href={c.item.chemSoft}>{c.item.chemSoft}</a>
+            ) : (
+              <Button
+                type="half-rounded"
+                size="small"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "add-edit-link",
+                    target: { kind: "compound-chemsoft", object: c },
+                  });
+                }}
+              >
+                Add link
+              </Button>
+            )}
+          </td>
+        ),
       },
       {
         id: "actions",
@@ -66,12 +77,24 @@ export function CompoundsSuspendable(): React.ReactElement {
           <ContextActions
             actions={[
               <ContextItem
-                key="edit"
+                key="edit-chemsoft"
                 type="edit"
+                value="Edit ChemSoft"
                 onClick={() => {
                   setModalDialog({
                     kind: "add-edit-link",
-                    target: { kind: "compound", object: c },
+                    target: { kind: "compound-chemsoft", object: c },
+                  });
+                }}
+              />,
+              <ContextItem
+                key="edit-mde"
+                type="edit"
+                value="Edit MDe"
+                onClick={() => {
+                  setModalDialog({
+                    kind: "add-edit-link",
+                    target: { kind: "compound-mde", object: c },
                   });
                 }}
               />,
@@ -98,6 +121,7 @@ export function CompoundsSuspendable(): React.ReactElement {
       columns={compoundsColumns}
       columnExtras={{
         chemsoft: { manualCellRendering: true },
+        mde: { manualCellRendering: true },
       }}
     />
   );

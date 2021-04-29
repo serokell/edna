@@ -17,7 +17,7 @@ import Test.Hspec (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, should
 
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Service
-  (addMethodology, addProject, deleteMethodology, editChemSoft, getCompound, getCompounds,
+  (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound, getCompounds,
   getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
   updateMethodology, updateProject)
 import Edna.Library.Web.Types
@@ -133,6 +133,7 @@ gettersSpec = do
           expectedName = expectedCompounds Map.! unSqlId wiId
         crName wItem `shouldBe` expectedName
         crChemSoft wItem `shouldBe` Nothing
+        crMde wItem `shouldBe` Nothing
 
     expectedCompounds = Map.fromList
       [ (1, compoundName1)
@@ -222,16 +223,18 @@ additionSpec = do
 
 modificationSpec :: SpecWith EdnaContext
 modificationSpec = do
-  describe "editChemSoft" $ do
+  describe "editCompoundLinks" $ do
     it "fails to edit an unknown compound" $ \ctx -> do
       runRIO ctx (editChemSoft unknownSqlId sampleURI) `shouldThrow`
         (== LECompoundNotFound unknownSqlId)
-    it "successfully edits chemSoft link of a compound" $ runTestEdna $ do
+    it "successfully edits links of a compound" $ runTestEdna $ do
       let
         compoundId :: CompoundId
         compoundId = SqlId 3
-      withId <- editChemSoft compoundId sampleURI
+      _ <- editChemSoft compoundId sampleURI
+      withId <- editMde compoundId sampleURI
       liftIO $ crChemSoft (wItem withId) `shouldBe` Just sampleURI
+      liftIO $ crMde (wItem withId) `shouldBe` Just sampleURI
       liftIO . shouldBe withId =<< getCompound compoundId
   describe "updateMethodology" $ do
     let

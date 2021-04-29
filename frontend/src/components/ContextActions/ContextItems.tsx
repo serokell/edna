@@ -14,10 +14,11 @@ export type ContextItemType = "edit" | "delete" | "metadata" | "rename" | "prima
 
 interface ContextItemProps {
   type: ContextItemType;
+  value?: string;
   onClick: () => void;
 }
 
-export function ContextItem({ type, onClick }: ContextItemProps): React.ReactElement {
+export function ContextItem({ type, value, onClick }: ContextItemProps): React.ReactElement {
   return (
     <div
       key="edit"
@@ -30,25 +31,25 @@ export function ContextItem({ type, onClick }: ContextItemProps): React.ReactEle
     >
       {type === "edit" ? (
         <>
-          <EditSvg /> Edit
+          <EditSvg /> {value || "Edit"}
         </>
       ) : type === "delete" ? (
         <>
-          <DeleteSvg /> Delete
+          <DeleteSvg /> {value || "Delete"}
         </>
       ) : type === "metadata" ? (
         <>
-          <MetadataSvg /> Metadata
+          <MetadataSvg /> {value || "Metadata"}
         </>
       ) : type === "rename" ? (
         <>
           {" "}
-          <RenameSvg /> Rename
+          <RenameSvg /> {value || "Rename"}
         </>
       ) : type === "primary" ? (
         <>
           {" "}
-          <DefaultSvg /> Make primary
+          <DefaultSvg /> {value || "Make primary"}
         </>
       ) : (
         ""

@@ -87,6 +87,7 @@ export type CompoundDto = {
   item: {
     name: string;
     chemSoft?: string;
+    mde?: string;
     additionDate: DateTimeDto;
   };
 };

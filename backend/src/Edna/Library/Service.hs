@@ -11,6 +11,7 @@ module Edna.Library.Service
   , getCompound
   , getCompounds
   , editChemSoft
+  , editMde
   , getMethodology
   , getMethodologies
   , deleteMethodology
@@ -53,13 +54,15 @@ getTargets _ _ _ = Q.getTargets
 
 compoundToResp :: CompoundRec -> Edna (WithId 'CompoundId CompoundResp)
 compoundToResp CompoundRec{..} = do
-  url <- case cChemsoftLink of
-    Just link -> Just <$> justOrThrow (LEInvalidURI link) (parseURI link)
-    Nothing -> pure Nothing
+  let textToLink link = case link of
+        Just l -> Just <$> justOrThrow (LEInvalidURI l) (parseURI l)
+        Nothing -> pure Nothing
+  crChemSoft <- textToLink cChemsoftLink
+  crMde <- textToLink cMdeLink
   pure $ WithId (SqlId $ unSerial cCompoundId) $ CompoundResp
     { crName = cName
-    , crChemSoft = url
     , crAdditionDate = localToUTC cAdditionDate
+    , ..
     }
 
 getCompound :: SqlId 'CompoundId -> Edna (WithId 'CompoundId CompoundResp)
@@ -79,6 +82,13 @@ editChemSoft compoundSqlId uri = do
   let uriText = renderURI uri
   Q.editCompoundChemSoft compoundSqlId uriText
   compoundToResp compound {cChemsoftLink = Just uriText}
+
+editMde :: SqlId 'CompoundId -> URI -> Edna (WithId 'CompoundId CompoundResp)
+editMde compoundSqlId uri = do
+  compound <- Q.getCompoundById compoundSqlId >>= justOrThrow (LECompoundNotFound compoundSqlId)
+  let uriText = renderURI uri
+  Q.editCompoundMde compoundSqlId uriText
+  compoundToResp compound {cMdeLink = Just uriText}
 
 methodologyToResp :: (TestMethodologyRec, [Text]) -> Edna (WithId 'MethodologyId MethodologyResp)
 methodologyToResp (TestMethodologyRec{..}, projects) = do

@@ -111,6 +111,7 @@ data CompoundT f = CompoundRec
   , cName :: C f Text
   , cAdditionDate :: C f LocalTime
   , cChemsoftLink :: C (Nullable f) Text
+  , cMdeLink :: C (Nullable f) Text
   } deriving stock Generic
     deriving anyclass Beamable
 

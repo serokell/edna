@@ -71,6 +71,7 @@ interface EdnaApiInterface {
   fetchTargets: () => Promise<TargetDto[]>;
   fetchCompounds: () => Promise<CompoundDto[]>;
   updateChemSoftLink: (compoundId: number, newLink: string) => Promise<any>;
+  updateMdeLink: (compoundId: number, newLink: string) => Promise<any>;
   fetchMethodologies: () => Promise<MethodologyDto[]>;
   createMethodology: (args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
   editMethodology: (methId: number, args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
@@ -113,6 +114,14 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
     updateChemSoftLink: async (compoundId: number, newLink: string): Promise<any> => {
       return axios
         .put(`/compound/chemsoft/${compoundId}`, `"${newLink}"`, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(proj => proj.data);
+    },
+
+    updateMdeLink: async (compoundId: number, newLink: string): Promise<any> => {
+      return axios
+        .put(`/compound/mde/${compoundId}`, `"${newLink}"`, {
           headers: { "Content-Type": "application/json" },
         })
         .then(proj => proj.data);
