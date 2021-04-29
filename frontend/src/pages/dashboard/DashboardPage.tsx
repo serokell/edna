@@ -18,6 +18,7 @@ import {
   newSubexperimentAtom,
   projectSelectedIdAtom,
   selectedSubExperimentsColorAtom,
+  selectedSubExperimentsIdsAtom,
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
@@ -29,6 +30,7 @@ import {
 } from "../../store/types";
 import { isDefined, zip } from "../../utils/utils";
 import { NewSubexperimentPlate } from "./NewSubexperimentPlate/NewSubexperimentPlate";
+import { AvgIC50Plate } from "./AvgIC50Plate/AvgIC50Plate";
 
 export const DashboardPage: FunctionComponent = () => {
   const dashboardPage = cn("dashboardPage");
@@ -41,6 +43,7 @@ export const DashboardPage: FunctionComponent = () => {
   const setTargetSelectedIdAtom = useSetRecoilState(targetIdSelectedAtom);
   const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
   const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
+  const isSubsEmpty = useRecoilValue(selectedSubExperimentsIdsAtom).size === 0;
 
   const loc = useLocation();
   useEffect(() => {
@@ -84,6 +87,7 @@ export const DashboardPage: FunctionComponent = () => {
             {newSubexperiment.subExperimentId !== -1 && (
               <NewSubexperimentPlate className="dashboardPage__newSubexperimentPlate" />
             )}
+            {!isSubsEmpty && <AvgIC50Plate className="dashboardPage__avg50" />}
           </div>
         </SuspenseSpinner>
 

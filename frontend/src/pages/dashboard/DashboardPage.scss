@@ -67,4 +67,10 @@
     top: 30 * $px;
     right: 0;
   }
+
+  &__avg50 {
+    position: absolute;
+    bottom: 12 * $px;
+    left: 12 * $px;
+  }
 }

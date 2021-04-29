@@ -20,7 +20,13 @@ import {
 } from "./atoms";
 import Api from "../api/api";
 import { isDefined, Maybe } from "../utils/utils";
-import { CompoundDto, ExperimentsWithMeanDto, ProjectDto, TargetDto } from "../api/types";
+import {
+  CompoundDto,
+  ExperimentsWithMeanDto,
+  ProjectDto,
+  ResultDto,
+  TargetDto,
+} from "../api/types";
 import {
   chartColors,
   Experiment,
@@ -187,6 +193,24 @@ export const selectedSubExperimentsQuery = selector<SubExperimentWithMeasurement
   get: ({ get }) => {
     const ids = Array.from(get(selectedSubExperimentsIdsAtom).values());
     return get(waitForAll(ids.map(subId => subExperimentsWithMeasurementsQuery(subId))));
+  },
+});
+
+export const selectedSubExperimentsIC50Query = selector<ResultDto<number>>({
+  key: "SelectedSubExperimentsIC50",
+  get: ({ get }) => {
+    const subs = get(selectedSubExperimentsQuery);
+    const ic50Sum = subs.reduce(
+      (acc: ResultDto<number>, x) =>
+        "Left" in acc
+          ? acc
+          : "Left" in x.meta.item.result
+          ? { Left: x.meta.item.result.Left }
+          : { Right: acc.Right + x.meta.item.result.Right[2] },
+      { Right: 0 }
+    );
+    if ("Left" in ic50Sum) return ic50Sum;
+    return { Right: ic50Sum.Right / subs.length };
   },
 });
 

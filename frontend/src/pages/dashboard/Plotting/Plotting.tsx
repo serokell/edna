@@ -56,7 +56,7 @@ export default function PlotlyChart({
       title: "Signal",
     },
     showlegend: false,
-    height: 411,
+    height: 566,
     margin: {
       t: 0,
       r: 0,
