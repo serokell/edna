@@ -41,6 +41,8 @@ export type SubExperimentWithMeasurements = {
 export type SuccessSubExperimentWithMeasurements = {
   meta: SuccessSubExperimentDto;
   measurements: MeasurementDto[];
+  target: string;
+  compound: string;
 };
 
 export type FileUploadState =

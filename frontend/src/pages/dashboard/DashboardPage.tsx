@@ -22,7 +22,7 @@ import {
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
-import { filteredExperimentsQuery, selectedSubExperimentsQuery } from "../../store/selectors";
+import { filteredExperimentsQuery, selectedSubExperimentsExtraQuery } from "../../store/selectors";
 import {
   Experiment,
   negateTableSize,
@@ -106,11 +106,13 @@ interface PlotlyChartSuspendableProps {
 export function PlotlyChartSuspendable({
   className,
 }: PlotlyChartSuspendableProps): React.ReactElement {
-  const subExperiments = useRecoilValue(selectedSubExperimentsQuery).map(sex => ({
+  const subExperiments = useRecoilValue(selectedSubExperimentsExtraQuery).map(sex => ({
     meta: sex.meta,
     measurements: sex.measurements
       .slice()
       .sort((x, y) => x.item.concentration - y.item.concentration),
+    compound: sex.compound,
+    target: sex.target,
   }));
   const colors = useRecoilValue(
     waitForAll(subExperiments.map(sub => selectedSubExperimentsColorAtom(sub.meta.id)))

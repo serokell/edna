@@ -62,6 +62,7 @@ export default function PlotlyChart({
       r: 0,
     },
     hovermode: "closest" as const,
+    hoverlabel: { bgcolor: "rgba(25, 28, 28, 0.7)" },
   });
   const [newSubexperiment, setNewSubexperiment] = useRecoilState(newSubexperimentAtom);
 
@@ -80,12 +81,13 @@ export default function PlotlyChart({
     );
 
     return {
-      name: `${subexperiment.meta.item.name}`,
+      text: Array(pointsToDraw.length).fill(`${subexperiment.meta.item.name}`),
       x: pointsToDraw.map(x => x.item.concentration),
       y: pointsToDraw.map(y => y.item.signal),
       type: "scatter",
       mode: "markers",
       marker: { color, size: 8 },
+      hovertemplate: "%{text}<br>Concentration: %{x}<br>Signal: %{y}<extra></extra>",
     };
   });
 
@@ -95,12 +97,12 @@ export default function PlotlyChart({
     );
 
     return {
-      name: `${subexperiment.meta.item.name} (Disabled)`,
       x: pointsToDraw.map(x => x.item.concentration),
       y: pointsToDraw.map(y => y.item.signal),
       type: "scatter",
       mode: "markers",
       marker: { color: "#AFB6B6", size: 8 },
+      hovertemplate: `%{${subexperiment.meta.item.name}} (disabled)<br>Concentration: %{x}<br>Signal: %{y}<extra></extra>`,
     };
   });
 
@@ -111,12 +113,12 @@ export default function PlotlyChart({
       1000
     );
     return {
-      name: "4PL",
       x,
       y: x.map(a => fourPL(subexperiment.meta.item.result.Right, a)),
       type: "scatter",
       mode: "lines",
       marker: { color },
+      hovertemplate: `(${subexperiment.target} -> ${subexperiment.compound})<br>IC50: ${subexperiment.meta.item.result.Right[2]}<extra></extra>`,
     };
   });
 
@@ -136,12 +138,12 @@ export default function PlotlyChart({
         x => x.item.isEnabled === isEnabled
       );
       return {
-        name: sub.subexperiment.meta.item.name,
         x: neededPoints.map(x => x.item.concentration),
         y: neededPoints.map(y => y.item.signal),
         type: "scatter",
         mode: "markers",
         marker,
+        hovertemplate: `%{${sub.subexperiment.meta.item.name}}<br>Concentration: %{x}<br>Signal: %{y}<extra></extra>`,
       };
     };
 
