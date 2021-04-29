@@ -5,12 +5,12 @@
 module Edna.Setup
   ( Edna
   , dumpConfig
-  , runEdna
   , fromConfig
+  , runEdna
 
   , EdnaContext (..)
   , edConfig
-  , edConnectionPool
+  , edDBConnection
   , edDebugDB
   ) where
 
@@ -23,11 +23,11 @@ import RIO (RIO, runRIO)
 
 import Edna.Config.Definition (EdnaConfig)
 import Edna.Config.Environment (askDebugDB)
-import Edna.DB.Connection (ConnPool, withPostgresConn)
+import Edna.DB.Connection (PostgresConn, postgresConnPooled, withPostgresConn)
 
 data EdnaContext = EdnaContext
   { _edConfig :: !EdnaConfig
-  , _edConnectionPool :: !ConnPool
+  , _edDBConnection :: !PostgresConn
   , _edDebugDB :: !Bool
   }
 
@@ -45,7 +45,7 @@ runEdna config action = do
     debugDb <- askDebugDB
     let ednaContext = EdnaContext
           { _edConfig = config
-          , _edConnectionPool = pool
+          , _edDBConnection = postgresConnPooled pool
           , _edDebugDB = debugDb
           }
     runRIO ednaContext action

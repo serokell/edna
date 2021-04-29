@@ -3,19 +3,23 @@
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
 module Edna.DB.Connection
-  ( ConnPool (..)
-  , withPostgresConn
+  ( PostgresConn(..)
   , createConnPool
   , destroyConnPool
+  , postgresConnPooled
+  , postgresConnSingle
+  , withPostgresConn
   ) where
 
 import Universum
 
 import Control.Concurrent (threadDelay)
 import Control.Exception.Safe (catchIOError)
-import Data.Pool (Pool, createPool, destroyAllResources)
+import Data.Pool (Pool, createPool, destroyAllResources, withResource)
 import Data.Time.Clock (nominalDay)
 import Database.Beam.Postgres (Connection, close, connectPostgreSQL)
+import Database.PostgreSQL.Simple.Transaction (withSavepoint, withTransactionSerializable)
+import RIO (MonadUnliftIO, withRunInIO)
 
 import Edna.Config.Definition (EdnaConfig, dbConnString, dbMaxConnections, ecDb)
 import Edna.Util (ConnString(..), logUnconditionally)
@@ -63,3 +67,42 @@ createConnPool (ConnString connStr) maxConnsNum = liftIO $ ConnPool <$>
 -- | Destroys a @ConnPool@.
 destroyConnPool :: MonadIO m => ConnPool -> m ()
 destroyConnPool (ConnPool pool) = liftIO $ destroyAllResources pool
+
+-- | Provides methods for working with connections to Postgres database.
+data PostgresConn = PostgresConn
+  { pcWithConnection  :: forall (m :: Type -> Type) a. MonadUnliftIO m
+                      => (Connection -> m a) -> m a
+  , pcWithTransaction :: forall (m :: Type -> Type) a. MonadUnliftIO m
+                      => Connection -> m a  -> m a
+  }
+
+-- | Implementation of 'PostgresConn' which uses a 'ConnPool' to support
+-- multithreading. Methods have the following properties:
+--
+-- * 'pcWithConnection' blocks if no idle connections are available and the
+--   maximum number of DB connections has been reached.
+-- * 'pcWithTransaction' uses @withTransactionSerializable@ as implementation.
+postgresConnPooled :: ConnPool -> PostgresConn
+postgresConnPooled (ConnPool pool) = PostgresConn
+  { pcWithConnection  = \action ->
+      withRunInIO $ \unlift ->
+        withResource pool $ unlift . action
+  , pcWithTransaction = \conn action ->
+      withRunInIO $ \unlift ->
+        withTransactionSerializable conn $ unlift action
+  }
+
+-- | Implementation of 'PostgresConn' which simply uses the single connection.
+-- It's only intended to be constructed inside @transact@ in order to make sure
+-- that all database actions wrapped with @transact@ are performed with a
+-- single connection.
+--
+-- and 'pcWithTransaction' implementation is @withSavepoint@ to support
+-- "nested" transactions
+postgresConnSingle :: Connection -> PostgresConn
+postgresConnSingle conn = PostgresConn
+  { pcWithConnection  = ($ conn)
+  , pcWithTransaction = \conn' action ->
+      withRunInIO $ \unlift ->
+        withSavepoint conn' $ unlift action
+  }
