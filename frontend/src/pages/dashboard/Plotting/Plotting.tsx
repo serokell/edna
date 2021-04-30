@@ -17,11 +17,17 @@ import { isDefined, logspace } from "../../../utils/utils";
 
 const plotConfig: Partial<PlotlyBasic.Config> = {
   displaylogo: false,
-  modeBarButtonsToRemove: ["select2d", "lasso2d", "resetScale2d"],
+  modeBarButtonsToRemove: [
+    "select2d",
+    "lasso2d",
+    "resetScale2d",
+    "hoverClosestCartesian",
+    "hoverCompareCartesian",
+  ],
   // displayModeBar: false,
 };
 
-interface SubExperimentNColor {
+export interface SubExperimentNColor {
   subexperiment: SuccessSubExperimentWithMeasurements;
   color: string;
 }
@@ -118,7 +124,7 @@ export default function PlotlyChart({
       type: "scatter",
       mode: "lines",
       marker: { color },
-      hovertemplate: `(${subexperiment.target} -> ${subexperiment.compound})<br>IC50: ${subexperiment.meta.item.result.Right[2]}<extra></extra>`,
+      hovertemplate: `(${subexperiment.target} ⟶ ${subexperiment.compound})<br>IC50: ${subexperiment.meta.item.result.Right[2]}<extra></extra>`,
     };
   });
 

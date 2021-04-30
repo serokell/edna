@@ -247,7 +247,7 @@ export const selectedSubExperimentsExtraQuery = selector<SubExperimentWithMeasur
   key: "SelectedSubExperiments",
   get: ({ get }) => {
     const ids = Array.from(get(selectedSubExperimentsIdsAtom).values());
-    const experiments = Array.from(get(filteredExperimentsQuery).experiments);
+    const experiments = Array.from(get(filteredExperimentsQuery({})).experiments);
     return get(waitForAll(ids.map(subId => subExperimentWithMeasurementsMap(subId)))).map(sex => {
       const experiment = experiments.find(e => e.subExperiments.find(v => v === sex.meta.id));
       return { compound: experiment!.compoundName, target: experiment!.targetName, ...sex };

@@ -68,9 +68,15 @@
     right: 0;
   }
 
-  &__avg50 {
+  &__plotInfo {
     position: absolute;
     bottom: 12 * $px;
     left: 12 * $px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__legend {
+    margin-left: 0.5rem;
   }
 }
