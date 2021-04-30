@@ -62,13 +62,22 @@ export default function PlotlyChart({
       title: "Signal",
     },
     showlegend: false,
-    height: 566,
+    height: 534,
     margin: {
       t: 0,
       r: 0,
     },
     hovermode: "closest" as const,
     hoverlabel: { bgcolor: "rgba(25, 28, 28, 0.7)" },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    modebar: {
+      bgcolor: "rgba(0,0,0,0)",
+      color: "rgba(25, 28, 28, 0.3)",
+      activecolor: "rgba(25, 28, 28, 0.7)",
+    },
   });
   const [newSubexperiment, setNewSubexperiment] = useRecoilState(newSubexperimentAtom);
 

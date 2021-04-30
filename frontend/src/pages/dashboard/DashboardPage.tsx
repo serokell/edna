@@ -37,6 +37,7 @@ export const DashboardPage: FunctionComponent = () => {
   const dashboardPage = cn("dashboardPage");
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
   const plotlyClassName = dashboardPage("chart", { size: negateTableSize(expTableSize) });
+  const plotlySpinnerClassName = dashboardPage("spinner", { size: negateTableSize(expTableSize) });
   const experimentsClassName = dashboardPage("experiments", { size: expTableSize });
   const newSubexperiment = useRecoilValue(newSubexperimentAtom);
   const setProjectSelectedIdAtom = useSetRecoilState(projectSelectedIdAtom);
@@ -81,7 +82,7 @@ export const DashboardPage: FunctionComponent = () => {
         <CompoundSelector className={dashboardPage("compoundSelector")} experiments={experiments} />
         <TargetSelector className={dashboardPage("targetSelector")} experiments={experiments} />
 
-        <SuspenseSpinner className={plotlyClassName}>
+        <SuspenseSpinner className={plotlySpinnerClassName}>
           <div className={plotlyClassName}>
             <PlotlyChartSuspendable />
             {newSubexperiment.subExperimentId !== -1 && (
