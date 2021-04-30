@@ -18,6 +18,7 @@ import Servant.API
   Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
+import Servant.Util (PaginationParams, SortingParamsOf)
 
 import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Dashboard.Service
@@ -27,9 +28,7 @@ import Edna.Dashboard.Service
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
-import Edna.Web.Types (StubSortBy, WithId)
-
--- TODO: pagination and sorting are just stubs for now.
+import Edna.Web.Types (WithId)
 
 -- | Endpoints related to projects.
 data DashboardEndpoints route = DashboardEndpoints
@@ -93,9 +92,8 @@ data DashboardEndpoints route = DashboardEndpoints
       :> QueryParam "compoundId" CompoundId
       :> QueryParam "targetId" TargetId
 
-      :> QueryParam "page" Word
-      :> QueryParam "size" Word
-      :> QueryParam "sortby" StubSortBy
+      :> SortingParamsOf ExperimentResp
+      :> PaginationParams
       :> Get '[JSON] ExperimentsResp
 
   , -- | Get experiment's metadata by ID
@@ -141,7 +139,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deDeleteSubExp = deleteSubExperiment
   , deNewSubExp = newSubExperiment
   , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
-  , deGetExperiments = \p c t _ _ _ -> getExperiments p c t
+  , deGetExperiments = getExperiments
   , deGetExperimentMetadata = getExperimentMetadata
   , deGetExperimentFile = \i -> getExperimentFile i <&>
       \(name, blob) -> addHeader ("attachment;filename=" <> name) blob

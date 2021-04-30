@@ -15,6 +15,8 @@ import Universum
 import qualified Data.Map.Strict as Map
 
 import RIO (runRIO)
+import Servant.Util (desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
+import Servant.Util.Internal.Util (Positive(..))
 import Test.Hspec
   (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldSatisfy, shouldThrow)
 
@@ -46,7 +48,7 @@ spec = withContext $ do
         resp <- makePrimarySubExperiment secondarySubExpId
         getResp <- getSubExperiment secondarySubExpId
         ExperimentsResp {..} <- getExperiments
-          (Just $ SqlId 1) Nothing Nothing
+          (Just $ SqlId 1) Nothing Nothing noSorting fullContent
         let WithId _ ExperimentResp {..}: _ =
               filter (\withId -> wiId withId == SqlId 1) erExperiments
         liftIO $ do
@@ -137,11 +139,13 @@ gettersSpec = do
     describe "getExperiments" $ do
       it "returns all experiments and no IC50 with no filters" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments Nothing Nothing Nothing
+          noSorting fullContent
         liftIO $ do
           length erExperiments `shouldBe` 12
           erMeanIC50 `shouldBe` Nothing
       it "filters by project correctly" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
+          noSorting fullContent
         liftIO $ do
           length erExperiments `shouldBe` 6
           erMeanIC50 `shouldBe` Nothing
@@ -151,6 +155,7 @@ gettersSpec = do
         let compoundId = SqlId 2
         ExperimentsResp {..} <-
           getExperiments (Just $ SqlId 1) (Just compoundId) Nothing
+            noSorting fullContent
         liftIO $ do
           length erExperiments `shouldBe` 2
           erMeanIC50 `shouldBe` Nothing
@@ -162,6 +167,7 @@ gettersSpec = do
         let measurements = targetMeasurements2 Map.! compoundName2
         ExperimentsResp {..} <-
           getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
+            noSorting fullContent
         Right Params4PL {..} <- analyse4PLOne (mapMaybe measurementToPairMaybe measurements)
         liftIO $ do
           length erExperiments `shouldBe` 1
@@ -172,6 +178,15 @@ gettersSpec = do
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) -> do
             erTarget `shouldBe` targetId
             erCompound `shouldBe` compoundId
+      it "filters by project and properly applies sorting and pagination" $ runTestEdna $ do
+        ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
+          (mkSortingSpec [desc #uploadDate]) (skipping 2 $ itemsOnPage (PositiveUnsafe 3))
+        liftIO $ do
+          length erExperiments `shouldBe` 3
+          forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
+            erProject `shouldBe` SqlId 1
+          let dates = map (erUploadDate . wItem) erExperiments
+          sortWith Down dates `shouldBe` dates
     describe "getExperimentMetadata" $ do
       it "returns correct metadata for all known experiments" $ runTestEdna $ do
         forM_ validExperimentIds $ \expId -> do

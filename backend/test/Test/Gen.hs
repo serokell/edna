@@ -15,7 +15,6 @@ module Test.Gen
     -- * Hedgehog
     genSqlId
   , genWithId
-  , genStubSortBy
   , genNameAndId
   , genParams4PL
   , genFileSummaryItem
@@ -80,9 +79,6 @@ genSqlId = SqlId <$> Gen.integral (Range.constant 0 100)
 
 genWithId :: MonadGen m => m t -> m (WithId k t)
 genWithId genT = WithId <$> genSqlId <*> genT
-
-genStubSortBy :: MonadGen m => m StubSortBy
-genStubSortBy = Gen.element [SortByName, SortBySomething]
 
 genName :: MonadGen m => m Text
 genName = Gen.text (Range.linear 1 30) Gen.unicode
@@ -281,9 +277,6 @@ deriving newtype instance Arbitrary (SqlId t)
 
 instance Arbitrary t => Arbitrary (WithId k t) where
   arbitrary = hedgehog $ genWithId HQC.arbitrary
-
-instance Arbitrary StubSortBy where
-  arbitrary = hedgehog genStubSortBy
 
 instance Arbitrary URI where
   arbitrary = hedgehog genURI

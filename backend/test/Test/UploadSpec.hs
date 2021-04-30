@@ -15,6 +15,7 @@ import qualified Data.Set as Set
 
 import Data.List ((!!))
 import RIO (runRIO)
+import Servant.Util (fullContent, noSorting)
 import Test.Hspec (Spec, beforeAllWith, describe, it, shouldBe, shouldThrow)
 
 import qualified Edna.Dashboard.Service as Dashboard
@@ -63,9 +64,10 @@ spec = withContext $ startWithInitial $ do
         "blob" sampleFile
       summary2 <- uploadFile' (SqlId 2) (SqlId 2) "file description 2" "file name 2"
         "blob2" sampleFile2
-      targets <- Library.getTargets Nothing Nothing Nothing
-      compounds <- Library.getCompounds Nothing Nothing Nothing
+      targets <- Library.getTargets noSorting fullContent
+      compounds <- Library.getCompounds noSorting fullContent
       experiments <- Dashboard.getExperiments Nothing Nothing Nothing
+        noSorting fullContent
       liftIO $ do
         summary `shouldBe` sortFileSummary sampleFileSummary'
         summary2 `shouldBe` sortFileSummary sampleFileSummary2
@@ -76,6 +78,7 @@ spec = withContext $ startWithInitial $ do
       projId <- wiId <$> Library.addProject (ProjectReq "autoOutlierFile" Nothing)
       void $ uploadFileTest projId (SqlId 1) autoOutlierFile
       ExperimentsResp {..} <- Dashboard.getExperiments (Just projId) Nothing Nothing
+        noSorting fullContent
       -- @autoOutlierFile@ has only 1 experiment and we are adding it into a
       -- completely new project. So we expect one experiment in the result.
       let [WithId _ ExperimentResp {..}] = erExperiments

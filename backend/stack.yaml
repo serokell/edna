@@ -40,6 +40,7 @@ extra-deps:
   commit: 3dff2de34cce90c4d1dab68e03d30f8939fd52ca # not master
   subdirs:
     - servant-util
+    - servant-util-beam-pg
 
 # beam-core currently doesn't support aeson from the resolver we are using
 allow-newer: true

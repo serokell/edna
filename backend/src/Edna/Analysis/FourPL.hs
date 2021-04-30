@@ -42,7 +42,7 @@ data Params4PL = Params4PL
   , p4plB :: Double
   , p4plC :: Double
   , p4plD :: Double
-  } deriving stock (Generic, Show, Eq)
+  } deriving stock (Generic, Show, Eq, Ord)
 
 type Params4PLTuple = (Double, Double, Double, Double)
 

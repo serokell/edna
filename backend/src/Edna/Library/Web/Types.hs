@@ -6,21 +6,26 @@
 
 module Edna.Library.Web.Types
   ( TargetResp (..)
+  , TargetSortingSpec
   , CompoundResp (..)
+  , CompoundSortingSpec
   , MethodologyReq (..)
   , MethodologyResp (..)
+  , MethodologySortingSpec
   , ProjectReq (..)
   , ProjectResp (..)
+  , ProjectSortingSpec
   ) where
 
 import Universum
 
 import Data.Aeson.TH (deriveJSON)
 import Data.Swagger (ToSchema(..))
-import Data.Time (UTCTime)
+import Data.Time (LocalTime, UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), genericF, (+|), (|+))
 import Network.URI.JSON ()
+import Servant.Util (SortingParamTypesOf, SortingSpec, type (?:))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse)
 
 import Edna.Util (ednaAesonWebOptions, gDeclareNamedSchema)
@@ -65,6 +70,16 @@ instance ToSchema ProjectReq where
 instance ToSchema ProjectResp where
   declareNamedSchema = gDeclareNamedSchema
 
+type instance SortingParamTypesOf ProjectResp =
+  '["name" ?: Text
+  -- LocalTime is stored in DB, the difference between LocalTime and UTCTime
+  -- does not matter for sorting.
+  , "creationDate" ?: LocalTime
+  , "lastUpdate" ?: LocalTime
+  ]
+
+type ProjectSortingSpec = SortingSpec (SortingParamTypesOf ProjectResp)
+
 -- | Test methodology as submitted by end users.
 data MethodologyReq = MethodologyReq
   { mrqName :: Text
@@ -104,6 +119,10 @@ deriveJSON ednaAesonWebOptions ''MethodologyResp
 instance ToSchema URI => ToSchema MethodologyResp where
   declareNamedSchema = gDeclareNamedSchema
 
+type instance SortingParamTypesOf MethodologyResp = '["name" ?: Text]
+
+type MethodologySortingSpec = SortingSpec (SortingParamTypesOf MethodologyResp)
+
 -- | Targets are not submitted directly by users, so for now
 -- there is only one representation for frontend.
 data TargetResp = TargetResp
@@ -127,6 +146,11 @@ deriveJSON ednaAesonWebOptions ''TargetResp
 
 instance ToSchema TargetResp where
   declareNamedSchema = gDeclareNamedSchema
+
+type instance SortingParamTypesOf TargetResp =
+  '["name" ?: Text, "additionDate" ?: LocalTime]
+
+type TargetSortingSpec = SortingSpec (SortingParamTypesOf TargetResp)
 
 -- | Compounds are not submitted directly by users, so for now
 -- there is only one representation for frontend.
@@ -152,3 +176,8 @@ deriveJSON ednaAesonWebOptions ''CompoundResp
 
 instance ToSchema URI => ToSchema CompoundResp where
   declareNamedSchema = gDeclareNamedSchema
+
+type instance SortingParamTypesOf CompoundResp =
+  '["name" ?: Text, "additionDate" ?: LocalTime]
+
+type CompoundSortingSpec = SortingSpec (SortingParamTypesOf CompoundResp)

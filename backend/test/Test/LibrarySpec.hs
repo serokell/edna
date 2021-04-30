@@ -13,7 +13,9 @@ import Universum
 import qualified Data.Map.Strict as Map
 
 import RIO (runRIO)
-import Test.Hspec (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldThrow)
+import Servant.Util (asc, desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
+import Servant.Util.Internal.Util (Positive(..))
+import Test.Hspec (Expectation, Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldThrow)
 
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Service
@@ -21,10 +23,11 @@ import Edna.Library.Service
   getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
   updateMethodology, updateProject)
 import Edna.Library.Web.Types
-  (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..),
-  ProjectResp(prCompoundNames, prDescription, prName), TargetResp(..))
+  (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..), ProjectResp(..),
+  TargetResp(..))
 import Edna.Setup (EdnaContext)
 import Edna.Util (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId)
+import Edna.Util.URI (URI)
 import Edna.Web.Types (WithId(..))
 
 import Test.SampleData
@@ -47,95 +50,157 @@ spec = withContext $ do
 
 gettersSpec :: SpecWith EdnaContext
 gettersSpec = do
+  let mkPagination (toTake, toDrop) =
+        skipping (fromIntegral toDrop) $
+        itemsOnPage (PositiveUnsafe $ fromIntegral toTake)
+
   describe "getTarget" $ do
     it "successfully gets known targets one by one" $ runTestEdna $ do
       targets <- mapM getTarget targetIds
-      checkTargets targets
+      checkTargets Nothing Nothing targets
     it "fails for unknown target" $ \ctx -> do
       runRIO ctx (getTarget unknownSqlId) `shouldThrow`
         (== LETargetNotFound unknownSqlId)
   describe "getTargets" $ do
     it "successfully gets all targets" $ runTestEdna $ do
-      targets <- getTargets Nothing Nothing Nothing
-      checkTargets targets
+      targets <- getTargets noSorting fullContent
+      checkTargets Nothing Nothing targets
+
+    it "properly applies sorting and pagination" $ runTestEdna $ do
+      let paginationAsc = (2, 1)
+      targetsAscName <- getTargets (mkSortingSpec [asc #name])
+        (mkPagination paginationAsc)
+      checkTargets (Just (compare `on` view (_2 . _1))) (Just paginationAsc) targetsAscName
+      let paginationDesc = (3, 0)
+      targetsDescDate <- getTargets (mkSortingSpec [desc #additionDate])
+        (mkPagination paginationDesc)
+      -- here sorting by date is practically equivalent to sorting by ID
+      checkTargets (Just (compare `on` (Down . view _1))) (Just paginationDesc) targetsDescDate
 
   describe "getCompound" $ do
     it "successfully gets known compounds one by one" $ runTestEdna $ do
       compounds <- mapM getCompound compoundIds
-      checkCompounds compounds
+      checkCompounds Nothing Nothing compounds
     it "fails for unknown compound" $ \ctx -> do
       runRIO ctx (getCompound unknownSqlId) `shouldThrow`
         (== LECompoundNotFound unknownSqlId)
   describe "getCompounds" $ do
     it "successfully gets all compounds" $ runTestEdna $ do
-      compounds <- getCompounds Nothing Nothing Nothing
-      checkCompounds compounds
+      compounds <- getCompounds noSorting fullContent
+      checkCompounds Nothing Nothing compounds
+
+    it "properly applies sorting and pagination" $ runTestEdna $ do
+      let paginationAsc = (4, 2)
+      compoundsAsc <- getCompounds (mkSortingSpec [asc #name])
+        (mkPagination paginationAsc)
+      checkCompounds (Just $ (compare `on` snd)) (Just paginationAsc) compoundsAsc
+      let paginationDesc = (8, 4)
+      compoundsDesc <- getCompounds (mkSortingSpec [desc #name])
+        (mkPagination paginationDesc)
+      checkCompounds (Just (compare `on` (Down . snd))) (Just paginationDesc) compoundsDesc
 
   describe "getMethodology" $ do
     it "successfully gets known methodologies one by one" $ runTestEdna $ do
       methodologies <- mapM getMethodology methodologyIds
-      checkMethodologies methodologies
+      checkMethodologies Nothing Nothing methodologies
     it "fails for unknown methodology" $ \ctx -> do
       runRIO ctx (getMethodology unknownSqlId) `shouldThrow`
         (== LEMethodologyNotFound unknownSqlId)
   describe "getMethodologies" $ do
     it "successfully gets all methodologies" $ runTestEdna $ do
-      methodologies <- getMethodologies Nothing Nothing Nothing
-      checkMethodologies methodologies
+      methodologies <- getMethodologies noSorting fullContent
+      checkMethodologies Nothing Nothing methodologies
+
+    it "properly applies sorting and pagination" $ runTestEdna $ do
+      let paginationAsc = (1, 0)
+      methodologiesAsc <- getMethodologies (mkSortingSpec [asc #name])
+        (mkPagination paginationAsc)
+      checkMethodologies (Just (compare `on` (view $ _2 . _1)))
+        (Just paginationAsc) methodologiesAsc
+      let paginationDesc = (1, 1)
+      methodologiesDesc <- getMethodologies (mkSortingSpec [desc #name])
+        (mkPagination paginationDesc)
+      checkMethodologies (Just (compare `on` (Down . view (_2 . _1))))
+        (Just paginationDesc) methodologiesDesc
 
   describe "getProject" $ do
     it "successfully gets known methodologies one by one" $ runTestEdna $ do
       projects <- mapM getProject projectIds
-      checkProjects projects
+      checkProjects Nothing Nothing projects
     it "fails for unknown project" $ \ctx -> do
       runRIO ctx (getProject unknownSqlId) `shouldThrow`
         (== LEProjectNotFound unknownSqlId)
   describe "getProjects" $ do
     it "successfully gets all projects" $ runTestEdna $ do
-      projects <- getProjects Nothing Nothing Nothing
-      checkProjects projects
+      projects <- getProjects noSorting fullContent
+      checkProjects Nothing Nothing projects
+
+    it "properly applies sorting and pagination" $ runTestEdna $ do
+      let paginationAsc = (1, 0)
+      methodologiesAsc <- getProjects (mkSortingSpec [asc #name])
+        (mkPagination paginationAsc)
+      checkProjects (Just (compare `on` (view $ _2 . _1)))
+        (Just paginationAsc) methodologiesAsc
+      let paginationDesc = (1, 1)
+      methodologiesDesc <- getProjects (mkSortingSpec [desc #creationDate])
+        (mkPagination paginationDesc)
+      checkProjects (Just (compare `on` (Down . fst)))
+        (Just paginationDesc) methodologiesDesc
   where
     -- The way IDs are assigned is implementation detail that we (ab)use here.
     targetIds :: [TargetId]
-    targetIds = map SqlId [1, 2, 3, 5]
+    targetIds = map (SqlId . fst) allExpectedTargets
 
     compoundIds :: [CompoundId]
-    compoundIds = map SqlId [1, 2, 3, 4, 7]
+    compoundIds = map (SqlId . fst) allExpectedCompounds
 
     methodologyIds :: [MethodologyId]
-    methodologyIds = map SqlId [1, 2]
+    methodologyIds = map (SqlId . fst) allExpectedMethodologies
 
     projectIds :: [ProjectId]
-    projectIds = map SqlId [1, 2]
+    projectIds = map (SqlId . fst) allExpectedProjects
 
-    checkTargets :: MonadIO m => [WithId 'TargetId TargetResp] -> m ()
-    checkTargets pairs = liftIO $ do
-      length pairs `shouldBe` length targetIds
+    checkPairs :: MonadIO m =>
+      [(Word32, a)] -> ((item, a) -> Expectation) ->
+      Maybe ((Word32, a) -> (Word32, a) -> Ordering) -> Maybe (Int, Int) ->
+      [WithId idTag item] -> m ()
+    checkPairs allExpectedItems checkItem mSortCmp mTakeDrop pairs = liftIO $ do
+      let expected =
+            maybe id (\(toTake, toDrop) -> take toTake . drop toDrop) mTakeDrop .
+            maybe id sortBy mSortCmp $
+            allExpectedItems
+      let expectedMap = Map.fromList expected
+      length pairs `shouldBe` length expected
       forM_ pairs $ \WithId {..} -> do
-        let
-          (expectedName, expectedProjectNames) =
-            expectedTargets Map.! unSqlId wiId
-        trName wItem `shouldBe` expectedName
-        trProjects wItem `shouldBe` expectedProjectNames
+        checkItem (wItem, expectedMap Map.! unSqlId wiId)
 
-    expectedTargets = Map.fromList
+    checkTargets :: MonadIO m =>
+      Maybe ((Word32, (Text, [Text])) -> (Word32, (Text, [Text])) -> Ordering) ->
+      Maybe (Int, Int) ->
+      [WithId 'TargetId TargetResp] -> m ()
+    checkTargets = checkPairs allExpectedTargets $
+      \(TargetResp {..}, (expectedName, expectedProjectNames)) -> do
+        trName `shouldBe` expectedName
+        trProjects `shouldBe` expectedProjectNames
+
+    allExpectedTargets =
       [ (1, (targetName1, [projectName1, projectName2]))
       , (2, (targetName2, [projectName1]))
       , (3, (targetName3, [projectName1]))
       , (5, (targetName4, [projectName2]))
       ]
 
-    checkCompounds :: MonadIO m => [WithId 'CompoundId CompoundResp] -> m ()
-    checkCompounds pairs = liftIO $ do
-      length pairs `shouldBe` length compoundIds
-      forM_ pairs $ \WithId {..} -> do
-        let
-          expectedName = expectedCompounds Map.! unSqlId wiId
-        crName wItem `shouldBe` expectedName
-        crChemSoft wItem `shouldBe` Nothing
-        crMde wItem `shouldBe` Nothing
+    checkCompounds :: MonadIO m =>
+      Maybe ((Word32, Text) -> (Word32, Text) -> Ordering) ->
+      Maybe (Int, Int) ->
+      [WithId 'CompoundId CompoundResp] -> m ()
+    checkCompounds = checkPairs allExpectedCompounds $
+      \(CompoundResp {..}, expectedName) -> do
+        crName `shouldBe` expectedName
+        crChemSoft `shouldBe` Nothing
+        crMde `shouldBe` Nothing
 
-    expectedCompounds = Map.fromList
+    allExpectedCompounds =
       [ (1, compoundName1)
       , (2, compoundName2)
       , (3, compoundName3)
@@ -143,35 +208,39 @@ gettersSpec = do
       , (7, compoundName5)
       ]
 
-    checkMethodologies :: MonadIO m => [WithId 'MethodologyId MethodologyResp] -> m ()
-    checkMethodologies pairs = liftIO $ do
-      length pairs `shouldBe` length methodologyIds
-      forM_ pairs $ \WithId {..} -> do
-        let
-          (expectedName, expectedDescription, expectedConfluence, expectedProj) =
-            expectedMethodologies Map.! unSqlId wiId
-        mrName wItem `shouldBe` expectedName
-        mrDescription wItem `shouldBe` expectedDescription
-        mrConfluence wItem `shouldBe` expectedConfluence
-        mrProjects wItem `shouldBe` [expectedProj]
+    checkMethodologies :: MonadIO m =>
+      Maybe ((Word32, (Text, Maybe Text, Maybe URI, Text)) ->
+             (Word32, (Text, Maybe Text, Maybe URI, Text)) ->
+              Ordering) ->
+      Maybe (Int, Int) ->
+      [WithId 'MethodologyId MethodologyResp] -> m ()
+    checkMethodologies = checkPairs allExpectedMethodologies $
+      \(MethodologyResp {..},
+        (expectedName, expectedDescription, expectedConfluence, expectedProj)) -> do
+          mrName `shouldBe` expectedName
+          mrDescription `shouldBe` expectedDescription
+          mrConfluence `shouldBe` expectedConfluence
+          mrProjects `shouldBe` [expectedProj]
 
-    expectedMethodologies = Map.fromList
+    allExpectedMethodologies =
       [ (1, (methodologyName1, methodologyDescription1, methodologyConfluence1, projectName1))
       , (2, (methodologyName2, methodologyDescription2, methodologyConfluence2, projectName2))
       ]
 
-    checkProjects :: MonadIO m => [WithId 'ProjectId ProjectResp] -> m ()
-    checkProjects pairs = liftIO $ do
-      length pairs `shouldBe` length projectIds
-      forM_ pairs $ \WithId {..} -> do
-        let
-          (expectedName, expectedDescription, expectedCompoundNames) =
-            expectedProjects Map.! unSqlId wiId
-        prName wItem `shouldBe` expectedName
-        prDescription wItem `shouldBe` expectedDescription
-        prCompoundNames wItem `shouldBe` expectedCompoundNames
+    checkProjects :: MonadIO m =>
+      Maybe ((Word32, (Text, Maybe Text, [Text])) ->
+             (Word32, (Text, Maybe Text, [Text])) ->
+              Ordering) ->
+      Maybe (Int, Int) ->
+      [WithId 'ProjectId ProjectResp] -> m ()
+    checkProjects = checkPairs allExpectedProjects $
+      \(ProjectResp {..},
+        (expectedName, expectedDescription, expectedCompoundNames)) -> do
+          prName `shouldBe` expectedName
+          prDescription `shouldBe` expectedDescription
+          prCompoundNames `shouldBe` expectedCompoundNames
 
-    expectedProjects = Map.fromList
+    allExpectedProjects =
       [ (1, (projectName1, projectDescription1,
         [compoundName1, compoundName2, compoundName3, compoundName4]))
       , (2, (projectName2, projectDescription2,

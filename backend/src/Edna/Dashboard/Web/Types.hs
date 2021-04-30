@@ -8,6 +8,7 @@ module Edna.Dashboard.Web.Types
   ( NewSubExperimentReq (..)
   , ExperimentsResp (..)
   , ExperimentResp (..)
+  , ExperimentSortingSpec
   , SubExperimentResp (..)
   , MeasurementResp (..)
   , ExperimentMetadata (..)
@@ -18,11 +19,12 @@ import Universum
 
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
 import Data.Swagger (NamedSchema(..), ToSchema(..), binarySchema)
-import Data.Time (UTCTime)
+import Data.Time (LocalTime, UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))
 import Servant.API (Header, Headers, getHeaders, getResponse)
 import Servant.API.ContentTypes (MimeRender, OctetStream)
+import Servant.Util (SortingParamTypesOf, SortingSpec, type (?:))
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Analysis.FourPL (AnalysisResult)
@@ -95,6 +97,15 @@ instance Buildable ExperimentResp where
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
+
+-- TODO [EDNA-89] Add more fields
+type instance SortingParamTypesOf ExperimentResp =
+  '["uploadDate" ?: LocalTime
+  -- ↑ LocalTime is stored in DB, the difference between LocalTime and UTCTime
+  -- does not matter for sorting.
+  ]
+
+type ExperimentSortingSpec = SortingSpec (SortingParamTypesOf ExperimentResp)
 
 -- | SubExperiment as response from the server.
 data SubExperimentResp = SubExperimentResp
