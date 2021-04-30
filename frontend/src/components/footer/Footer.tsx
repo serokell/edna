@@ -12,7 +12,7 @@ const Footer: FunctionComponent = (): ReactElement => {
   return (
     <div className={footer()}>
       <div className={footer("container")}>
-        <span className={footer("description")}>© Serokell 2022</span>
+        <span className={footer("description")}>© Serokell 20222</span>
       </div>
     </div>
   );
