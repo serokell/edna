@@ -12,10 +12,13 @@ import Universum
 
 import qualified Data.Map.Strict as Map
 
+import Fmt (pretty)
 import RIO (runRIO)
 import Servant.Util (asc, desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
 import Servant.Util.Internal.Util (Positive(..))
-import Test.Hspec (Expectation, Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldThrow)
+import Test.Hspec
+  (Expectation, Spec, SpecWith, beforeAllWith, describe, expectationFailure, it, shouldBe,
+  shouldThrow)
 
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Service
@@ -171,8 +174,10 @@ gettersSpec = do
             allExpectedItems
       let expectedMap = Map.fromList expected
       length pairs `shouldBe` length expected
-      forM_ pairs $ \WithId {..} -> do
-        checkItem (wItem, expectedMap Map.! unSqlId wiId)
+      forM_ pairs $ \WithId {..} ->
+        case expectedMap Map.!? unSqlId wiId of
+          Nothing -> expectationFailure $ "couldn't find item " <> pretty wiId
+          Just a -> checkItem (wItem, a)
 
     checkTargets :: MonadIO m =>
       Maybe ((Word32, (Text, [Text])) -> (Word32, (Text, [Text])) -> Ordering) ->
