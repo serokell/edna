@@ -6,6 +6,7 @@
 
 module Edna.DB.Util
   ( groupAndPaginate
+  , sortingSpecWithId
   ) where
 
 import Universum
@@ -14,8 +15,10 @@ import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HashSet
 import qualified Data.Set as Set
 
+import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial(..))
 import Lens.Micro (at)
-import Servant.Util (PaginationSpec(..))
+import Servant.Util (PaginationSpec(..), SortingSpec, TyNamedParam, type (?:))
+import Servant.Util.Combinators.Sorting.Base (SortingItem(..), SortingOrder(..), SortingSpec(..))
 import Servant.Util.Dummy.Pagination (paginate)
 
 import Edna.DB.Schema ()
@@ -52,3 +55,12 @@ groupAndPaginate mPagination toPrimaryKey items =
       where
         innerStep acc (boka, mJoka) =
           maybe acc (\joka -> HM.insertWith Set.union (toPrimaryKey boka) (one joka) acc) mJoka
+
+-- | Add implicit sorting order by descending ID. It ensures we always have a
+-- predictable sorting order for items with equal sorting keys or when
+-- no explicit sorting order is provided.
+sortingSpecWithId :: forall (params :: [TyNamedParam Type]).
+  SortingSpec params -> SortingSpec (("id" ?: SqlSerial Word32) ': params)
+sortingSpecWithId = SortingSpec . (<> [sortingItem]) . unSortingSpec
+  where
+    sortingItem = SortingItem "id" Descendant

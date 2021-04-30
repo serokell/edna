@@ -25,8 +25,8 @@ import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Postgres.Full (deleteReturning)
 import Database.Beam.Query
-  (Q, QExpr, aggregate_, all_, as_, cast_, countAll_, guard_, int, leftJoin_, lookup_, select,
-  subquery_, update, val_, (&&.), (<-.), (==.))
+  (Q, QExpr, aggregate_, all_, as_, cast_, countAll_, guard_, int, just_, leftJoin_, lookup_,
+  select, subquery_, update, val_, (&&.), (<-.), (==.))
 import Fmt (pretty)
 import Servant.Util (HList(..), PaginationSpec, (.*.))
 import Servant.Util.Beam.Postgres (sortBy_)
@@ -36,10 +36,11 @@ import Edna.Analysis.FourPL (AnalysisResult, Params4PL(..))
 import Edna.DB.Integration
   (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
-import Edna.DB.Util (groupAndPaginate)
+import Edna.DB.Util (groupAndPaginate, sortingSpecWithId)
 import Edna.Dashboard.DB.Schema
 import Edna.Dashboard.Web.Types (ExperimentResp(..), ExperimentSortingSpec)
 import Edna.ExperimentReader.Types (FileMetadata)
+import Edna.Library.DB.Schema (TestMethodologyRec, TestMethodologyT(..))
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U
@@ -90,7 +91,9 @@ deleteSubExperiment (SqlId subExpId) =
      )
   ) seSubExperimentId
 
-type ExperimentTupleHelper = (ExperimentRec, Word32, Maybe Word32, LocalTime, Word32)
+-- There can't be more than one test methodology for experiment, so we put it here,
+-- even though we are using LEFT JOIN for it.
+type ExperimentTupleHelper = (ExperimentRec, Word32, Maybe TestMethodologyRec, LocalTime, Word32)
 type SubExperimentTupleHelper = (SqlSerial Word32, PgJSON AnalysisResult)
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
@@ -104,11 +107,14 @@ getExperiments mProj mComp mTarget sorting pagination =
     map (\(expTuple, (mId, mResult)) -> (expTuple, (,) <$> mId <*> mResult))
     ) $
   runSelectReturningList' $ select $
-  sortBy_ sorting sortingApp do
+  sortBy_ (sortingSpecWithId sorting) sortingApp do
     experiment <- all_ $ esExperiment ednaSchema
 
     experimentFile <- all_ $ esExperimentFile ednaSchema
     guard_ (eExperimentFileId experiment ==. cast_ (efExperimentFileId experimentFile) int)
+
+    methodology <- leftJoin_  (all_ $ esTestMethodology ednaSchema) $ \testMethod ->
+      just_ (cast_ (tmTestMethodologyId testMethod) int) ==. efMethodologyId experimentFile
 
     primarySubExp <- all_ $ esPrimarySubExperiment ednaSchema
     guard_ (pseExperimentId primarySubExp ==. cast_ (eExperimentId experiment) int)
@@ -126,7 +132,7 @@ getExperiments mProj mComp mTarget sorting pagination =
     return
       ( ( experiment
         , efProjectId experimentFile
-        , efMethodologyId experimentFile
+        , methodology
         , efUploadDate experimentFile
         , pseSubExperimentId primarySubExp
         )
@@ -135,19 +141,22 @@ getExperiments mProj mComp mTarget sorting pagination =
         )
       )
   where
-    sortingApp ((_experimentRec, _projectId, _methodologyId, uploadDate, _subExpId), _) =
+    sortingApp ((experimentRec, _projectId, methodology, uploadDate, _subExpId), _) =
+      fieldSort @"id" (eExperimentId experimentRec) .*.
       fieldSort @"uploadDate" uploadDate .*.
+      fieldSort @"methodology" (tmName methodology) .*.
       HNil
 
     convert :: HasCallStack =>
       (ExperimentTupleHelper, [SubExperimentTupleHelper]) ->
       (ExperimentId, ExperimentResp)
-    convert ((ExperimentRec {..}, projId, methodId, uploadDate, primary), subExps) =
+    convert ((ExperimentRec {..}, projId, mMethodology, uploadDate, primary), subExps) =
       ( fromSqlSerial eExperimentId, ExperimentResp
         { erProject = SqlId projId
         , erCompound = SqlId eCompoundId
         , erTarget = SqlId eTargetId
-        , erMethodology = SqlId <$> methodId
+        , erMethodology =
+            (fromSqlSerial . tmTestMethodologyId &&& tmName) <$> mMethodology
         , erUploadDate = localToUTC uploadDate
         , erSubExperiments = map (fromSqlSerial . fst) subExps
         , erPrimarySubExperiment = SqlId primary

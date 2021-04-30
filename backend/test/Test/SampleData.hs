@@ -21,6 +21,7 @@ module Test.SampleData
 
   -- * Files
   , sampleFile
+  , sampleFileExpNum
   , sampleFile2
   , autoOutlierFile
   , sampleMetadata
@@ -76,9 +77,11 @@ projectDescription2 = Nothing
 -- Methodologies
 ----------------
 
+-- 'methodologyName1' is greater than 'methodologyName2', so that sorting
+-- by ID and name are different
 methodologyName1, methodologyName2 :: Text
-methodologyName1 = "methodology1"
-methodologyName2 = "methodology2"
+methodologyName1 = "methodologyOne"
+methodologyName2 = "methodologyAfterOne"
 
 methodologyDescription1, methodologyDescription2 :: Maybe Text
 methodologyDescription1 = Just "First methodology"
@@ -98,6 +101,14 @@ sampleFile = mkFileContents
   , (targetName2, targetMeasurements2)
   , (targetName3, targetMeasurements3)
   ]
+
+-- | Number of experiments in 'sampleFile'.
+sampleFileExpNum :: Num n => n
+sampleFileExpNum =
+  fromIntegral .
+  getSum .
+  foldMap (Sum . length . unTargetMeasurements) .
+  fcMeasurements $ sampleFile
 
 sampleFile2 :: FileContents
 sampleFile2 = mkFileContents

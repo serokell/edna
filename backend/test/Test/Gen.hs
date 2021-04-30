@@ -172,7 +172,7 @@ genExperimentResp = do
   erProject <- genSqlId
   erCompound <- genSqlId
   erTarget <- genSqlId
-  erMethodology <- Gen.maybe genSqlId
+  erMethodology <- Gen.maybe $ (,) <$> genSqlId <*> genName
   erUploadDate <- genUTCTime
   erSubExperiments <- Gen.list (Range.linear 1 5) genSqlId
   erPrimarySubExperiment <- Gen.element erSubExperiments

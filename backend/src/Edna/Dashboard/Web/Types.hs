@@ -69,8 +69,8 @@ data ExperimentResp = ExperimentResp
   -- ^ Compound involved in this experiment.
   , erTarget :: TargetId
   -- ^ Compound involved in this experiment.
-  , erMethodology :: Maybe MethodologyId
-  -- ^ Test methodology used in this experiment.
+  , erMethodology :: Maybe (MethodologyId, Text)
+  -- ^ Test methodology used in this experiment (its name is attached).
   , erUploadDate :: UTCTime
   -- ^ Date when the experiment was uploaded.
   , erSubExperiments :: [SubExperimentId]
@@ -88,19 +88,27 @@ data ExperimentResp = ExperimentResp
 instance Buildable ExperimentResp where
   build ExperimentResp {..} =
     "Project " +| erProject |+ ", compound " +| erCompound |+ ", target " +| erTarget |+
-    ", methodology " +| erMethodology |+ ", upload date: " +| iso8601Show erUploadDate |+
+    ", methodology " +| buildMethodology |+ ", upload date: " +| iso8601Show erUploadDate |+
     ", sub-experiments: " +| map unSqlId erSubExperiments |+
     ", primary: " +| erPrimarySubExperiment |+
     ", IC50: " +| either build build erPrimaryIC50 |+ ""
+    where
+      buildMethodology = case erMethodology of
+        Nothing -> "unset"
+        Just (methodId, methodName) ->
+          build methodName <> "(" <> build methodId <> ")"
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
 
--- TODO [EDNA-89] Add more fields
 type instance SortingParamTypesOf ExperimentResp =
   '["uploadDate" ?: LocalTime
   -- ↑ LocalTime is stored in DB, the difference between LocalTime and UTCTime
   -- does not matter for sorting.
+  -- , "compound" ?: Text
+  -- , "target" ?: Text
+  -- ↑ TODO
+  , "methodology" ?: Maybe Text
   ]
 
 type ExperimentSortingSpec = SortingSpec (SortingParamTypesOf ExperimentResp)
