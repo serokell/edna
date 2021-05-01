@@ -31,6 +31,7 @@ import Database.Beam.Backend (SqlSerial(..))
 import Servant.API (NoContent(..))
 import Servant.Util (PaginationSpec)
 
+import Edna.DB.Integration (transact)
 import Edna.Library.DB.Schema
   (CompoundRec, CompoundT(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
   TestMethodologyT(..))
@@ -123,7 +124,7 @@ getMethodologies sorting pagination =
   Q.getMethodologies sorting pagination >>= mapM methodologyToResp
 
 addMethodology :: MethodologyReq -> Edna (WithId 'MethodologyId MethodologyResp)
-addMethodology tm@MethodologyReq{..} = do
+addMethodology tm@MethodologyReq{..} = transact $ do
   Q.getMethodologyByName mrqName >>= nothingOrThrow (LEMethodologyNameExists mrqName)
   res <- Q.insertMethodology tm >>= methodologyToResp . (,[])
   res <$ logMessage ("Added methodology with name " <> mrqName)
@@ -132,7 +133,7 @@ updateMethodology
   :: SqlId 'MethodologyId
   -> MethodologyReq
   -> Edna (WithId 'MethodologyId MethodologyResp)
-updateMethodology mId@(SqlId methodologyId) tm@MethodologyReq{..} = do
+updateMethodology mId@(SqlId methodologyId) tm@MethodologyReq{..} = transact $ do
   existingMethodology <- Q.getMethodologyByName mrqName
   case existingMethodology of
     Just tmRec -> ensureOrThrow (LEMethodologyNameExists mrqName) $
@@ -167,7 +168,7 @@ getProjects sorting pagination =
   map projectToResp <$> Q.getProjectsWithCompounds sorting pagination
 
 addProject :: ProjectReq -> Edna (WithId 'ProjectId ProjectResp)
-addProject p@ProjectReq{..} = do
+addProject p@ProjectReq{..} = transact $ do
   Q.getProjectByName prqName >>= nothingOrThrow (LEProjectNameExists prqName)
   ProjectRec{..} <- Q.insertProject p
   logMessage $ "Added project with name " <> prqName
@@ -177,7 +178,7 @@ updateProject
   :: SqlId 'ProjectId
   -> ProjectReq
   -> Edna (WithId 'ProjectId ProjectResp)
-updateProject pId@(SqlId projectId) p@ProjectReq{..} = do
+updateProject pId@(SqlId projectId) p@ProjectReq{..} = transact $ do
   existingProject <- Q.getProjectByName prqName
   case existingProject of
     Just pRec -> ensureOrThrow (LEProjectNameExists prqName) $

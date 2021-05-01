@@ -21,7 +21,6 @@ import Universum
 
 import qualified Database.Beam.Postgres.Conduit as C
 
-import Data.Pool (withResource)
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Backend.SQL.Row (FromBackendRow)
 import Database.Beam.Postgres (Connection, Pg, Postgres, runBeamPostgres, runBeamPostgresDebug)
@@ -30,21 +29,24 @@ import Database.Beam.Query
   (SqlDelete, SqlInsert, SqlSelect, SqlUpdate, runDelete, runInsert, runSelectReturningList,
   runSelectReturningOne, runUpdate)
 import Database.Beam.Schema (Beamable)
-import Database.PostgreSQL.Simple.Transaction (withTransactionSerializable)
-import RIO (withRunInIO)
 
-import Edna.DB.Connection (ConnPool(..))
+import Edna.DB.Connection (PostgresConn(..), postgresConnSingle)
 import Edna.Logging (logUnconditionally)
-import Edna.Setup (Edna, edConnectionPool, edDebugDB)
+import Edna.Setup (Edna, EdnaContext(_edDBConnection), edDBConnection, edDebugDB)
 
 withConnection :: (Connection -> Edna a) -> Edna a
 withConnection action = do
-  ConnPool pool <- view edConnectionPool
-  withRunInIO $ \unlift -> withResource pool (unlift . action)
+  c <- view edDBConnection
+  pcWithConnection c action
 
 transact :: Edna a -> Edna a
-transact action = withConnection $
-  \conn -> withRunInIO $ \unlift -> withTransactionSerializable conn (unlift action)
+transact action = do
+  c <- view edDBConnection
+  pcWithConnection c $ \conn ->
+    pcWithTransaction c conn $ do
+      let c' = postgresConnSingle conn
+      local (\ctx -> ctx { _edDBConnection = c' }) $ do
+        pcWithTransaction c' conn action
 
 runPg :: Pg a -> Edna a
 runPg pg = withConnection $ \conn ->

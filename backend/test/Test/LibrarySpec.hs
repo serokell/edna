@@ -12,10 +12,13 @@ import Universum
 
 import qualified Data.Map.Strict as Map
 
+import Fmt (pretty)
 import RIO (runRIO)
 import Servant.Util (asc, desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
 import Servant.Util.Internal.Util (Positive(..))
-import Test.Hspec (Expectation, Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldThrow)
+import Test.Hspec
+  (Expectation, Spec, SpecWith, beforeAllWith, describe, expectationFailure, it, shouldBe,
+  shouldThrow)
 
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Service
@@ -71,10 +74,12 @@ gettersSpec = do
       targetsAscName <- getTargets (mkSortingSpec [asc #name])
         (mkPagination paginationAsc)
       checkTargets (Just (compare `on` view (_2 . _1))) (Just paginationAsc) targetsAscName
-      let paginationDesc = (3, 0)
+      let paginationDesc = (1, 0)
       targetsDescDate <- getTargets (mkSortingSpec [desc #additionDate])
         (mkPagination paginationDesc)
-      -- here sorting by date is practically equivalent to sorting by ID
+      -- here sorting by date is practically equivalent to sorting by ID,
+      -- but we need to be careful because targets added in one transaction
+      -- have equal addition date, but different IDs
       checkTargets (Just (compare `on` (Down . view _1))) (Just paginationDesc) targetsDescDate
 
   describe "getCompound" $ do
@@ -93,7 +98,7 @@ gettersSpec = do
       let paginationAsc = (4, 2)
       compoundsAsc <- getCompounds (mkSortingSpec [asc #name])
         (mkPagination paginationAsc)
-      checkCompounds (Just $ (compare `on` snd)) (Just paginationAsc) compoundsAsc
+      checkCompounds (Just (compare `on` snd)) (Just paginationAsc) compoundsAsc
       let paginationDesc = (8, 4)
       compoundsDesc <- getCompounds (mkSortingSpec [desc #name])
         (mkPagination paginationDesc)
@@ -160,10 +165,14 @@ gettersSpec = do
     projectIds :: [ProjectId]
     projectIds = map (SqlId . fst) allExpectedProjects
 
-    checkPairs :: MonadIO m =>
-      [(Word32, a)] -> ((item, a) -> Expectation) ->
-      Maybe ((Word32, a) -> (Word32, a) -> Ordering) -> Maybe (Int, Int) ->
-      [WithId idTag item] -> m ()
+    checkPairs
+      :: MonadIO m
+      => [(Word32, a)]
+      -> ((item, a) -> Expectation)
+      -> Maybe ((Word32, a) -> (Word32, a) -> Ordering)
+      -> Maybe (Int, Int)
+      -> [WithId idTag item]
+      -> m ()
     checkPairs allExpectedItems checkItem mSortCmp mTakeDrop pairs = liftIO $ do
       let expected =
             maybe id (\(toTake, toDrop) -> take toTake . drop toDrop) mTakeDrop .
@@ -171,13 +180,19 @@ gettersSpec = do
             allExpectedItems
       let expectedMap = Map.fromList expected
       length pairs `shouldBe` length expected
-      forM_ pairs $ \WithId {..} -> do
-        checkItem (wItem, expectedMap Map.! unSqlId wiId)
+      forM_ pairs $ \WithId {..} ->
+        case expectedMap Map.!? unSqlId wiId of
+          Nothing -> expectationFailure $ "couldn't find item " <> pretty wiId
+          Just a -> checkItem (wItem, a)
 
-    checkTargets :: MonadIO m =>
-      Maybe ((Word32, (Text, [Text])) -> (Word32, (Text, [Text])) -> Ordering) ->
-      Maybe (Int, Int) ->
-      [WithId 'TargetId TargetResp] -> m ()
+    checkTargets
+      :: MonadIO m
+      => Maybe ((Word32, (Text, [Text]))
+             -> (Word32, (Text, [Text]))
+             -> Ordering)
+      -> Maybe (Int, Int)
+      -> [WithId 'TargetId TargetResp]
+      -> m ()
     checkTargets = checkPairs allExpectedTargets $
       \(TargetResp {..}, (expectedName, expectedProjectNames)) -> do
         trName `shouldBe` expectedName
@@ -190,10 +205,12 @@ gettersSpec = do
       , (5, (targetName4, [projectName2]))
       ]
 
-    checkCompounds :: MonadIO m =>
-      Maybe ((Word32, Text) -> (Word32, Text) -> Ordering) ->
-      Maybe (Int, Int) ->
-      [WithId 'CompoundId CompoundResp] -> m ()
+    checkCompounds
+      :: MonadIO m
+      => Maybe ((Word32, Text) -> (Word32, Text) -> Ordering)
+      -> Maybe (Int, Int)
+      -> [WithId 'CompoundId CompoundResp]
+      -> m ()
     checkCompounds = checkPairs allExpectedCompounds $
       \(CompoundResp {..}, expectedName) -> do
         crName `shouldBe` expectedName
@@ -208,12 +225,14 @@ gettersSpec = do
       , (7, compoundName5)
       ]
 
-    checkMethodologies :: MonadIO m =>
-      Maybe ((Word32, (Text, Maybe Text, Maybe URI, Text)) ->
-             (Word32, (Text, Maybe Text, Maybe URI, Text)) ->
-              Ordering) ->
-      Maybe (Int, Int) ->
-      [WithId 'MethodologyId MethodologyResp] -> m ()
+    checkMethodologies
+      :: MonadIO m
+      => Maybe ((Word32, (Text, Maybe Text, Maybe URI, Text))
+             -> (Word32, (Text, Maybe Text, Maybe URI, Text))
+             -> Ordering)
+      -> Maybe (Int, Int)
+      -> [WithId 'MethodologyId MethodologyResp]
+      -> m ()
     checkMethodologies = checkPairs allExpectedMethodologies $
       \(MethodologyResp {..},
         (expectedName, expectedDescription, expectedConfluence, expectedProj)) -> do
@@ -227,12 +246,14 @@ gettersSpec = do
       , (2, (methodologyName2, methodologyDescription2, methodologyConfluence2, projectName2))
       ]
 
-    checkProjects :: MonadIO m =>
-      Maybe ((Word32, (Text, Maybe Text, [Text])) ->
-             (Word32, (Text, Maybe Text, [Text])) ->
-              Ordering) ->
-      Maybe (Int, Int) ->
-      [WithId 'ProjectId ProjectResp] -> m ()
+    checkProjects
+      :: MonadIO m
+      => Maybe ((Word32, (Text, Maybe Text, [Text]))
+             -> (Word32, (Text, Maybe Text, [Text]))
+             -> Ordering)
+      -> Maybe (Int, Int)
+      -> [WithId 'ProjectId ProjectResp]
+      -> m ()
     checkProjects = checkPairs allExpectedProjects $
       \(ProjectResp {..},
         (expectedName, expectedDescription, expectedCompoundNames)) -> do

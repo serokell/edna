@@ -16,7 +16,7 @@ import qualified Data.Set as Set
 import Data.List ((!!))
 import RIO (runRIO)
 import Servant.Util (fullContent, noSorting)
-import Test.Hspec (Spec, beforeAllWith, describe, it, shouldBe, shouldThrow)
+import Test.Hspec (Spec, anyErrorCall, beforeAllWith, describe, it, shouldBe, shouldThrow)
 
 import qualified Edna.Dashboard.Service as Dashboard
 import qualified Edna.Library.Service as Library
@@ -41,23 +41,28 @@ spec = withContext $ startWithInitial $ do
     it "returns empty summary for empty contents" $ runTestEdna $ do
       summary <- parseFile' (FileContents mempty sampleMetadata)
       liftIO $ summary `shouldBe` FileSummary []
+
     it "returns correct summary for sample data" $ runTestEdna $ do
       summary <- parseFile' sampleFile
       liftIO $
         summary `shouldBe` sortFileSummary sampleFileSummary
+
     it "returns IDs when data is known" $ runTestEdna $ do
       summary <-
         uploadFileTest (SqlId 1) (SqlId 1) sampleFile >> parseFile' sampleFile
       liftIO $
         summary `shouldBe` sortFileSummary sampleFileSummary'
+
   -- Starting with initial state here because there is one successful upload above.
   describe "uploadFile'" $ startWithInitial $ do
     it "fails when referenced project does not exist" $ \ctx -> do
       runRIO ctx (uploadFileTest unknownSqlId (SqlId 1) sampleFile) `shouldThrow`
         (== UEUnknownProject unknownSqlId)
+
     it "fails when referenced test methodology does not exist" $ \ctx -> do
       runRIO ctx (uploadFileTest (SqlId 1) unknownSqlId sampleFile) `shouldThrow`
         (== UEUnknownTestMethodology unknownSqlId)
+
     -- Note that there are some checks in LibrarySpec and DashboardSpec as well.
     it "successfully adds targets and compounds" $ runTestEdna $ do
       summary <- uploadFile' (SqlId 1) (SqlId 1) "file description" "file name"
@@ -74,6 +79,7 @@ spec = withContext $ startWithInitial $ do
         checkTargets targets
         checkCompounds compounds
         checkExperiments (wItem <$> erExperiments experiments)
+
     it "successfully adds experiment with auto-detected outlier" $ runTestEdna $ do
       projId <- wiId <$> Library.addProject (ProjectReq "autoOutlierFile" Nothing)
       void $ uploadFileTest projId (SqlId 1) autoOutlierFile
@@ -104,6 +110,17 @@ spec = withContext $ startWithInitial $ do
                   , mrIsEnabled = False
                   }
         onlyDisabled secondaryMeasurements `shouldBe` secondaryDisabled
+
+    it "rollbacks targets and compounds due processing error" $ \ctx -> do
+      runWithInit ctx addInitialData
+      runRIO ctx (uploadFile' (SqlId 1) (SqlId 1) "" (error "e") "" sampleFile)
+        `shouldThrow` anyErrorCall
+
+      runRIO ctx $ do
+        Library.getTargets noSorting fullContent >>= shouldBeZeroLength
+        Library.getCompounds noSorting fullContent >>= shouldBeZeroLength
+        Dashboard.getExperiments Nothing Nothing Nothing noSorting fullContent
+          >>= shouldBeZeroLength . erExperiments
   where
     addInitialData = addSampleProjects >> addSampleMethodologies
     startWithInitial =
@@ -134,6 +151,9 @@ spec = withContext $ startWithInitial $ do
         `shouldBe` 3
       forM_ responses $ \ExperimentResp {..} ->
         length erSubExperiments `shouldBe` 1
+
+    shouldBeZeroLength :: (MonadIO m, Container t) => t -> m ()
+    shouldBeZeroLength l = liftIO $ length l `shouldBe` 0
 
 newNAI :: Text -> NameAndId anything
 newNAI name = NameAndId name Nothing

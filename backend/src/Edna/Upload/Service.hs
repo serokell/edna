@@ -86,6 +86,8 @@ uploadFile proj methodology description fileName content = do
   uploadFile' proj methodology description fileName content =<<
     either throwM pure (parseExperimentXls content)
 
+-- We have a test to check transaction rollback in case of error, which relies
+-- on the fact that we add experiment file after compounds and targets
 uploadFile' ::
   ProjectId -> MethodologyId -> Text -> Text -> LByteString ->
   FileContents -> Edna FileSummary
