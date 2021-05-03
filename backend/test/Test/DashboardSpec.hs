@@ -15,7 +15,7 @@ import Universum
 import qualified Data.Map.Strict as Map
 
 import RIO (runRIO)
-import Servant.Util (desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
+import Servant.Util (asc, desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
 import Servant.Util.Dummy.Pagination (paginate)
 import Servant.Util.Internal.Util (Positive(..))
 import Test.Hspec
@@ -165,7 +165,7 @@ gettersSpec = do
         liftIO $ do
           length erExperiments `shouldBe` 2
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
-            erCompound `shouldBe` compoundId
+            fst erCompound `shouldBe` compoundId
       it "filters by 3 filters correctly and returns mean IC50" $ runTestEdna $ do
         let compoundId = SqlId 2
         let targetId = SqlId 2
@@ -180,8 +180,8 @@ gettersSpec = do
           let [WithId _ expResp] = erExperiments
           erPrimaryIC50 expResp `shouldBe` Right p4plC
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) -> do
-            erTarget `shouldBe` targetId
-            erCompound `shouldBe` compoundId
+            erTarget `shouldBe` (targetId, targetName2)
+            erCompound `shouldBe` (compoundId, compoundName2)
       it "filters by project and properly applies sorting and pagination" $ runTestEdna $ do
         let
           size :: Num n => n
@@ -207,12 +207,23 @@ gettersSpec = do
         let
           paginateAndGetIds :: [WithId a b] -> [SqlId a]
           paginateAndGetIds = map wiId . paginate paginationSpec
+
         descByMethodology <- getSortedIds (mkSortingSpec [desc #methodology])
+        ascByCompound <- getSortedIds (mkSortingSpec [asc #compound])
+        descByTarget <- getSortedIds (mkSortingSpec [desc #target])
         liftIO $ do
-          let getMethodologyName (WithId sqlId er) =
-                (Down . DefaultPgNullsOrder $ snd <$> erMethodology er, Down sqlId)
+          let alsoSortById f (WithId sqlId er) = (f er, Down sqlId)
+          let getMethodologyName = alsoSortById $
+                Down . DefaultPgNullsOrder . fmap snd . erMethodology
+          let getCompoundName = alsoSortById $ snd . erCompound
+          let getTargetName = alsoSortById $ Down . snd . erTarget
           descByMethodology `shouldBe`
             paginateAndGetIds (sortWith getMethodologyName allExperiments)
+          ascByCompound `shouldBe`
+            paginateAndGetIds (sortWith getCompoundName allExperiments)
+          descByTarget `shouldBe`
+            paginateAndGetIds (sortWith getTargetName allExperiments)
+
     describe "getExperimentMetadata" $ do
       it "returns correct metadata for all known experiments" $ runTestEdna $ do
         forM_ validExperimentIds $ \expId -> do

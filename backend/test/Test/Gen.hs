@@ -170,8 +170,8 @@ genExperimentsResp =
 genExperimentResp :: MonadGen m => m ExperimentResp
 genExperimentResp = do
   erProject <- genSqlId
-  erCompound <- genSqlId
-  erTarget <- genSqlId
+  erCompound <- (,) <$> genSqlId <*> genName
+  erTarget <- (,) <$> genSqlId <*> genName
   erMethodology <- Gen.maybe $ (,) <$> genSqlId <*> genName
   erUploadDate <- genUTCTime
   erSubExperiments <- Gen.list (Range.linear 1 5) genSqlId
