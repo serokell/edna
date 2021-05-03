@@ -82,6 +82,7 @@
       };
       docker = pkgs.callPackage ./docker.nix {
         backend = backend.server;
+        inherit creationDate;
         inherit frontend;
       };
 
