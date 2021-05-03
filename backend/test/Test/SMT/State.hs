@@ -25,7 +25,7 @@ module Test.SMT.State
 import Universum
 
 import Hedgehog (Concrete, Test)
-import Lens.Micro.Platform (makeLenses)
+import Control.Lens (makeLenses)
 
 import Edna.ExperimentReader.Types (FileContents)
 import Edna.Library.Web.Types (MethodologyReq, ProjectReq)

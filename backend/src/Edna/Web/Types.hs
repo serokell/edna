@@ -16,11 +16,11 @@ module Edna.Web.Types
 
 import Universum
 
+import Control.Lens ((?~))
 import Data.Aeson.TH (deriveToJSON)
-import Data.Swagger (SwaggerType(..), ToSchema(..), declareSchemaRef, properties, required, type_)
-import Data.Swagger.Internal.Schema (unnamed)
+import Data.OpenApi (OpenApiType(..), ToSchema(..), declareSchemaRef, properties, required, type_)
+import Data.OpenApi.Internal.Schema (unnamed)
 import Fmt (Buildable(..))
-import Lens.Micro ((?~))
 import Network.URI (URI(..))
 import Network.URI.JSON ()
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
@@ -61,7 +61,7 @@ instance ToSchema t => ToSchema (WithId k t) where
     idSchema <- declareSchemaRef (Proxy :: Proxy Word32)
     itemSchema <- declareSchemaRef (Proxy :: Proxy t)
     pure $ unnamed $ mempty
-      & type_ ?~ SwaggerObject
+      & type_ ?~ OpenApiObject
       & properties .~
           [ ("id", idSchema)
           , ("item", itemSchema)

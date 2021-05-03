@@ -42,7 +42,6 @@ import Edna.Dashboard.Web.Types (ExperimentResp(..), ExperimentSortingSpec)
 import Edna.ExperimentReader.Types (FileMetadata)
 import Edna.Library.DB.Schema
   (CompoundRec, CompoundT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
-import Edna.Orphans ()
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U

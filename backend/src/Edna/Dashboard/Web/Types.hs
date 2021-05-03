@@ -18,7 +18,7 @@ module Edna.Dashboard.Web.Types
 import Universum
 
 import Data.Aeson.TH (deriveJSON, deriveToJSON)
-import Data.Swagger (NamedSchema(..), ToSchema(..), binarySchema)
+import Data.OpenApi (NamedSchema(..), ToSchema(..), binarySchema)
 import Data.Time (LocalTime, UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), Builder, genericF, tupleF, (+|), (|+))

@@ -37,11 +37,12 @@ module Edna.Config.Definition
 
 import Universum
 
-import qualified Data.Aeson as Aeson
-import Data.Aeson.TH (deriveJSON)
 import qualified Data.Char as C
 import qualified Data.Text as T
-import Lens.Micro.Platform (makeLenses)
+
+import qualified Data.Aeson as Aeson
+import Data.Aeson.TH (deriveJSON)
+import Control.Lens (makeLenses)
 import Text.Read (read)
 
 import Edna.Util (ConnString(..), DatabaseInitOption(..), NetworkAddress, ednaAesonConfigOptions)

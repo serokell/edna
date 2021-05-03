@@ -18,7 +18,7 @@ import Universum
 
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Aeson.TH (deriveFromJSON, deriveToJSON)
-import Data.Swagger (ToSchema(..))
+import Data.OpenApi (ToSchema(..))
 import Fmt (Buildable(..), genericF, tupleF, (+|), (|+))
 import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
 
@@ -66,8 +66,7 @@ instance FromJSON Params4PL where
       constr (a, b, c, d) = Params4PL a b c d
 
 instance ToSchema Params4PL where
-  declareNamedSchema Proxy =
-    declareNamedSchema @Params4PLTuple Proxy
+  declareNamedSchema Proxy = declareNamedSchema @Params4PLTuple Proxy
 
 type AnalysisResult = Either Text Params4PL
 

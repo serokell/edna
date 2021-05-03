@@ -16,7 +16,7 @@ import qualified Data.HashSet as HashSet
 import qualified Data.Set as Set
 
 import Database.Beam.Backend.SQL.BeamExtensions (SqlSerial(..))
-import Lens.Micro (at)
+import Control.Lens (at)
 import Servant.Util (PaginationSpec(..), SortingSpec, TyNamedParam, type (?:))
 import Servant.Util.Combinators.Sorting.Base (SortingItem(..), SortingOrder(..), SortingSpec(..))
 import Servant.Util.Dummy.Pagination (paginate)

@@ -20,7 +20,7 @@ module Edna.Library.Web.Types
 import Universum
 
 import Data.Aeson.TH (deriveJSON)
-import Data.Swagger (ToSchema(..))
+import Data.OpenApi (ToSchema(..))
 import Data.Time (LocalTime, UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Fmt (Buildable(..), genericF, (+|), (|+))

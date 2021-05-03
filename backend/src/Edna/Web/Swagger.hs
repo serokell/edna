@@ -24,18 +24,22 @@ module Edna.Web.Swagger
 
 import Universum
 
-import Data.Swagger (ToParamSchema, ToSchema(..), toSchema)
-import qualified Data.Swagger as S
-import Data.Swagger.Internal.Schema (named)
-import qualified Data.Swagger.Internal.Schema as S
-import Data.Swagger.Lens as Exports
-import Lens.Micro ((?~))
-import Lens.Micro.Platform (zoom, (.=), (?=))
+import qualified Data.OpenApi as O
+import qualified Data.OpenApi.Internal.Schema as O
+import qualified Data.Text as T
+
+import Control.Lens (zoom, (.=), (?=), (?~))
+import Data.OpenApi (ToParamSchema, ToSchema(..), toSchema)
+import Data.OpenApi.Internal.Schema (named)
+import Data.OpenApi.Lens as Exports
+import Data.Version (showVersion)
 import Network.URI (URI)
 import Servant (Server, (:<|>)(..))
-import Servant.Swagger (HasSwagger(..))
+import Servant.OpenApi (HasOpenApi(..))
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.Core (SwaggerUiHtml)
+
+import qualified Paths_edna as Meta
 
 import Edna.Web.API (EdnaAPI, ednaAPI)
 
@@ -54,11 +58,10 @@ type WithSwaggerUI api = api :<|> SwaggerUI
 -- | Attach an UI serving given documentation to the given server.
 withSwaggerUI
   :: Proxy api
-  -> S.Swagger
+  -> O.OpenApi
   -> Server api
   -> Server (WithSwaggerUI api)
-withSwaggerUI _ swagger server =
-  server :<|> swaggerSchemaUIServer swagger
+withSwaggerUI _ swagger eServer = eServer :<|> swaggerSchemaUIServer swagger
 
 ----------------------------------------------------------------------------
 -- Edna schema definition
@@ -71,38 +74,37 @@ ednaAPIWithDocs :: Proxy EdnaAPIWithDocs
 ednaAPIWithDocs = Proxy
 
 -- | Generates swagger documentation for Edna API.
-ednaApiSwagger :: S.Swagger
-ednaApiSwagger = executingState (toSwagger ednaAPI) $ do
-    zoom S.info $ do
-      S.title .= "Edna API"
-      S.version .= "1.0.0"
-      S.contact ?= mempty `executingState` do
-        S.name ?= "Serokell OÜ"
-        S.email ?= "hi@serokell.io"
-        S.url ?= S.URL "https://serokell.io"
+ednaApiSwagger :: O.OpenApi
+ednaApiSwagger = executingState (toOpenApi ednaAPI) $ do
+    zoom O.info $ do
+      O.title .= "Edna API"
+      O.version .= T.pack (showVersion Meta.version)
+      O.license ?= "AGPL-3.0-or-later"
+      O.contact ?= mempty `executingState` do
+        O.name ?= "Serokell OÜ"
+        O.email ?= "hi@serokell.io"
+        O.url ?= O.URL "https://serokell.io"
 
-    S.externalDocs ?= mempty `executingState` do
-      S.description ?= "Find out more about Swagger"
-      S.url .= S.URL "http://swagger.io"
-
-    S.schemes ?= [S.Http, S.Https]
+    O.externalDocs ?= mempty `executingState` do
+      O.description ?= "Find out more about Swagger"
+      O.url .= O.URL "http://swagger.io"
 
 ----------------
 -- Instances
 ----------------
 
-instance S.ToSchema URI where
+instance ToSchema URI where
   declareNamedSchema _ = declareNamedSchema @Text Proxy
 
-instance S.ToSchema (SwaggerUiHtml dir api) where
+instance ToSchema (SwaggerUiHtml dir api) where
   declareNamedSchema _ =
-    S.plain $ mempty `executingState` do
-      S.type_ ?= S.SwaggerNull
-      S.title ?= "Swagger UI page"
+    O.plain $ mempty `executingState` do
+      O.type_ ?= O.OpenApiNull
+      O.title ?= "Swagger UI page"
 
-instance S.ToSchema S.Swagger where
+instance ToSchema O.OpenApi where
   declareNamedSchema _ =
-    S.plain $ mempty `executingState` do
-      S.type_ ?= S.SwaggerObject
-      S.title ?= "Swagger specification"
-      S.description ?= "The specification you are currently reading."
+    O.plain $ mempty `executingState` do
+      O.type_ ?= O.OpenApiObject
+      O.title ?= "Swagger specification"
+      O.description ?= "The specification you are currently reading."
