@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Derived state should be placed here
-import { selector, selectorFamily, waitForAll } from "recoil";
+import { RecoilValueReadOnly, selector, selectorFamily, waitForAll } from "recoil";
 import {
   colorsCounterAtom,
   compoundIdSelectedAtom,
@@ -27,39 +27,52 @@ import {
   ExperimentsWithMean,
   SubExperimentWithMeasurements,
 } from "./types";
+import { SortParamsApi } from "../api/EdnaApi";
 
 // Library page
-export const projectsQuery = selector({
+export const projectsQuery = selectorFamily({
   key: "projectsQuery",
-  get: async ({ get }) => {
-    get(projectsRequestIdAtom); // Add request ID as a dependency
-    return Api.fetchProjects();
+  get: (sortingParams: SortParamsApi) => async ({ get }) => {
+    // Add request ID as a dependency, to enforce refresh of all sorting params
+    get(projectsRequestIdAtom);
+    return Api.fetchProjects(sortingParams);
   },
 });
 
-export const methodologiesQuery = selector({
+export const methodologiesQuery = selectorFamily({
   key: "methodologiesQuery",
-  get: async ({ get }) => {
-    get(methodologiesRequestIdAtom); // Add request ID as a dependency
-    return Api.fetchMethodologies();
+  get: (sortingParams: SortParamsApi) => async ({ get }) => {
+    // Add request ID as a dependency, to enforce refresh of all sorting params
+    get(methodologiesRequestIdAtom);
+    return Api.fetchMethodologies(sortingParams);
   },
 });
 
-export const compoundsQuery = selector({
+export const compoundsQuery = selectorFamily({
   key: "compoundsQuery",
-  get: async ({ get }) => {
+  get: (sortingParams: SortParamsApi) => async ({ get }) => {
     get(compoundsReqIdAtom); // Add request ID as a dependency
-    return Api.fetchCompounds();
+    return Api.fetchCompounds(sortingParams);
   },
 });
 
-export const targetsQuery = selector({
+export const targetsQuery = selectorFamily({
   key: "targetsQuery",
-  get: async ({ get }) => {
+  get: (sortingParams: SortParamsApi) => async ({ get }) => {
     get(targetsRequestIdAtom); // Add request ID as a dependency
-    return Api.fetchTargets();
+    return Api.fetchTargets(sortingParams);
   },
 });
+
+export function defaultBatchQuery<T>(
+  sel: (params: SortParamsApi) => RecoilValueReadOnly<T>,
+  params?: SortParamsApi
+): RecoilValueReadOnly<T> {
+  if (params) {
+    return sel(params);
+  }
+  return sel({ sortby: "name", desc: false });
+}
 
 // Dashboard page
 export const projectSelectedQuery = selector<Maybe<ProjectDto>>({
@@ -67,7 +80,7 @@ export const projectSelectedQuery = selector<Maybe<ProjectDto>>({
   get: ({ get }) => {
     const projectId = get(projectSelectedIdAtom);
     if (!isDefined(projectId)) return undefined;
-    const projects = get(projectsQuery);
+    const projects = get(projectsQuery({}));
     return projects.find(p => p.id === projectId);
   },
 });
@@ -76,8 +89,10 @@ export const compoundSelectedQuery = selector<Maybe<CompoundDto>>({
   key: "DashboardCompoundSelected",
   get: ({ get }) => {
     const compoundId = get(compoundIdSelectedAtom);
-    if (!isDefined(compoundId)) return undefined;
-    const compounds = get(compoundsQuery);
+    if (!isDefined(compoundId)) {
+      return undefined;
+    }
+    const compounds = get(compoundsQuery({}));
     return compounds.find(p => p.id === compoundId);
   },
 });
@@ -86,8 +101,10 @@ export const targetSelectedQuery = selector<Maybe<TargetDto>>({
   key: "DashboardTargetSelected",
   get: ({ get }) => {
     const targetId = get(targetIdSelectedAtom);
-    if (!isDefined(targetId)) return undefined;
-    const targets = get(targetsQuery);
+    if (!isDefined(targetId)) {
+      return undefined;
+    }
+    const targets = get(targetsQuery({}));
     return targets.find(p => p.id === targetId);
   },
 });
@@ -108,31 +125,31 @@ export const subExperimentsWithMeasurementsQuery = selectorFamily<
   },
 });
 
-const filteredExperimentsDtoQuery = selector<ExperimentsWithMeanDto>({
+export const filteredExperimentsDtoQuery = selectorFamily<ExperimentsWithMeanDto, SortParamsApi>({
   key: "FilteredExperimentsDtoQuery",
-  get: async ({ get }) => {
+  get: (sortingParams: SortParamsApi) => async ({ get }) => {
     get(filteredExperimentsReqIdAtom);
     const projectId = get(projectSelectedIdAtom);
     const compoundId = get(compoundIdSelectedAtom);
     const targetId = get(targetIdSelectedAtom);
-    return Api.fetchExperiments(projectId, compoundId, targetId);
+    return Api.fetchExperiments(projectId, compoundId, targetId, sortingParams);
   },
 });
 
-export const filteredExperimentsQuery = selector<ExperimentsWithMean>({
+export const filteredExperimentsQuery = selectorFamily<ExperimentsWithMean, SortParamsApi>({
   key: "DashboardExperiments",
-  get: ({ get }) => {
-    const { experiments, meanIC50 } = get(filteredExperimentsDtoQuery);
+  get: (sortingParams: SortParamsApi) => ({ get }) => {
+    const { experiments, meanIC50 } = get(filteredExperimentsDtoQuery(sortingParams));
 
     // TODO fix this quadratic time
     function findName(elements: { id: number; item: { name: string } }[], id: number) {
       return elements.find(x => x.id === id)?.item.name;
     }
 
-    const projects = get(projectsQuery);
-    const compounds = get(compoundsQuery);
-    const targets = get(targetsQuery);
-    const methodologies = get(methodologiesQuery);
+    const projects = get(projectsQuery({}));
+    const compounds = get(compoundsQuery({}));
+    const targets = get(targetsQuery({}));
+    const methodologies = get(methodologiesQuery({}));
 
     const exps: Experiment[] = experiments
       .map(e => {
@@ -173,18 +190,7 @@ export const selectedSubExperimentsQuery = selector<SubExperimentWithMeasurement
   },
 });
 
-export const selectedExperimentsQuery = selector<Set<number>>({
-  key: "SelectedExperiments",
-  get: ({ get }) => {
-    const filtered = get(filteredExperimentsQuery).experiments;
-    const subs = get(selectedSubExperimentsIdsAtom);
-    return new Set(
-      filtered.filter(e => isDefined(e.subExperiments.find(x => subs.has(x)))).map(x => x.id)
-    );
-  },
-});
-
-export const minAmountColor = selector<string>({
+export const minAmountColorQuery = selector<string>({
   key: "MinAmountColor",
   get: ({ get }) => {
     const amounts = chartColors.map(col => get(colorsCounterAtom(col)));

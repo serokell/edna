@@ -11,7 +11,7 @@ module.exports = {
     "color-named": "always-where-possible",
     "selector-class-pattern": null, // TODO camelCase regexp
     "property-no-vendor-prefix": null,
-    "unit-allowed-list": ["rem", "%", "ms", "s", "vh", "vw", "turn", "fr", "em"],
+    "unit-allowed-list": ["rem", "%", "ms", "s", "vh", "vw", "turn", "fr", "em", "deg"],
     "order/properties-alphabetical-order": null,
     // "declaration-no-important": true, TODO make this rule work
   },

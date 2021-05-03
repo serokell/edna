@@ -2,63 +2,112 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { useState } from "react";
-import { Column, useTable } from "react-table";
+import React, { useEffect, useState } from "react";
+import { Column, useSortBy, useTable } from "react-table";
 import { v4 as uuidv4 } from "uuid";
 import "./Table.scss";
+import { isRecoilValue, RecoilValueReadOnly, useRecoilValueLoadable } from "recoil";
 import cn from "../../utils/bemUtils";
+import ArrowSvg from "../../assets/svg/arrow.svg";
+import { Spinner } from "../Spinner/Spinner";
+import { SortParamsApi } from "../../api/EdnaApi";
 
 interface ColumnExtra {
   manualCellRendering?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-interface LibraryTableProps<T extends object> {
-  data: T[];
+interface TableProps<T extends object> {
   columns: Column<T>[];
   columnExtras?: { [id: string]: ColumnExtra };
   className?: string;
   small?: boolean;
   collapsible?: (x: T) => React.ReactNode;
+  defaultSortedColumn: string;
+  dataOrQuery:
+    | RecoilValueReadOnly<ReadonlyArray<T>>
+    | ((param: SortParamsApi) => RecoilValueReadOnly<T[]>);
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function Table<T extends object>({
-  data,
   columns,
   columnExtras,
   className,
   small,
   collapsible,
-}: LibraryTableProps<T>): React.ReactElement {
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable({
-    columns,
-    data,
-  });
+  dataOrQuery,
+  defaultSortedColumn,
+}: TableProps<T>): React.ReactElement {
+  const isConstant = isRecoilValue(dataOrQuery);
+  const [data, setData] = useState<T[]>([]);
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    state: { sortBy },
+  } = useTable<T>(
+    {
+      columns,
+      data,
+      initialState: {
+        sortBy: [
+          {
+            id: defaultSortedColumn,
+          },
+        ],
+      },
+      disableMultiSort: true,
+      manualSortBy: !isConstant,
+      disableSortRemove: true,
+    },
+    useSortBy
+  );
+
+  const loadableData = useRecoilValueLoadable(
+    typeof dataOrQuery === "function"
+      ? dataOrQuery(sortBy.length === 0 ? {} : { sortby: sortBy[0].id, desc: sortBy[0].desc })
+      : dataOrQuery
+  );
+
+  useEffect(() => {
+    if (loadableData.state === "hasValue") {
+      setData(loadableData.contents.concat([]));
+    } else {
+      setData([]);
+    }
+  }, [loadableData]);
+
   const isCollapsible = !!collapsible;
   const lastColumnWithRightBorder = computeLastColumnWithRightBorder(columns);
   const ednaTable = cn("ednaTable");
   const [shownColl, setShownColl] = useState<boolean[]>(new Array(data.length).fill(false));
 
-  return (
-    <table {...getTableProps()} className={`ednaTable ${className ?? ""}`}>
-      <thead>
-        {headerGroups.map(headerGroup => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column, i) => {
-              return (
-                <th {...column.getHeaderProps()} className="ednaTable__columnHead">
-                  {column.render("Header")}
-                  {i <= lastColumnWithRightBorder && (
-                    <span className="ednaTable__headRightBorder" />
-                  )}
-                </th>
-              );
-            })}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
+  function renderRows(): React.ReactElement {
+    if (loadableData.state === "loading") {
+      return (
+        <tr>
+          <td colSpan={columns.length}>
+            <Spinner />
+          </td>
+        </tr>
+      );
+    }
+    if (loadableData.state === "hasError") {
+      return (
+        <tr>
+          <td colSpan={columns.length} className="ednaTable__error">
+            {loadableData.contents.message}
+          </td>
+        </tr>
+      );
+    }
+
+    return (
+      <>
         {rows.map((row, i) => {
           prepareRow(row);
           return (
@@ -107,7 +156,43 @@ export function Table<T extends object>({
             </React.Fragment>
           );
         })}
-      </tbody>
+      </>
+    );
+  }
+
+  return (
+    <table {...getTableProps()} className={`ednaTable ${className ?? ""}`}>
+      <thead>
+        {headerGroups.map(headerGroup => (
+          <tr {...headerGroup.getHeaderGroupProps()}>
+            {headerGroup.headers.map((column, i) => {
+              return (
+                <th
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  className="ednaTable__columnHead"
+                  title={column.canSort ? `Sort by ${column.Header}` : ""}
+                >
+                  {column.render("Header")}
+                  {column.canSort && (
+                    <span
+                      className={ednaTable("sortSign", {
+                        desc: column.isSortedDesc,
+                        vis: column.isSorted,
+                      })}
+                    >
+                      <ArrowSvg />
+                    </span>
+                  )}
+                  {i <= lastColumnWithRightBorder && (
+                    <span className="ednaTable__headRightBorder" />
+                  )}
+                </th>
+              );
+            })}
+          </tr>
+        ))}
+      </thead>
+      <tbody {...getTableBodyProps()}>{renderRows()}</tbody>
     </table>
   );
 }

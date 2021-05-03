@@ -16,6 +16,21 @@ $cell-indent: 22 * $px;
   width: 100%;
   border-spacing: 0;
 
+  &__sortSign {
+    margin-left: 22 * $px;
+    visibility: hidden;
+
+    &_desc {
+      svg {
+        transform: rotate(180deg);
+      }
+    }
+
+    &_vis {
+      visibility: visible;
+    }
+  }
+
   &__columnHead {
     position: sticky;
     top: 0;
@@ -33,6 +48,10 @@ $cell-indent: 22 * $px;
 
     &:last-child {
       border-right: 0;
+    }
+
+    &:hover .ednaTable__sortSign {
+      visibility: visible;
     }
   }
 
@@ -87,6 +106,13 @@ $cell-indent: 22 * $px;
         cursor: pointer;
       }
     }
+  }
+
+  &__error {
+    display: table-cell;
+    padding: 20 * $px;
+    color: $color-help-red;
+    text-align: center;
   }
 
   tr:last-child .ednaTable__cell {

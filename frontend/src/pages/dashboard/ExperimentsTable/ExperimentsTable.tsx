@@ -2,21 +2,35 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useRecoilCallback, useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
-import React, { useEffect, useState } from "react";
+import {
+  selectorFamily,
+  useRecoilCallback,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+  waitForAll,
+} from "recoil";
+import React, { useCallback, useEffect, useState } from "react";
 import { Column } from "react-table";
 import cx from "classnames";
 import { v4 as uuidv4 } from "uuid";
 import {
+  compoundIdSelectedAtom,
   experimentMetadata,
   experimentsTableSizeAtom,
   modalDialogAtom,
+  projectSelectedIdAtom,
   selectedSubExperimentsIdsAtom,
   subExperimentsMetaAtom,
+  targetIdSelectedAtom,
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
-import { filteredExperimentsQuery, selectedExperimentsQuery } from "../../../store/selectors";
-import { formatAsDate, formatIC50, isDefined } from "../../../utils/utils";
+import {
+  defaultBatchQuery,
+  filteredExperimentsDtoQuery,
+  filteredExperimentsQuery,
+} from "../../../store/selectors";
+import { formatAsDate, formatAsDateTime, formatIC50, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -32,6 +46,7 @@ import "../IC50Line.scss";
 import DownloadSvg from "../../../assets/svg/download.svg";
 import { ContextItem } from "../../../components/ContextActions/ContextItems";
 import { Tooltip } from "../../../components/Tooltip/Tooltip";
+import { SortParamsApi } from "../../../api/EdnaApi";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -40,29 +55,48 @@ interface ExperimentsTableSuspendableProps {
 export function ExperimentsTableSuspendable({
   className,
 }: ExperimentsTableSuspendableProps): React.ReactElement {
-  const { experiments } = useRecoilValue(filteredExperimentsQuery);
-  const [showEntries, setShowEntries] = useState<ShowEntries>("all");
-  const selectedSubexperiments = useRecoilValue(selectedSubExperimentsIdsAtom);
-  const addSubExperiment = useAddSubExperiment();
-  const removeSubExperiments = useRemoveSubExperiments();
-  const selectedExperiments = useRecoilValue(selectedExperimentsQuery);
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
+  const [selectedSubexperiments, setSelectedSubexperiments] = useRecoilState(
+    selectedSubExperimentsIdsAtom
+  );
+  const selectedProjectId = useRecoilValue(projectSelectedIdAtom);
+  const selectedCompoundId = useRecoilValue(compoundIdSelectedAtom);
+  const selectedTargetId = useRecoilValue(targetIdSelectedAtom);
+
+  // TODO request here only 1st page to check experiments emptiness
+  const experimentsChunk = useRecoilValue(
+    defaultBatchQuery(filteredExperimentsDtoQuery, { sortby: "uploadDate", desc: true })
+  ).experiments;
+  const [showEntries, setShowEntries] = useState<ShowEntries>("all");
+  const addSubExperiment = useAddSubExperiment();
+  const removeSubExperiments = useRemoveSubExperiments();
+
+  const ifExperimentSelected = useCallback(
+    (exp: Experiment) => {
+      return isDefined(exp.subExperiments.find(x => selectedSubexperiments.has(x)));
+    },
+    [selectedSubexperiments]
+  );
+
+  const shownExperiments = selectorFamily({
+    key: "ShownExperiments",
+    get: (args: [ShowEntries, SortParamsApi]) => ({ get }) => {
+      const { experiments } = get(filteredExperimentsQuery(args[1]));
+      return args[0] === "all" ? experiments : experiments.filter(ifExperimentSelected);
+    },
+  });
+
+  // Remove sub-experiments on selector changes
+  useEffect(() => {
+    setSelectedSubexperiments(new Set());
+  }, [selectedProjectId, selectedCompoundId, selectedTargetId, setSelectedSubexperiments]);
 
   useEffect(() => {
-    const subsToRemove = Array.from(selectedSubexperiments).filter(
-      subId => !isDefined(experiments.find(e => e.subExperiments.find(s => s === subId)))
-    );
-    if (subsToRemove.length !== 0) {
-      removeSubExperiments(subsToRemove);
-    }
-  }, [selectedSubexperiments, removeSubExperiments, experiments]);
-
-  useEffect(() => {
-    if (selectedExperiments.size === 0) {
+    if (selectedSubexperiments.size === 0) {
       setShowEntries("all");
     }
-  }, [selectedExperiments.size]);
+  }, [selectedSubexperiments.size]);
 
   const cacheMetadata = useRecoilCallback(
     ({ snapshot }) => (experimentId: number) => {
@@ -74,6 +108,7 @@ export function ExperimentsTableSuspendable({
   const compoundColumn = React.useMemo(
     () => ({
       Header: "Compound",
+      disableSortBy: true,
       accessor: (e: Experiment) => e.compoundName,
     }),
     []
@@ -82,6 +117,7 @@ export function ExperimentsTableSuspendable({
   const targetColumn = React.useMemo(
     () => ({
       Header: "Target",
+      disableSortBy: true,
       accessor: (e: Experiment) => e.targetName,
     }),
     []
@@ -90,6 +126,7 @@ export function ExperimentsTableSuspendable({
   const ic50Column = React.useMemo(
     () => ({
       Header: "IC50",
+      disableSortBy: true,
       accessor: (e: Experiment) =>
         "Right" in e.primaryIC50 ? (
           <Tooltip text={`${e.primaryIC50.Right}`}>{formatIC50(e.primaryIC50.Right)}</Tooltip>
@@ -105,6 +142,7 @@ export function ExperimentsTableSuspendable({
   const showCheckboxColumn = React.useMemo(
     () => ({
       id: "show",
+      disableSortBy: true,
       accessor: (exp: Experiment) => (
         <td
           className={`ednaTable__cell ${
@@ -115,7 +153,7 @@ export function ExperimentsTableSuspendable({
             <input
               id={exp.id.toString()}
               type="checkbox"
-              checked={selectedExperiments.has(exp.id)}
+              checked={ifExperimentSelected(exp)}
               onChange={e => {
                 if (e.target.checked) {
                   addSubExperiment(exp.primarySubExperimentId);
@@ -129,7 +167,7 @@ export function ExperimentsTableSuspendable({
         </td>
       ),
     }),
-    [expTableSize, selectedExperiments, addSubExperiment, removeSubExperiments]
+    [expTableSize, ifExperimentSelected, addSubExperiment, removeSubExperiments]
   );
 
   const minimizedColumns: Column<Experiment>[] = React.useMemo(
@@ -137,7 +175,6 @@ export function ExperimentsTableSuspendable({
     [compoundColumn, targetColumn, ic50Column, showCheckboxColumn]
   );
 
-  // TODO implement file downloading
   const expandedColumns: Column<Experiment>[] = React.useMemo(
     () => [
       compoundColumn,
@@ -145,15 +182,20 @@ export function ExperimentsTableSuspendable({
       ic50Column,
       {
         Header: "Methodology",
+        disableSortBy: true,
         accessor: (e: Experiment) => e.methodologyName,
       },
       {
-        Header: "Upload data",
-        accessor: (e: Experiment) => formatAsDate(e.uploadDate),
+        Header: "Upload date",
+        id: "uploadDate",
+        accessor: (e: Experiment) => (
+          <Tooltip text={formatAsDateTime(e.uploadDate)}>{formatAsDate(e.uploadDate)}</Tooltip>
+        ),
       },
       showCheckboxColumn,
       {
         id: "actions",
+        disableSortBy: true,
         accessor: (e: Experiment) => (
           <ContextActions
             actions={[
@@ -187,7 +229,7 @@ export function ExperimentsTableSuspendable({
 
   return (
     <div className={cx("experimentsArea", className)}>
-      {experiments.length === 0 ? (
+      {experimentsChunk.length === 0 ? (
         <EmptyPlaceholder title="No experiments match" />
       ) : (
         <>
@@ -195,19 +237,16 @@ export function ExperimentsTableSuspendable({
             <ShowEntriesSwitch
               value={showEntries}
               onChange={setShowEntries}
-              disabledSelected={selectedExperiments.size === 0}
+              disabledSelected={selectedSubexperiments.size === 0}
             />
             <ExpandMinimizeButton targetSize="expanded" />
           </div>
           <div className="tableContainer experimentsArea__experimentsTableContainer">
             <Table<Experiment>
+              defaultSortedColumn="uploadDate"
               small
               columns={expTableSize === "minimized" ? minimizedColumns : expandedColumns}
-              data={
-                showEntries === "all"
-                  ? experiments
-                  : experiments.filter(e => selectedExperiments.has(e.id))
-              }
+              dataOrQuery={params => shownExperiments([showEntries, params])}
               columnExtras={{
                 show: { manualCellRendering: true },
               }}
@@ -224,7 +263,7 @@ export function ExperimentsTableSuspendable({
   );
 }
 
-type ShowEntries = "all" | "selected";
+export type ShowEntries = "all" | "selected";
 
 interface ShowEntriesSwitchProps {
   value: ShowEntries;

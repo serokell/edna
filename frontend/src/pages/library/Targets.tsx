@@ -6,7 +6,7 @@ import { useRecoilValue } from "recoil";
 import { Column } from "react-table";
 import React from "react";
 import { Link } from "react-router-dom";
-import { targetsQuery } from "../../store/selectors";
+import { defaultBatchQuery, targetsQuery } from "../../store/selectors";
 import { TargetDto } from "../../api/types";
 import { formatAsDate, formatAsDateTime } from "../../utils/utils";
 import { EmptyPlaceholder } from "../../components/EmptyPlaceholder/EmptyPlaceholder";
@@ -16,19 +16,23 @@ import { ExtraFormatter } from "../../components/ExtraFormatter";
 import { Tooltip } from "../../components/Tooltip/Tooltip";
 
 export function TargetsSuspendable(): React.ReactElement {
-  const targets = useRecoilValue(targetsQuery);
+  // TODO request here only 1st page to check projects emptiness
+  const targetsChunk = useRecoilValue(defaultBatchQuery(targetsQuery));
   const targetColumns: Column<TargetDto>[] = React.useMemo(
     () => [
       {
         Header: "Target",
+        id: "name",
         accessor: (t: TargetDto) => t.item.name,
       },
       {
         Header: "Projects",
+        disableSortBy: true,
         accessor: (t: TargetDto) => <ExtraFormatter items={t.item.projects} />,
       },
       {
         Header: "Addition date",
+        id: "additionDate",
         accessor: (t: TargetDto) => (
           <Tooltip text={formatAsDateTime(t.item.additionDate)}>
             {formatAsDate(t.item.additionDate)}
@@ -38,7 +42,7 @@ export function TargetsSuspendable(): React.ReactElement {
     ],
     []
   );
-  return targets.length === 0 ? (
+  return targetsChunk.length === 0 ? (
     <EmptyPlaceholder
       title="No targets added yet"
       description="To add targets add new experiments"
@@ -49,6 +53,6 @@ export function TargetsSuspendable(): React.ReactElement {
       }
     />
   ) : (
-    <Table data={targets} columns={targetColumns} />
+    <Table dataOrQuery={targetsQuery} columns={targetColumns} defaultSortedColumn="name" />
   );
 }

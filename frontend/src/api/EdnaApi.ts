@@ -50,6 +50,17 @@ export interface AnalyzeNewSubexperimentApi {
   changes: number[];
 }
 
+export type SortParamsApi = {
+  sortby?: string;
+  desc?: boolean;
+};
+
+function toApiParams(params: SortParamsApi) {
+  return {
+    sortBy: params.sortby ? (params.desc ? `desc(${params.sortby})` : `asc(${params.sortby})`) : "",
+  };
+}
+
 export function toCreateProjectArgsApi(form: CreateProjectForm): CreateProjectArgsApi {
   return {
     name: form.name,
@@ -65,14 +76,14 @@ interface EdnaApiInterface {
 
   uploadExperiments(form: UploadExperimentsArgsApi): Promise<ParsedExcelDto[]>;
 
-  fetchProjects: () => Promise<ProjectDto[]>;
+  fetchProjects: (params: SortParamsApi) => Promise<ProjectDto[]>;
   createProject: (args: CreateProjectArgsApi) => Promise<ProjectDto>;
   editProject: (projId: number, args: CreateProjectArgsApi) => Promise<ProjectDto>;
-  fetchTargets: () => Promise<TargetDto[]>;
-  fetchCompounds: () => Promise<CompoundDto[]>;
+  fetchTargets: (params: SortParamsApi) => Promise<TargetDto[]>;
+  fetchCompounds: (params: SortParamsApi) => Promise<CompoundDto[]>;
   updateChemSoftLink: (compoundId: number, newLink: string) => Promise<any>;
   updateMdeLink: (compoundId: number, newLink: string) => Promise<any>;
-  fetchMethodologies: () => Promise<MethodologyDto[]>;
+  fetchMethodologies: (params: SortParamsApi) => Promise<MethodologyDto[]>;
   createMethodology: (args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
   editMethodology: (methId: number, args: CreateMethodologyArgsApi) => Promise<MethodologyDto>;
   deleteMethodology: (methId: number) => Promise<any>;
@@ -80,7 +91,8 @@ interface EdnaApiInterface {
   fetchExperiments: (
     projectId?: number,
     compoundId?: number,
-    targetId?: number
+    targetId?: number,
+    params?: SortParamsApi
   ) => Promise<ExperimentsWithMeanDto>;
   fetchSubExperiment: (subExperimentId: number) => Promise<SubExperimentDto>;
   fetchMeasurements: (subExperimentId: number) => Promise<MeasurementDto[]>;
@@ -107,8 +119,12 @@ interface EdnaApiInterface {
 
 export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
   return {
-    fetchCompounds: async (): Promise<CompoundDto[]> => {
-      return axios.get("/compounds").then(proj => proj.data);
+    fetchCompounds: async (params: SortParamsApi): Promise<CompoundDto[]> => {
+      return axios
+        .get("/compounds", {
+          params: toApiParams(params),
+        })
+        .then(proj => proj.data);
     },
 
     updateChemSoftLink: async (compoundId: number, newLink: string): Promise<any> => {
@@ -127,8 +143,12 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         .then(proj => proj.data);
     },
 
-    fetchTargets: async (): Promise<TargetDto[]> => {
-      return axios.get("/targets").then(proj => proj.data);
+    fetchTargets: async (params: SortParamsApi): Promise<TargetDto[]> => {
+      return axios
+        .get("/targets", {
+          params: toApiParams(params),
+        })
+        .then(proj => proj.data);
     },
 
     parseExcelFile: async (
@@ -187,8 +207,12 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         });
     },
 
-    fetchProjects: async () => {
-      return axios.get("/projects").then(proj => proj.data);
+    fetchProjects: async (params: SortParamsApi) => {
+      return axios
+        .get("/projects", {
+          params: toApiParams(params),
+        })
+        .then(proj => proj.data);
     },
 
     createMethodology: async (args: CreateMethodologyArgsApi) => {
@@ -218,17 +242,28 @@ export default function EdnaApi(axios: AxiosInstance): EdnaApiInterface {
         });
     },
 
-    fetchMethodologies: async () => {
-      return axios.get("/methodologies").then(proj => proj.data);
+    fetchMethodologies: async (params: SortParamsApi) => {
+      return axios
+        .get("/methodologies", {
+          params: toApiParams(params),
+        })
+        .then(proj => proj.data);
     },
 
-    fetchExperiments: async (projectId?: number, compoundId?: number, targetId?: number) => {
+    fetchExperiments: async (
+      projectId?: number,
+      compoundId?: number,
+      targetId?: number,
+      params?: SortParamsApi
+    ) => {
+      const sp = params ? toApiParams(params) : {};
       return axios
         .get("/experiments", {
           params: {
             projectId,
             compoundId,
             targetId,
+            ...sp,
           },
         })
         .then(experiments => experiments.data);

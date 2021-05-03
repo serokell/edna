@@ -29,7 +29,8 @@ interface SelectorProps {
 }
 
 export function ProjectSelector({ className }: SelectorProps): React.ReactElement {
-  const projectsL = useRecoilValueLoadable(projectsQuery);
+  // TODO make it async one day?
+  const projectsL = useRecoilValueLoadable(projectsQuery({}));
   const projectSelectedL = useRecoilValueLoadable(projectSelectedQuery);
   const setProjectSelected = useSetRecoilState(projectSelectedIdAtom);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -70,7 +71,8 @@ export function ProjectSelector({ className }: SelectorProps): React.ReactElemen
 }
 
 export function CompoundSelector({ className }: SelectorProps): React.ReactElement {
-  const compoundsL = useRecoilValueLoadable(compoundsQuery);
+  // TODO make it async one day?
+  const compoundsL = useRecoilValueLoadable(compoundsQuery({}));
   const compoundSelectedL = useRecoilValueLoadable(compoundSelectedQuery);
   const setCompoundSelected = useSetRecoilState(compoundIdSelectedAtom);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
@@ -157,7 +159,8 @@ export function CompoundSelector({ className }: SelectorProps): React.ReactEleme
 }
 
 export function TargetSelector({ className }: SelectorProps): React.ReactElement {
-  const targetsLoadable = useRecoilValueLoadable(targetsQuery);
+  // TODO make it async one day?
+  const targetsLoadable = useRecoilValueLoadable(targetsQuery({}));
   const targetSelected = useRecoilValueLoadable(targetSelectedQuery);
   const setTargetSelected = useSetRecoilState(targetIdSelectedAtom);
   return (
