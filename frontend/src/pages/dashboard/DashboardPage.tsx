@@ -5,6 +5,7 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useRecoilValue, useRecoilValueLoadable, useSetRecoilState, waitForAll } from "recoil";
 import { useLocation } from "react-router-dom";
+import { Button } from "../../components/Button/Button";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CompoundSelector, ProjectSelector, TargetSelector } from "./EntitySelector";
 import "./DashboardPage.scss";
@@ -38,6 +39,8 @@ export const DashboardPage: FunctionComponent = () => {
   const setProjectSelectedIdAtom = useSetRecoilState(projectSelectedIdAtom);
   const setCompoundSelectedIdAtom = useSetRecoilState(compoundIdSelectedAtom);
   const setTargetSelectedIdAtom = useSetRecoilState(targetIdSelectedAtom);
+  const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
+  const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
 
   const loc = useLocation();
   useEffect(() => {
@@ -49,9 +52,6 @@ export const DashboardPage: FunctionComponent = () => {
     }
   }, [loc.state, setProjectSelectedIdAtom, setCompoundSelectedIdAtom, setTargetSelectedIdAtom]);
 
-  const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
-  const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
-
   useEffect(() => {
     if (!experiments && experimentsL.state === "hasValue" && experimentsL.contents) {
       setExperiments(experimentsL.contents.experiments);
@@ -61,6 +61,19 @@ export const DashboardPage: FunctionComponent = () => {
   return (
     <PageLayout>
       <div className="dashboardPage">
+        <div className={dashboardPage("titleBlock")}>
+          <span className={dashboardPage("title")}>Dashboard</span>
+          <Button
+            type="rounded"
+            onClick={() => {
+              setProjectSelectedIdAtom(undefined);
+              setCompoundSelectedIdAtom(undefined);
+              setTargetSelectedIdAtom(undefined);
+            }}
+          >
+            Reset
+          </Button>
+        </div>
         <ProjectSelector className={dashboardPage("projectSelector")} experiments={experiments} />
         <CompoundSelector className={dashboardPage("compoundSelector")} experiments={experiments} />
         <TargetSelector className={dashboardPage("targetSelector")} experiments={experiments} />
