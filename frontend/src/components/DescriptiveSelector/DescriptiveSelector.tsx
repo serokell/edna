@@ -21,6 +21,7 @@ interface DescriptiveSelectorProps<T> {
   isLoading?: boolean;
   className?: string;
   contextActions?: React.ReactNode[];
+  optionsFilter?: (val: T[]) => T[] | undefined;
 }
 
 export function DescriptiveSelector<T>({

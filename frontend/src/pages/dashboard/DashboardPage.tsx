@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { FunctionComponent, useEffect } from "react";
-import { useRecoilValue, useSetRecoilState, waitForAll } from "recoil";
+import React, { FunctionComponent, useEffect, useState } from "react";
+import { useRecoilValue, useRecoilValueLoadable, useSetRecoilState, waitForAll } from "recoil";
 import { useLocation } from "react-router-dom";
+import { Button } from "../../components/Button/Button";
 import PageLayout from "../../components/PageLayout/PageLayout";
 import { CompoundSelector, ProjectSelector, TargetSelector } from "./EntitySelector";
 import "./DashboardPage.scss";
@@ -20,8 +21,12 @@ import {
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
-import { selectedSubExperimentsQuery } from "../../store/selectors";
-import { negateTableSize, SuccessSubExperimentWithMeasurements } from "../../store/types";
+import { filteredExperimentsQuery, selectedSubExperimentsQuery } from "../../store/selectors";
+import {
+  Experiment,
+  negateTableSize,
+  SuccessSubExperimentWithMeasurements,
+} from "../../store/types";
 import { isDefined, zip } from "../../utils/utils";
 import { NewSubexperimentPlate } from "./NewSubexperimentPlate/NewSubexperimentPlate";
 
@@ -34,6 +39,8 @@ export const DashboardPage: FunctionComponent = () => {
   const setProjectSelectedIdAtom = useSetRecoilState(projectSelectedIdAtom);
   const setCompoundSelectedIdAtom = useSetRecoilState(compoundIdSelectedAtom);
   const setTargetSelectedIdAtom = useSetRecoilState(targetIdSelectedAtom);
+  const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
+  const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
 
   const loc = useLocation();
   useEffect(() => {
@@ -45,12 +52,31 @@ export const DashboardPage: FunctionComponent = () => {
     }
   }, [loc.state, setProjectSelectedIdAtom, setCompoundSelectedIdAtom, setTargetSelectedIdAtom]);
 
+  useEffect(() => {
+    if (!experiments && experimentsL.state === "hasValue" && experimentsL.contents) {
+      setExperiments(experimentsL.contents.experiments);
+    }
+  }, [experiments, experimentsL]);
+
   return (
     <PageLayout>
       <div className="dashboardPage">
-        <ProjectSelector className={dashboardPage("projectSelector")} />
-        <CompoundSelector className={dashboardPage("compoundSelector")} />
-        <TargetSelector className={dashboardPage("targetSelector")} />
+        <div className={dashboardPage("titleBlock")}>
+          <span className={dashboardPage("title")}>Dashboard</span>
+          <Button
+            type="rounded"
+            onClick={() => {
+              setProjectSelectedIdAtom(undefined);
+              setCompoundSelectedIdAtom(undefined);
+              setTargetSelectedIdAtom(undefined);
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+        <ProjectSelector className={dashboardPage("projectSelector")} experiments={experiments} />
+        <CompoundSelector className={dashboardPage("compoundSelector")} experiments={experiments} />
+        <TargetSelector className={dashboardPage("targetSelector")} experiments={experiments} />
 
         <SuspenseSpinner className={plotlyClassName}>
           <div className={plotlyClassName}>
