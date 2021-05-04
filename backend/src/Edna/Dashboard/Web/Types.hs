@@ -49,19 +49,17 @@ instance Buildable NewSubExperimentReq where
     ", changes: " +| toList nserChanges |+ ""
 
 -- | Experiment as response from the server.
-data ExperimentsResp = ExperimentsResp
+newtype ExperimentsResp = ExperimentsResp
   { erExperiments :: [WithId 'ExperimentId ExperimentResp]
-  , erMeanIC50 :: Maybe Double
-  -- ^ If compound and target are selected,
-  -- we also show mean IC50 for this pair.
   } deriving stock (Generic, Show)
 
 instance Buildable ExperimentsResp where
   build ExperimentsResp {..} =
-    "Experiments: " +| erExperiments |+ "\nMean IC50: " +| erMeanIC50 |+ ""
+    "Experiments: " +| erExperiments |+ ""
 
 instance Buildable (ForResponseLog ExperimentsResp) where
-  build = buildForResponse
+  build (ForResponseLog (ExperimentsResp items)) =
+    buildListForResponse (take 6) (ForResponseLog items)
 
 -- | Experiment as response from the server.
 data ExperimentResp = ExperimentResp
