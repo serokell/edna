@@ -13,18 +13,19 @@ import {
   projectSelectedIdAtom,
   projectsRequestIdAtom,
   selectedSubExperimentsIdsAtom,
-  subExperimentsMeasurements,
-  subExperimentsMetaAtom,
+  subExperimentsMeasurementsMap,
+  subExperimentsMetaMap,
   targetIdSelectedAtom,
   targetsRequestIdAtom,
 } from "./atoms";
 import Api from "../api/api";
-import { isDefined, Maybe } from "../utils/utils";
+import { evalMeanIC50, isDefined, Maybe } from "../utils/utils";
 import {
   CompoundDto,
   ExperimentsWithMeanDto,
   ProjectDto,
   ResultDto,
+  SubExperimentDto,
   TargetDto,
 } from "../api/types";
 import {
@@ -115,7 +116,7 @@ export const targetSelectedQuery = selector<Maybe<TargetDto>>({
   },
 });
 
-export const subExperimentsWithMeasurementsQuery = selectorFamily<
+export const subExperimentWithMeasurementsMap = selectorFamily<
   SubExperimentWithMeasurements,
   number
 >({
@@ -123,8 +124,8 @@ export const subExperimentsWithMeasurementsQuery = selectorFamily<
   get: subExperimentId => async ({ get }) => {
     const [meta, measurements] = get(
       waitForAll([
-        subExperimentsMetaAtom(subExperimentId),
-        subExperimentsMeasurements(subExperimentId),
+        subExperimentsMetaMap(subExperimentId),
+        subExperimentsMeasurementsMap(subExperimentId),
       ])
     );
     return { meta, measurements };
@@ -192,25 +193,48 @@ export const selectedSubExperimentsQuery = selector<SubExperimentWithMeasurement
   key: "SelectedSubExperiments",
   get: ({ get }) => {
     const ids = Array.from(get(selectedSubExperimentsIdsAtom).values());
-    return get(waitForAll(ids.map(subId => subExperimentsWithMeasurementsQuery(subId))));
+    return get(waitForAll(ids.map(subId => subExperimentWithMeasurementsMap(subId))));
+  },
+});
+
+export const selectedSubExperimentsMetaQuery = selector<SubExperimentDto[]>({
+  key: "SelectedSubExperimentsMeta",
+  get: ({ get }) => {
+    const ids = Array.from(get(selectedSubExperimentsIdsAtom).values());
+    return get(waitForAll(ids.map(subId => subExperimentsMetaMap(subId))));
   },
 });
 
 export const selectedSubExperimentsIC50Query = selector<ResultDto<number>>({
   key: "SelectedSubExperimentsIC50",
   get: ({ get }) => {
-    const subs = get(selectedSubExperimentsQuery);
-    const ic50Sum = subs.reduce(
-      (acc: ResultDto<number>, x) =>
-        "Left" in acc
-          ? acc
-          : "Left" in x.meta.item.result
-          ? { Left: x.meta.item.result.Left }
-          : { Right: acc.Right + x.meta.item.result.Right[2] },
-      { Right: 0 }
-    );
-    if ("Left" in ic50Sum) return ic50Sum;
-    return { Right: ic50Sum.Right / subs.length };
+    const subs = get(selectedSubExperimentsMetaQuery);
+    const exps = get(filteredExperimentsQuery({})).experiments;
+    const avgs = exps.reduce((acc: ResultDto<number>[], e) => {
+      const exSubs = subs.filter(s => e.subExperiments.find(se => s.id === se));
+      if (exSubs.length > 0) {
+        return acc.concat([evalMeanIC50(exSubs.map(x => x.item.result))]);
+      }
+      return acc;
+    }, []);
+    return evalMeanIC50(avgs);
+  },
+});
+
+export const selectedTargetIC50Query = selector<Maybe<ResultDto<number>>>({
+  key: "SelectedTargetIC50",
+  get: ({ get }) => {
+    const compound = get(compoundSelectedQuery);
+    const target = get(targetSelectedQuery);
+    if (!isDefined(compound) || !isDefined(target)) {
+      // Dumb value for undefined case
+      return undefined;
+    }
+    const ic50s = get(filteredExperimentsQuery({})).experiments.map(x => x.primaryIC50);
+    if (ic50s.length === 0) {
+      return undefined;
+    }
+    return evalMeanIC50(ic50s);
   },
 });
 

@@ -6,10 +6,11 @@
 
 @import "src/styles/variables";
 
-.avg50 {
-  padding: (12 * $px) (16 * $px);
-  background: white;
-
-  border: $px solid $color-gray;
-  border-radius: 3 * $px;
+.ic50value {
+  &__none {
+    width: 10 * $px;
+    height: 1 * $px;
+    content: "";
+    background-color: $color-black;
+  }
 }

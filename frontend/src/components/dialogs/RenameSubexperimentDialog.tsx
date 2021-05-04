@@ -4,7 +4,7 @@
 
 import React, { useState } from "react";
 import { useRecoilCallback, useSetRecoilState } from "recoil";
-import { modalDialogAtom, subExperimentsMetaAtom } from "../../store/atoms";
+import { modalDialogAtom, subExperimentsMetaMap } from "../../store/atoms";
 import FormField from "../FormField/FormField";
 import "../../styles/main.scss";
 import "../DialogLayout/CreateDialog.scss";
@@ -28,9 +28,9 @@ export function RenameSubexperimentDialog({
   const handleRename = useRecoilCallback(
     ({ set }) => async (newName: string) => {
       const newSub = await Api.renameSubexperiment(subId, newName);
-      set(subExperimentsMetaAtom(subId), newSub);
+      set(subExperimentsMetaMap(subId), newSub);
     },
-    [subExperimentsMetaAtom]
+    [subExperimentsMetaMap]
   );
 
   return (

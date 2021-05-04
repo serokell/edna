@@ -2,23 +2,26 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import cx from "classnames";
 import { Loadable } from "recoil";
 import React from "react";
 import { ResultDto } from "../../api/types";
 import { Tooltip } from "../Tooltip/Tooltip";
 import { formatIC50 } from "../../utils/utils";
+import "./IC50Tooltip.scss";
 
 export type IC50Value = ResultDto<number | number[]> | Loadable<ResultDto<number | number[]>>;
 
 interface IC50TooltipProps {
   ic50: IC50Value;
+  className?: string;
 }
 
-export function IC50Tooltip({ ic50 }: IC50TooltipProps): React.ReactElement {
+export function IC50Tooltip({ ic50, className }: IC50TooltipProps): React.ReactElement {
   const errTooltip = (msg: string) => {
     return (
       <Tooltip text={msg} type="error">
-        <span className="ic50__valueNone" />
+        <span className={cx("ic50value__none", className)} />
       </Tooltip>
     );
   };
@@ -27,13 +30,13 @@ export function IC50Tooltip({ ic50 }: IC50TooltipProps): React.ReactElement {
     if (typeof x === "number") {
       return (
         <Tooltip text={`${x}`}>
-          <span className="ic50__value">{formatIC50(x)}</span>
+          <span className={className}>{formatIC50(x)}</span>
         </Tooltip>
       );
     }
     return (
       <Tooltip text={`${x[2]}`}>
-        <span className="ic50__value">{formatIC50(x[2])}</span>
+        <span className={className}>{formatIC50(x[2])}</span>
       </Tooltip>
     );
   };
@@ -48,7 +51,7 @@ export function IC50Tooltip({ ic50 }: IC50TooltipProps): React.ReactElement {
     if (ic50.state === "loading") {
       return (
         <Tooltip text="Loading...">
-          <span className="ic50__valueNone" />
+          <span className={cx("ic50value__none", className)} />
         </Tooltip>
       );
     }

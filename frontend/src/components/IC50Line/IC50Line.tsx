@@ -15,7 +15,7 @@ export function IC50Line({ label, ic50 }: IC50LineProps): React.ReactElement {
   return (
     <div className="ic50">
       <span className="ic50__label">{label}</span>
-      <IC50Tooltip ic50={ic50} />
+      <IC50Tooltip ic50={ic50} className="ic50__value" />
     </div>
   );
 }

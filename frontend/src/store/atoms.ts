@@ -73,14 +73,14 @@ export const selectedSubExperimentsIdsAtom = atom<Set<number>>({
   default: new Set<number>(),
 });
 
-export const subExperimentsMetaAtom = atomFamily<SubExperimentDto, number>({
+export const subExperimentsMetaMap = atomFamily<SubExperimentDto, number>({
   key: "SubExperimentsMeta",
   default: async subExperimentId => {
     return Api.fetchSubExperiment(subExperimentId);
   },
 });
 
-export const subExperimentsMeasurements = atomFamily<MeasurementDto[], number>({
+export const subExperimentsMeasurementsMap = atomFamily<MeasurementDto[], number>({
   key: "SubExperimentsMeasurements",
   default: async subExperimentId => {
     return Api.fetchMeasurements(subExperimentId);

@@ -21,8 +21,8 @@ import {
   modalDialogAtom,
   projectSelectedIdAtom,
   selectedSubExperimentsIdsAtom,
-  subExperimentsMetaAtom,
   targetIdSelectedAtom,
+  subExperimentsMetaMap,
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
 import {
@@ -303,7 +303,7 @@ function ExperimentsCollapse({
   expanded: boolean;
 }) {
   const subExperiments = useRecoilValue(
-    waitForAll(experiment.subExperiments.map(subId => subExperimentsMetaAtom(subId)))
+    waitForAll(experiment.subExperiments.map(subId => subExperimentsMetaMap(subId)))
   );
 
   const experimentsTable = cn("experimentsTable");

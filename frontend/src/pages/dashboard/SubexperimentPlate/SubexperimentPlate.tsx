@@ -11,7 +11,7 @@ import {
   modalDialogAtom,
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
-  subExperimentsMetaAtom,
+  subExperimentsMetaMap,
 } from "../../../store/atoms";
 import {
   useAddSubExperiment,
@@ -53,7 +53,7 @@ export function SubexperimentPlate({
       subexperiment.id,
       !subexperiment.item.isSuspicious
     );
-    set(subExperimentsMetaAtom(subexperiment.id), newSub);
+    set(subExperimentsMetaMap(subexperiment.id), newSub);
   });
 
   // TODO hover for error and value of ic50

@@ -11,6 +11,7 @@ import {
   compoundsQuery,
   projectSelectedQuery,
   projectsQuery,
+  selectedTargetIC50Query,
   targetSelectedQuery,
   targetsQuery,
 } from "../../store/selectors";
@@ -24,6 +25,8 @@ import { CompoundDto, ProjectDto, TargetDto } from "../../api/types";
 import { formatAsDate, isDefined, Maybe } from "../../utils/utils";
 import { Button } from "../../components/Button/Button";
 import { ContextItem } from "../../components/ContextActions/ContextItems";
+import { IC50Tooltip } from "../../components/IC50Line/IC50Tooltip";
+import "../../components/DescriptiveSelector/DescriptivePlate.scss";
 
 interface SelectorProps {
   className?: string;
@@ -357,6 +360,8 @@ export function TargetSelector({ className, experiments }: SelectorProps): React
     [filterNeeds, experiments]
   );
 
+  const compoundSelected = useRecoilValueLoadable(compoundSelectedQuery);
+  const targetIC50 = useRecoilValueLoadable(selectedTargetIC50Query);
   return (
     <DescriptiveSelector<TargetDto>
       className={className}
@@ -376,7 +381,30 @@ export function TargetSelector({ className, experiments }: SelectorProps): React
         setTargetSelected(x?.id);
       }}
       optionsLoadable={targetsLoadable}
-      toEntityProperties={t => [{ label: "Added:", value: formatAsDate(t.item.additionDate) }]}
+      toEntityProperties={t => {
+        if (
+          compoundSelected.state === "hasValue" &&
+          targetSelected.state === "hasValue" &&
+          targetIC50.state === "hasValue" &&
+          isDefined(compoundSelected.contents) &&
+          isDefined(targetSelected.contents) &&
+          isDefined(targetIC50.contents)
+        ) {
+          return [
+            { label: "Added:", value: formatAsDate(t.item.additionDate) },
+            {
+              label: "Mean IC50:",
+              value: (
+                <span>
+                  <IC50Tooltip ic50={targetIC50.contents} />
+                  <span className="descriptivePlate__label">{` (${compoundSelected.contents.item.name} ⟶ ${targetSelected.contents.item.name})`}</span>
+                </span>
+              ),
+            },
+          ];
+        }
+        return [{ label: "Added:", value: formatAsDate(t.item.additionDate) }];
+      }}
       placeholder="Select a target"
       placeholderEmpty="No targets"
       toOption={c => ({ value: `${c.id}`, label: c.item.name, isDisabled: c.id === -1 })}
