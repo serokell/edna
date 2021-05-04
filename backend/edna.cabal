@@ -55,6 +55,7 @@ library
       Edna.ExperimentReader.Error
       Edna.ExperimentReader.Parser
       Edna.ExperimentReader.Types
+      Edna.Init
       Edna.Library.DB.Query
       Edna.Library.DB.Schema
       Edna.Library.Error
@@ -133,6 +134,22 @@ executable edna-server
   build-depends:
       edna,
       optparse-applicative,
+      with-utf8
+
+executable edna-generator
+  import: common-options
+  main-is: Main.hs
+  other-modules:
+      Generator
+  hs-source-dirs:
+      generator
+  build-depends:
+      bytestring,
+      containers,
+      edna,
+      optparse-applicative,
+      safe-exceptions,
+      text,
       with-utf8
 
 test-suite edna-test
