@@ -108,7 +108,7 @@ export function ExperimentsTableSuspendable({
   const compoundColumn = React.useMemo(
     () => ({
       Header: "Compound",
-      disableSortBy: true,
+      id: "compound",
       accessor: (e: Experiment) => e.compoundName,
     }),
     []
@@ -117,7 +117,7 @@ export function ExperimentsTableSuspendable({
   const targetColumn = React.useMemo(
     () => ({
       Header: "Target",
-      disableSortBy: true,
+      id: "target",
       accessor: (e: Experiment) => e.targetName,
     }),
     []
@@ -175,7 +175,7 @@ export function ExperimentsTableSuspendable({
       ic50Column,
       {
         Header: "Methodology",
-        disableSortBy: true,
+        id: "methodology",
         accessor: (e: Experiment) => e.methodologyName,
       },
       {
