@@ -82,7 +82,6 @@
       };
       docker = pkgs.callPackage ./docker.nix {
         backend = backend.server;
-        inherit creationDate;
         inherit frontend;
       };
 
@@ -100,8 +99,8 @@
         analysis-env = analysis-env;
         backend-lib = backend.library;
         backend-server = backend.server;
-        docker-backend = docker.backend-image;
-        docker-frontend = docker.frontend-image;
+        docker-backend = { creationDate ? "1970-01-01T00:00:01Z" }: (docker creationDate).backend-image;
+        docker-frontend = { creationDate ? "1970-01-01T00:00:01Z" }: (docker creationDate).frontend-image;
         frontend = frontend;
       };
 
