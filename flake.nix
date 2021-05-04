@@ -71,7 +71,11 @@
 
       pkgs = pkgsWith nixpkgs.legacyPackages.${system} [
         nix-npm-buildpackage.overlay
-        haskell-nix.overlay
+        (haskell-nix.internal.overlaysOverrideable {
+          sourcesOverride = haskell-nix.internal.sources // {
+            inherit hackage stackage;
+          };
+        }).combined-eval-on-build
         serokell-nix.overlay
       ];
 
