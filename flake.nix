@@ -80,9 +80,10 @@
         inherit analysis-env;
         EDNA_ANALYSIS_DIR = ./analysis;
       };
-      docker = pkgs.callPackage ./docker.nix {
+      docker = creationDate: pkgs.callPackage ./docker.nix {
         backend = backend.server;
         inherit frontend;
+        creationDate = creationDate;
       };
 
       frontend = pkgs.callPackage ./frontend { };
