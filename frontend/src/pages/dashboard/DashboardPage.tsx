@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useCallback, useEffect, useState } from "react";
 import { useRecoilValue, useRecoilValueLoadable, useSetRecoilState, waitForAll } from "recoil";
 import { useLocation } from "react-router-dom";
 import { Button } from "../../components/Button/Button";
@@ -22,7 +22,7 @@ import {
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
-import { filteredExperimentsQuery, selectedSubExperimentsQuery } from "../../store/selectors";
+import { filteredExperimentsQuery, selectedSubExperimentsExtraQuery } from "../../store/selectors";
 import {
   Experiment,
   negateTableSize,
@@ -31,11 +31,13 @@ import {
 import { isDefined, zip } from "../../utils/utils";
 import { NewSubexperimentPlate } from "./NewSubexperimentPlate/NewSubexperimentPlate";
 import { AvgIC50Plate } from "./AvgIC50Plate/AvgIC50Plate";
+import { LegendInfo } from "./LegendInfo/LegendInfo";
 
 export const DashboardPage: FunctionComponent = () => {
   const dashboardPage = cn("dashboardPage");
   const expTableSize = useRecoilValue(experimentsTableSizeAtom);
   const plotlyClassName = dashboardPage("chart", { size: negateTableSize(expTableSize) });
+  const plotlySpinnerClassName = dashboardPage("spinner", { size: negateTableSize(expTableSize) });
   const experimentsClassName = dashboardPage("experiments", { size: expTableSize });
   const newSubexperiment = useRecoilValue(newSubexperimentAtom);
   const setProjectSelectedIdAtom = useSetRecoilState(projectSelectedIdAtom);
@@ -43,7 +45,6 @@ export const DashboardPage: FunctionComponent = () => {
   const setTargetSelectedIdAtom = useSetRecoilState(targetIdSelectedAtom);
   const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
   const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
-  const isSubsEmpty = useRecoilValue(selectedSubExperimentsIdsAtom).size === 0;
 
   const loc = useLocation();
   useEffect(() => {
@@ -81,13 +82,12 @@ export const DashboardPage: FunctionComponent = () => {
         <CompoundSelector className={dashboardPage("compoundSelector")} experiments={experiments} />
         <TargetSelector className={dashboardPage("targetSelector")} experiments={experiments} />
 
-        <SuspenseSpinner className={plotlyClassName}>
+        <SuspenseSpinner className={plotlySpinnerClassName}>
           <div className={plotlyClassName}>
             <PlotlyChartSuspendable />
             {newSubexperiment.subExperimentId !== -1 && (
               <NewSubexperimentPlate className="dashboardPage__newSubexperimentPlate" />
             )}
-            {!isSubsEmpty && <AvgIC50Plate className="dashboardPage__avg50" />}
           </div>
         </SuspenseSpinner>
 
@@ -106,8 +106,8 @@ interface PlotlyChartSuspendableProps {
 export function PlotlyChartSuspendable({
   className,
 }: PlotlyChartSuspendableProps): React.ReactElement {
-  const subExperiments = useRecoilValue(selectedSubExperimentsQuery).map(sex => ({
-    meta: sex.meta,
+  const subExperiments = useRecoilValue(selectedSubExperimentsExtraQuery).map(sex => ({
+    ...sex,
     measurements: sex.measurements
       .slice()
       .sort((x, y) => x.item.concentration - y.item.concentration),
@@ -115,16 +115,28 @@ export function PlotlyChartSuspendable({
   const colors = useRecoilValue(
     waitForAll(subExperiments.map(sub => selectedSubExperimentsColorAtom(sub.meta.id)))
   );
+  const isSubsEmpty = useRecoilValue(selectedSubExperimentsIdsAtom).size === 0;
 
-  return (
-    <PlotlyChart
-      className={className}
-      subExperiments={zip(subExperiments, colors)
+  const filterSubs = useCallback(
+    () =>
+      zip(subExperiments, colors)
         .filter(([sub, color]) => isDefined(color) && "Right" in sub.meta.item.result)
         .map(([subexperiment, color]) => ({
           subexperiment: subexperiment as SuccessSubExperimentWithMeasurements,
           color: color!,
-        }))}
-    />
+        })),
+    [subExperiments, colors]
+  );
+
+  return (
+    <>
+      <PlotlyChart className={className} subExperiments={filterSubs()} />
+      {!isSubsEmpty && (
+        <div className="dashboardPage__plotInfo">
+          <AvgIC50Plate />
+          <LegendInfo classname="dashboardPage__legend" subExperiments={filterSubs()} />
+        </div>
+      )}
+    </>
   );
 }

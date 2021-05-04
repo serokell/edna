@@ -11,12 +11,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 
   &__title {
     @include headline1;
-    margin: (118 * $px) auto (26 * $px) auto;
+
     color: #4a4a4a;
     text-align: center;
   }
