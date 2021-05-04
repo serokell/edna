@@ -24,24 +24,6 @@
     margin-left: auto;
   }
 
-  &__brand {
-    margin-right: auto;
-
-    font-size: 31 * $px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 43 * $px;
-    color: $color-green;
-    text-align: left;
-    letter-spacing: -0.065rem;
-  }
-
-  &__ednaLogo {
-    position: relative;
-    top: -8*$px;
-    margin-right: 7 * $px;
-  }
-
   &__menu {
     display: flex;
     height: 100%;
