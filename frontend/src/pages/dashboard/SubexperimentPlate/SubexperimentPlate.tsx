@@ -11,7 +11,7 @@ import {
   modalDialogAtom,
   selectedSubExperimentsColorAtom,
   selectedSubExperimentsIdsAtom,
-  subExperimentsMetaAtom,
+  subExperimentsMetaMap,
 } from "../../../store/atoms";
 import {
   useAddSubExperiment,
@@ -19,12 +19,11 @@ import {
   useRemoveSubExperiments,
 } from "../../../store/updaters";
 import { SatisfactoryStatus } from "../../../components/SatisfactoryStatus/SatisfactoryStatus";
-import "../IC50Line.scss";
-import { formatIC50, useClickOutsideCallback } from "../../../utils/utils";
+import { useClickOutsideCallback } from "../../../utils/utils";
 import cn from "../../../utils/bemUtils";
 import { ContextItem } from "../../../components/ContextActions/ContextItems";
 import Api from "../../../api/api";
-import { Tooltip } from "../../../components/Tooltip/Tooltip";
+import { IC50Line } from "../../../components/IC50Line/IC50Line";
 
 interface SubexperimentPlateProps {
   subexperiment: SubExperimentDto;
@@ -54,7 +53,7 @@ export function SubexperimentPlate({
       subexperiment.id,
       !subexperiment.item.isSuspicious
     );
-    set(subExperimentsMetaAtom(subexperiment.id), newSub);
+    set(subExperimentsMetaMap(subexperiment.id), newSub);
   });
 
   // TODO hover for error and value of ic50
@@ -115,20 +114,7 @@ export function SubexperimentPlate({
         />
         {isPrimary ? <b>{subexperiment.item.name}</b> : subexperiment.item.name}
       </div>
-
-      <div className="ic50">
-        <span className="ic50__label">IC50</span>
-
-        {"Left" in subexperiment.item.result ? (
-          <Tooltip type="error" text={subexperiment.item.result.Left}>
-            <span className="ic50__valueNone" />
-          </Tooltip>
-        ) : (
-          <Tooltip text={`${subexperiment.item.result.Right[2]}`}>
-            <span className="ic50__value">{formatIC50(subexperiment.item.result.Right[2])}</span>
-          </Tooltip>
-        )}
-      </div>
+      <IC50Line label="IC50" ic50={subexperiment.item.result} />
     </div>
   );
 }

@@ -165,9 +165,7 @@ genNewSubExperimentReq =
 
 genExperimentsResp :: MonadGen m => m ExperimentsResp
 genExperimentsResp =
-  ExperimentsResp
-  <$> Gen.list (Range.linear 0 5) (genWithId genExperimentResp)
-  <*> Gen.maybe genDoubleSmallPrec
+  ExperimentsResp <$> Gen.list (Range.linear 0 5) (genWithId genExperimentResp)
 
 genExperimentResp :: MonadGen m => m ExperimentResp
 genExperimentResp = do

@@ -21,8 +21,8 @@ import {
   modalDialogAtom,
   projectSelectedIdAtom,
   selectedSubExperimentsIdsAtom,
-  subExperimentsMetaAtom,
   targetIdSelectedAtom,
+  subExperimentsMetaMap,
 } from "../../../store/atoms";
 import { Table } from "../../../components/Table/Table";
 import {
@@ -30,7 +30,7 @@ import {
   filteredExperimentsDtoQuery,
   filteredExperimentsQuery,
 } from "../../../store/selectors";
-import { formatAsDate, formatAsDateTime, formatIC50, isDefined } from "../../../utils/utils";
+import { formatAsDate, formatAsDateTime, isDefined } from "../../../utils/utils";
 import { ContextActions } from "../../../components/ContextActions/ContextActions";
 import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlaceholder";
 import { Experiment } from "../../../store/types";
@@ -42,11 +42,11 @@ import { ExpandMinimizeButton } from "../ExpandMinimizeButton/ExpandMinimizeButt
 import { SubexperimentPlate } from "../SubexperimentPlate/SubexperimentPlate";
 import { SuspenseSpinner } from "../../../components/Spinner/SuspsenseSpinner";
 import cn from "../../../utils/bemUtils";
-import "../IC50Line.scss";
 import DownloadSvg from "../../../assets/svg/download.svg";
 import { ContextItem } from "../../../components/ContextActions/ContextItems";
 import { Tooltip } from "../../../components/Tooltip/Tooltip";
 import { SortParamsApi } from "../../../api/EdnaApi";
+import { IC50Tooltip } from "../../../components/IC50Line/IC50Tooltip";
 
 interface ExperimentsTableSuspendableProps {
   className?: string;
@@ -127,14 +127,7 @@ export function ExperimentsTableSuspendable({
     () => ({
       Header: "IC50",
       disableSortBy: true,
-      accessor: (e: Experiment) =>
-        "Right" in e.primaryIC50 ? (
-          <Tooltip text={`${e.primaryIC50.Right}`}>{formatIC50(e.primaryIC50.Right)}</Tooltip>
-        ) : (
-          <Tooltip text={e.primaryIC50.Left} type="error">
-            <span className="ic50__valueNone" />
-          </Tooltip>
-        ),
+      accessor: (e: Experiment) => <IC50Tooltip ic50={e.primaryIC50} />,
     }),
     []
   );
@@ -310,7 +303,7 @@ function ExperimentsCollapse({
   expanded: boolean;
 }) {
   const subExperiments = useRecoilValue(
-    waitForAll(experiment.subExperiments.map(subId => subExperimentsMetaAtom(subId)))
+    waitForAll(experiment.subExperiments.map(subId => subExperimentsMetaMap(subId)))
   );
 
   const experimentsTable = cn("experimentsTable");

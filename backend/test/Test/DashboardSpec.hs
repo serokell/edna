@@ -137,18 +137,16 @@ gettersSpec :: SpecWith EdnaContext
 gettersSpec = do
   describe "getters" $ do
     describe "getExperiments" $ do
-      it "returns all experiments and no IC50 with no filters" $ runTestEdna $ do
+      it "returns all experiments with no filters" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments Nothing Nothing Nothing
           noSorting fullContent
         liftIO $ do
           length erExperiments `shouldBe` 12
-          erMeanIC50 `shouldBe` Nothing
       it "filters by project correctly" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
           noSorting fullContent
         liftIO $ do
           length erExperiments `shouldBe` 6
-          erMeanIC50 `shouldBe` Nothing
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erProject `shouldBe` SqlId 1
       it "filters by project and compound correctly" $ runTestEdna $ do
@@ -158,7 +156,6 @@ gettersSpec = do
             noSorting fullContent
         liftIO $ do
           length erExperiments `shouldBe` 2
-          erMeanIC50 `shouldBe` Nothing
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erCompound `shouldBe` compoundId
       it "filters by 3 filters correctly and returns mean IC50" $ runTestEdna $ do
@@ -174,7 +171,6 @@ gettersSpec = do
           -- It's checked above for better error message
           let [WithId _ expResp] = erExperiments
           erPrimaryIC50 expResp `shouldBe` Right p4plC
-          erMeanIC50 `shouldBe` Just p4plC
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) -> do
             erTarget `shouldBe` targetId
             erCompound `shouldBe` compoundId

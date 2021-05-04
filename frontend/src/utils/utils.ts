@@ -4,7 +4,7 @@
 
 // For testing and mocking purposes
 import { RefObject, useEffect } from "react";
-import { DateTimeDto } from "../api/types";
+import { DateTimeDto, ResultDto, singleResultDto } from "../api/types";
 
 export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -83,4 +83,20 @@ export function logspace(start: number, stop: number, len: number): number[] {
   const linPoints = linspace(startPoint, endPoint, len);
 
   return Array.from(linPoints, (p: number) => 10 ** p);
+}
+
+export function evalMeanIC50(elems: ResultDto<number | number[]>[]): ResultDto<number> {
+  const ic50Sum = elems.reduce(
+    (acc: ResultDto<number>, x) => {
+      const res = singleResultDto(x);
+      return "Left" in acc
+        ? acc
+        : "Left" in res
+        ? { Left: res.Left }
+        : { Right: acc.Right + res.Right };
+    },
+    { Right: 0 }
+  );
+  if ("Left" in ic50Sum) return ic50Sum;
+  return { Right: ic50Sum.Right / elems.length };
 }

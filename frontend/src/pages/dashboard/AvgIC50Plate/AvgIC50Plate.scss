@@ -1,0 +1,15 @@
+/*
+ * SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+@import "src/styles/variables";
+
+.avg50 {
+  padding: (12 * $px) (16 * $px);
+  background: white;
+
+  border: $px solid $color-gray;
+  border-radius: 3 * $px;
+}

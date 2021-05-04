@@ -32,13 +32,13 @@ import Servant.Util (PaginationSpec)
 import qualified Edna.Dashboard.DB.Query as Q
 import qualified Edna.Upload.DB.Query as UQ
 
-import Edna.Analysis.FourPL (AnalysisResult, Params4PL(..), analyse4PLOne)
+import Edna.Analysis.FourPL (AnalysisResult, analyse4PLOne)
 import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperimentT(..))
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
-  (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentSortingSpec,
-  ExperimentsResp(..), MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
+  (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentSortingSpec, ExperimentsResp(..),
+  MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileMetadata(..))
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
@@ -131,38 +131,12 @@ analyseNewSubExperiment subExpId NewSubExperimentReq {..} = do
     isRemoved WithId {..} = mrIsEnabled wItem == HS.member wiId nserChanges
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
--- compound ID and target ID. If filters by compound and target are specified,
--- also compute average IC50 for them.
+-- compound ID and target ID.
 getExperiments :: Maybe ProjectId -> Maybe CompoundId -> Maybe TargetId ->
   ExperimentSortingSpec -> PaginationSpec -> Edna ExperimentsResp
-getExperiments mProj mComp mTarget sorting pagination = do
-  pairs <- Q.getExperiments mProj mComp mTarget sorting pagination
-  meanIC50 <- case (mComp, mTarget) of
-    (Just _, Just _) -> computeMeanIC50 (map snd pairs)
-    _ -> pure Nothing
-  return ExperimentsResp
-    { erExperiments = map (uncurry WithId) pairs
-    , erMeanIC50 = meanIC50
-    }
-
--- It may be not the most efficient solution to compute it every time,
--- but let's not optimize prematurely.
-computeMeanIC50 :: [ExperimentResp] -> Edna (Maybe Double)
-computeMeanIC50 resps = do
-  avg . mapMaybe (rightToMaybe . second p4plC) <$>
-    mapM (getDefaultResult . erPrimarySubExperiment) resps
-  where
-    avg :: [Double] -> Maybe Double
-    avg items
-      | null items = Nothing
-      | otherwise = Just $ sum items / fromIntegral (length items)
-
-    getDefaultResult :: SubExperimentId -> Edna AnalysisResult
-    getDefaultResult subExpId = do
-      SubExperimentRec {..} <-
-        justOrThrow (DESubExperimentNotFound subExpId) =<<
-        Q.getSubExperiment subExpId
-      return $ unwrapResult seResult
+getExperiments mProj mComp mTarget sorting pagination =
+  ExperimentsResp . map (uncurry WithId) <$>
+  Q.getExperiments mProj mComp mTarget sorting pagination
 
 unwrapResult :: PgJSON AnalysisResult -> AnalysisResult
 unwrapResult (PgJSON res) = res

@@ -34,6 +34,16 @@ export type ResultDto<T = number[]> =
       Right: T;
     };
 
+export function singleResultDto(x: ResultDto<number | number[]>): ResultDto<number> {
+  if ("Left" in x) {
+    return { Left: x.Left };
+  }
+  if (typeof x.Right === "number") {
+    return { Right: x.Right };
+  }
+  return { Right: x.Right[2] };
+}
+
 export type SubExperimentDto = Dto<{
   name: string;
   isSuspicious: boolean;

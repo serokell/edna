@@ -22,11 +22,4 @@
   &__value {
     @include paragraph-p2;
   }
-
-  &__valueNone {
-    width: 10 * $px;
-    height: 1 * $px;
-    content: "";
-    background-color: $color-black;
-  }
 }
