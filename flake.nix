@@ -39,9 +39,9 @@
         profile = with self.packages.${system};
           linkFarm "edna-deploy-profile" [
             { name = "backend.tar.gz";
-            path = docker-backend; }
+            path = docker-backend { }; }
             { name = "frontend.tar.gz";
-            path = docker-frontend; }
+            path = docker-frontend { }; }
           ];
       in {
         hostname = "${hostName}.edna.serokell.team";
