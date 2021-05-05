@@ -11,6 +11,11 @@ steps:
     commands:
       - nix-shell --run 'reuse lint'
 
+# Checks for the analysis
+  - label: analysis test
+    commands:
+      - nix-shell --run 'cd analysis && pytest'
+
 # Checks for the backend
   - label: validate cabal files
     commands:
