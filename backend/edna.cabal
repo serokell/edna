@@ -98,6 +98,8 @@ library
     network-uri-json,
     optparse-applicative,
     postgresql-simple,
+    prometheus-client,
+    prometheus-metrics-ghc,
     resource-pool,
     rio,
     safe-exceptions,
@@ -105,8 +107,8 @@ library
     servant-multipart,
     servant-server,
     servant-swagger,
-    servant-swagger-ui-core,
     servant-swagger-ui,
+    servant-swagger-ui-core,
     servant-util,
     servant-util-beam-pg,
     split,
@@ -117,6 +119,7 @@ library
     unordered-containers,
     wai,
     wai-extra,
+    wai-middleware-prometheus,
     warp,
     xlsx,
     yaml
@@ -126,6 +129,7 @@ executable edna-server
   main-is: Main.hs
   hs-source-dirs:
       app
+  ghc-options: -rtsopts "-with-rtsopts=-T"
   build-depends:
       edna,
       optparse-applicative,

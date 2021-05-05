@@ -29,6 +29,7 @@ You can update `dev-config.yaml` as you wish before running.
 If you use the config from this repository:
 * The server endpoints will be available at `http://localhost:9000/api/*`.
 * Swagger docs will be available at `http://localhost:9000/docs/`.
+* Data for prometheus will be available at `http://localhost:9000/metrics/`.
 
 Note that you need to also run PostgreSQL server to make backend work.
 One way to run it is to use `docker-compose.yml` provided in the [deployment](../deployment) folder.
