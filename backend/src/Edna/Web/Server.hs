@@ -19,17 +19,16 @@ import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Middleware.Prometheus (PrometheusSettings(..), prometheus)
 import Network.Wai.Middleware.RequestLogger
   (Destination(..), IPAddrSource(..), OutputFormat(..), RequestLoggerSettings(..), mkRequestLogger)
-import RIO (BufferMode(LineBuffering), hSetBuffering, runRIO)
 import Prometheus (register)
 import Prometheus.Metric.GHC (ghcMetrics)
+import RIO (runRIO)
 import Servant (Application, Handler, Server, hoistServer, serve, throwError)
 import Servant.Util.Combinators.Logging (ServantLogConfig(..), serverWithLogging)
 
-import Edna.Analysis.FourPL (check4PLConfiguration)
 import Edna.Config.Definition (LoggingConfig(..), acListenAddr, acServeDocs, ecApi, ecLogging)
-import Edna.DB.Initialisation (schemaInit)
 import Edna.Dashboard.Error (DashboardError)
 import Edna.ExperimentReader.Error (ExperimentParsingError)
+import Edna.Init (initEdna)
 import Edna.Library.Error (LibraryError)
 import Edna.Logging (logUnconditionally)
 import Edna.Orphans ()
@@ -90,10 +89,7 @@ ednaToHandler ctx action =
 -- | Runs the web server which serves Edna API.
 edna :: Edna ()
 edna = do
-  -- We print logs to stderr and LineBuffering is most appropriate for logging.
-  hSetBuffering stderr LineBuffering
-  check4PLConfiguration
-  schemaInit
+  initEdna
   listenAddr <- fromConfig $ ecApi . acListenAddr
   withDocs <- fromConfig $ ecApi . acServeDocs
   loggingConfig <- fromConfig ecLogging

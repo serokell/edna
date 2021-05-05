@@ -48,3 +48,19 @@ NOTE: priority of configurations is following: command line arguments, environme
 To run tests you need to have [`pg_tmp`](http://eradman.com/ephemeralpg/) to run DB for tests.
 Then run `make test` to execute tests.
 This command automatically executes [`poetry`](https://python-poetry.org/) to obtain Python dependencies.
+
+## Generate sample data
+
+Apart from `edna-server` executable we provide `edna-generator`.
+This tool can generate sample data for Edna and put it into DB.
+You can build and run it the same way as `edna-server` (via `stack` or `cabal`).
+You can also run it using [`Makefile`](./Makefile).
+It has the same options as `edna-server` plus some additional options that specify how much data to generate.
+Pass `--help` to get the full list of available options.
+
+You are adviced to set logging to `prod` or `nothing` (otherwise there will be too much output in logs)
+Also maybe you also want to run it on empty DB.
+Example with `prod` logging and empty DB: `RUN_ARGUMENTS='-c dev-config.yaml -l prod --init-mode enable-with-drop' make run-generator`.
+If DB is not empty and there are conflicts (such as already existing project name), by default they will be skipped.
+
+Note that `edna-generator` is an experimental tool for developers and may be unstable/unreliable sometimes.

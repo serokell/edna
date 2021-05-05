@@ -5,6 +5,7 @@
 module Edna.Config.CLA
   ( EdnaOptions(..)
   , ednaOpts
+  , ednaOptsParser
   ) where
 
 import Universum
@@ -17,7 +18,7 @@ import Edna.Config.Definition (LoggingConfig(..), parseLoggingConfig)
 import Edna.Util (ConnString(..), DatabaseInitOption, NetworkAddress, parseDatabaseInitOption)
 
 ednaOpts :: ParserInfo EdnaOptions
-ednaOpts = info (ednaOpts' <**> helper) $
+ednaOpts = info (ednaOptsParser <**> helper) $
   fullDesc <> progDesc "Edna API server"
 
 data EdnaOptions = EdnaOptions
@@ -33,17 +34,17 @@ data EdnaOptions = EdnaOptions
   } deriving stock (Generic, Show)
 
 
-ednaOpts' :: Parser EdnaOptions
-ednaOpts' = EdnaOptions
-        <$> configParser
-        <*> apiListenAddrParser
-        <*> apiServeDocsParser
-        <*> dbConnStringParser
-        <*> dbMaxConnectionsParser
-        <*> dbInitialisationModeParser
-        <*> dbInitialisationInitScriptParser
-        <*> loggingParser
-        <*> dumpConfigParser
+ednaOptsParser :: Parser EdnaOptions
+ednaOptsParser = EdnaOptions
+  <$> configParser
+  <*> apiListenAddrParser
+  <*> apiServeDocsParser
+  <*> dbConnStringParser
+  <*> dbMaxConnectionsParser
+  <*> dbInitialisationModeParser
+  <*> dbInitialisationInitScriptParser
+  <*> loggingParser
+  <*> dumpConfigParser
 
 
 configParser :: Parser (Maybe FilePath)

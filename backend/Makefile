@@ -26,6 +26,8 @@ ifeq (${EDNA_USE_CABAL},1)
 		--color $(TEST_ARGUMENTS)
 	call_server = cabal new-run $(PACKAGE):edna-server $(CABAL_BUILD_OPTIONS) -- \
 		$(RUN_ARGUMENTS)
+	call_generator = cabal new-run $(PACKAGE):edna-generator $(CABAL_BUILD_OPTIONS) -- \
+		$(RUN_ARGUMENTS)
 	call_clean = cabal new-clean
 else
 	call_build = stack build $(STACK_BUILD_OPTIONS) --file-watch $(PACKAGE)
@@ -33,6 +35,8 @@ else
 	call_test = stack build $(STACK_TEST_OPTIONS) $(PACKAGE) \
 		--test-arguments "--color $(TEST_ARGUMENTS)"
 	call_server = stack run edna-server -- \
+		$(RUN_ARGUMENTS)
+	call_generator = stack run edna-generator -- \
 		$(RUN_ARGUMENTS)
 	call_clean = stack clean $(PACKAGE)
 endif
@@ -54,6 +58,12 @@ test:
 run:
 	cd ../analysis && poetry install && \
 		poetry run bash -c "cd ../backend && $(call call_server)"
+
+# Run edna-generator inside `poetry shell` making sure Python analysis will work.
+# If you want to pass additional arguments, use `RUN_ARGUMENTS` env variable.
+run-generator:
+	cd ../analysis && poetry install && \
+		poetry run bash -c "cd ../backend && $(call call_generator)"
 
 clean:
 	$(call call_clean)
