@@ -109,6 +109,7 @@ export function ExperimentsTableSuspendable({
     () => ({
       Header: "Compound",
       id: "compound",
+      minWidth: 124,
       accessor: (e: Experiment) => e.compoundName,
     }),
     []
@@ -127,7 +128,7 @@ export function ExperimentsTableSuspendable({
     () => ({
       Header: "IC50",
       disableSortBy: true,
-      accessor: (e: Experiment) => <IC50Tooltip ic50={e.primaryIC50} />,
+      accessor: (e: Experiment) => <IC50Tooltip ic50={e.primaryIC50} className="ic50value" />,
     }),
     []
   );
@@ -236,12 +237,19 @@ export function ExperimentsTableSuspendable({
           </div>
           <div className="tableContainer experimentsArea__experimentsTableContainer">
             <Table<Experiment>
+              className={expTableSize === "minimized" ? "ednaTable_fixed" : ""}
               defaultSortedColumn="uploadDate"
               small
               columns={expTableSize === "minimized" ? minimizedColumns : expandedColumns}
               dataOrQuery={params => shownExperiments([showEntries, params])}
               columnExtras={{
                 show: { manualCellRendering: true },
+              }}
+              headerExtraStyles={{
+                show: expTableSize === "minimized" ? "ednaTable__columnHead_checkmark" : "",
+                compound: expTableSize === "minimized" ? "ednaTable__columnHead_compound" : "",
+                target: expTableSize === "minimized" ? "ednaTable__columnHead_target" : "",
+                IC50: expTableSize === "minimized" ? "ednaTable__columnHead_IC50" : "",
               }}
               collapsible={e => (
                 <SuspenseSpinner>
