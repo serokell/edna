@@ -26,15 +26,15 @@ import qualified Edna.Library.Service as Library
 import Edna.Analysis.FourPL (Params4PL(..), analyse4PLOne)
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Service
-  (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
-  getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
-  setIsSuspiciousSubExperiment, setNameSubExperiment)
+  (analyseNewSubExperiment, deleteSubExperiment, getActiveProjectNames, getExperimentFile,
+  getExperimentMetadata, getExperiments, getExperimentsSummary, getMeasurements, getSubExperiment,
+  makePrimarySubExperiment, newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
   (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..),
-  MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
+  ExperimentsSummaryResp(..), MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types
   (FileMetadata(unFileMetadata), Measurement(..), measurementToPairMaybe)
-import Edna.Library.Web.Types (MethodologyReq(..))
+import Edna.Library.Web.Types (MethodologyReq(..), ProjectReq(..))
 import Edna.Setup (EdnaContext)
 import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId)
 import Edna.Web.Types (WithId(..))
@@ -123,6 +123,7 @@ spec = withContext $ do
   where
     addSampleData = do
       addSampleProjects
+      void $ Library.addProject (ProjectReq "unused project" Nothing)
       addSampleMethodologies
       toDeleteId <- wiId <$> Library.addMethodology (MethodologyReq "toDelete" Nothing Nothing)
       uploadFileTest (SqlId 1) (SqlId 1) sampleFile
@@ -224,6 +225,54 @@ gettersSpec = do
           descByTarget `shouldBe`
             paginateAndGetIds (sortWith getTargetName allExperiments)
 
+    describe "getExperimentsSummary" $ do
+      let
+        projectId = SqlId 1
+        compoundId = SqlId 1
+        targetId = SqlId 1
+      it "returns all items with no filters" $ runTestEdna $ do
+        allProjects <- getActiveProjectNames
+        allCompounds <- Library.getCompoundNames
+        allTargets <- Library.getTargetNames
+        ExperimentsSummaryResp {..} <-
+          getExperimentsSummary Nothing Nothing Nothing
+        liftIO $ do
+          esrMatchedProjects `shouldBe` allProjects
+          esrMatchedCompounds `shouldBe` allCompounds
+          esrMatchedTargets `shouldBe` allTargets
+      it "filters by project" $ runTestEdna $ do
+        ExperimentsSummaryResp {..} <-
+          getExperimentsSummary (Just projectId) Nothing Nothing
+        liftIO $ do
+          toList esrMatchedProjects `shouldBe` [projectName1, projectName2]
+          toList esrMatchedCompounds `shouldBe`
+            [compoundName1, compoundName2, compoundName3, compoundName4]
+          toList esrMatchedTargets `shouldBe`
+            [targetName1, targetName2, targetName3]
+      it "filters by compound" $ runTestEdna $ do
+        ExperimentsSummaryResp {..} <-
+          getExperimentsSummary Nothing (Just compoundId) Nothing
+        liftIO $ do
+          toList esrMatchedProjects `shouldBe` [projectName1, projectName2]
+          toList esrMatchedCompounds `shouldBe`
+            [compoundName1, compoundName2, compoundName3, compoundName4]
+          toList esrMatchedTargets `shouldBe`
+            [targetName1, targetName3]
+      it "filters by target" $ runTestEdna $ do
+        ExperimentsSummaryResp {..} <-
+          getExperimentsSummary Nothing Nothing (Just targetId)
+        liftIO $ do
+          toList esrMatchedProjects `shouldBe` [projectName1, projectName2]
+          toList esrMatchedCompounds `shouldBe`
+            [compoundName1, compoundName2, compoundName3]
+          toList esrMatchedTargets `shouldBe`
+            [targetName1, targetName2, targetName3]
+
+    describe "getActiveProjectNames" $ do
+      it "returns names of all projects with experiments" $ runTestEdna $ do
+        names <- getActiveProjectNames
+        liftIO $ toList names `shouldBe` [projectName1, projectName2]
+
     describe "getExperimentMetadata" $ do
       it "returns correct metadata for all known experiments" $ runTestEdna $ do
         forM_ validExperimentIds $ \expId -> do
@@ -234,6 +283,7 @@ gettersSpec = do
       it "fails for unknown experiment" $ \ctx -> do
         runRIO ctx (getExperimentMetadata unknownSqlId) `shouldThrow`
           (== DEExperimentNotFound unknownSqlId)
+
     describe "getExperimentFile" $ do
       it "returns correct file name and blob for all known experiments" $ runTestEdna $ do
         forM_ validExperimentIds $ \expId -> do
@@ -244,6 +294,7 @@ gettersSpec = do
       it "fails for unknown experiment" $ \ctx -> do
         runRIO ctx (getExperimentFile unknownSqlId) `shouldThrow`
           (== DEExperimentNotFound unknownSqlId)
+
     describe "getSubExperiment" $ do
       it "returns correct results for sub-experiments 1-6" $ runTestEdna $ do
         resps <- forM validSubExperimentIds $ \subExpId -> do
@@ -256,6 +307,7 @@ gettersSpec = do
       it "fails for unknown sub-experiment" $ \ctx -> do
         runRIO ctx (getSubExperiment unknownSqlId) `shouldThrow`
           (== DESubExperimentNotFound unknownSqlId)
+
     describe "getMeasurements" $ do
       it "returns correct measurements for sub-experiments 13-19" $ runTestEdna $ do
         [ measurements1

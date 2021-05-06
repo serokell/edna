@@ -15,10 +15,12 @@ module Edna.DB.Integration
   , runDeleteReturningList'
   , runSelectReturningOne'
   , runSelectReturningList'
+  , runSelectReturningSet
   ) where
 
 import Universum
 
+import qualified Data.Set as Set
 import qualified Database.Beam.Postgres.Conduit as C
 
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
@@ -96,3 +98,10 @@ runSelectReturningOne' = runPg . runSelectReturningOne
 
 runSelectReturningList' :: FromBackendRow Postgres a => SqlSelect Postgres a -> Edna [a]
 runSelectReturningList' = runPg . runSelectReturningList
+
+-- | Run @SELECT@ and convert its result into a set. Conversion happens in Haskell.
+-- Note that all duplicates are silently removed and items are sorted.
+runSelectReturningSet ::
+  (Ord a, FromBackendRow Postgres a) =>
+  SqlSelect Postgres a -> Edna (Set a)
+runSelectReturningSet = fmap Set.fromList . runSelectReturningList'

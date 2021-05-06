@@ -21,6 +21,10 @@ module Edna.Library.Service
   , getProjects
   , addProject
   , updateProject
+
+  -- * Re-export some queries as is
+  , Q.getTargetNames
+  , Q.getCompoundNames
   ) where
 
 import Universum

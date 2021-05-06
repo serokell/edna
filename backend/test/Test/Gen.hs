@@ -25,6 +25,7 @@ module Test.Gen
   , genCompoundResp
   , genTargetResp
   , genExperimentsResp
+  , genExperimentsSummaryResp
   , genExperimentResp
   , genSubExperimentResp
   , genMeasurementResp
@@ -46,6 +47,7 @@ import Universum
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashSet as HS
+import qualified Data.Set as Set
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
@@ -166,6 +168,14 @@ genNewSubExperimentReq =
 genExperimentsResp :: MonadGen m => m ExperimentsResp
 genExperimentsResp =
   ExperimentsResp <$> Gen.list (Range.linear 0 5) (genWithId genExperimentResp)
+
+genExperimentsSummaryResp :: MonadGen m => m ExperimentsSummaryResp
+genExperimentsSummaryResp = do
+  let genNames = Set.fromList <$> Gen.list (Range.linear 0 10) genName
+  esrMatchedProjects <- genNames
+  esrMatchedCompounds <- genNames
+  esrMatchedTargets <- genNames
+  return ExperimentsSummaryResp {..}
 
 genExperimentResp :: MonadGen m => m ExperimentResp
 genExperimentResp = do
@@ -313,6 +323,9 @@ instance Arbitrary NewSubExperimentReq where
 
 instance Arbitrary ExperimentsResp where
   arbitrary = hedgehog genExperimentsResp
+
+instance Arbitrary ExperimentsSummaryResp where
+  arbitrary = hedgehog genExperimentsSummaryResp
 
 instance Arbitrary ExperimentResp where
   arbitrary = hedgehog genExperimentResp

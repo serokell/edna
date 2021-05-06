@@ -9,6 +9,7 @@ module Edna.Dashboard.Web.Types
   , ExperimentsResp (..)
   , ExperimentResp (..)
   , ExperimentSortingSpec
+  , ExperimentsSummaryResp (..)
   , SubExperimentResp (..)
   , MeasurementResp (..)
   , ExperimentMetadata (..)
@@ -48,7 +49,7 @@ instance Buildable NewSubExperimentReq where
     "new sub-experiment name: " +| nserName |+
     ", changes: " +| toList nserChanges |+ ""
 
--- | Experiment as response from the server.
+-- | Experiments as response from the server.
 newtype ExperimentsResp = ExperimentsResp
   { erExperiments :: [WithId 'ExperimentId ExperimentResp]
   } deriving stock (Generic, Show)
@@ -114,6 +115,44 @@ type instance SortingParamTypesOf ExperimentResp =
   ]
 
 type ExperimentSortingSpec = SortingSpec (SortingParamTypesOf ExperimentResp)
+
+-- | Summary of experiments matching given search. We use it to show selectors.
+data ExperimentsSummaryResp = ExperimentsSummaryResp
+  { esrMatchedProjects :: Set Text
+  -- ^ If target and/or compound filter is specified, these are all projects
+  -- where specified target and/or compound is used.
+  -- Otherwise this list contains all projects.
+  , esrMatchedCompounds :: Set Text
+  -- ^ If target and/or project filter is specified, these are all compounds
+  -- used in specified project and/or with specified target.
+  -- Otherwise this list contains all compounds.
+  , esrMatchedTargets :: Set Text
+  -- ^ If compound and/or project filter is specified, these are all targets
+  -- used in specified project and/or with specified compound.
+  -- Otherwise this list contains all targets.
+  } deriving stock (Generic, Show, Eq)
+
+instance Buildable ExperimentsSummaryResp where
+  build = genericF
+
+-- | Temporary newtype we use to provide @instance Buildable (ForResponseLog Text)@.
+-- Probably will disappear when we introduce @Name@ type.
+newtype BuildableResponseLog a = BuildableResponseLog a
+
+instance Buildable a => Buildable (ForResponseLog (BuildableResponseLog a)) where
+  build (ForResponseLog (BuildableResponseLog a)) = build a
+
+instance Buildable (ForResponseLog ExperimentsSummaryResp) where
+  build (ForResponseLog (ExperimentsSummaryResp projects compounds targets)) =
+    "ExperimentsSummary:\n" <>
+    "  matched projects:\n" <>
+    buildListForResponse (take 12) (wrap projects) <>
+    "  matched compounds:\n" <>
+    buildListForResponse (take 12) (wrap compounds) <>
+    "  matched targets:\n" <>
+    buildListForResponse (take 12) (wrap targets)
+    where
+      wrap = ForResponseLog . map BuildableResponseLog . toList
 
 -- | SubExperiment as response from the server.
 data SubExperimentResp = SubExperimentResp
@@ -198,6 +237,7 @@ instance Buildable (ForResponseLog $
 deriveJSON ednaAesonWebOptions ''NewSubExperimentReq
 deriveToJSON ednaAesonWebOptions ''ExperimentsResp
 deriveToJSON ednaAesonWebOptions ''ExperimentResp
+deriveToJSON ednaAesonWebOptions ''ExperimentsSummaryResp
 deriveToJSON ednaAesonWebOptions ''SubExperimentResp
 deriveToJSON ednaAesonWebOptions ''MeasurementResp
 deriveToJSON ednaAesonWebOptions ''ExperimentMetadata
@@ -206,6 +246,9 @@ instance ToSchema NewSubExperimentReq where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema ExperimentsResp where
+  declareNamedSchema = gDeclareNamedSchema
+
+instance ToSchema ExperimentsSummaryResp where
   declareNamedSchema = gDeclareNamedSchema
 
 instance ToSchema ExperimentResp where
