@@ -28,6 +28,7 @@ import {
   useCompoundsRefresher,
   useFilteredExperimentsRefresher,
   useMethodologiesRefresher,
+  useNotificationListUpdater,
   useProjectsRefresher,
   useTargetsRefresher,
 } from "../../store/updaters";
@@ -42,6 +43,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
   const compoundsRefresher = useCompoundsRefresher();
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
   const methodologiesRefresher = useMethodologiesRefresher();
+  const notificationsUpdater = useNotificationListUpdater();
   const [currentProject, setCurrentProject] = useState<Maybe<ProjectDto>>(undefined);
   const [hasUnsavedFields, setHasUnsavedFields] = useState(false);
   const showPrompt = (ch: React.ReactNode) => (
@@ -103,7 +105,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           }
         }}
       >
-        {({ resetForm }) => (
+        {({ resetForm, values, setValues }) => (
           <Form className="uploadingForm">
             <div className="uploadingForm__uploadTitle">Upload file</div>
 
@@ -209,6 +211,28 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   setHasUnsavedFields(false);
                   setExcelFile(undefined);
                   resetForm();
+                  notificationsUpdater({
+                    type: "Add",
+                    notificationType: "Error",
+                    element: manualRemove => (
+                      <div className="uploadingForm__resetNotify">
+                        <span>You have reset all completed fields</span>
+                        <Button
+                          type="text"
+                          className="uploadingForm__resetNotifyBtn"
+                          disabled={!isAdded(excelFile) && !hasUnsavedFields}
+                          onClick={() => {
+                            setHasUnsavedFields(true);
+                            setValues(values);
+                            setExcelFile(excelFile);
+                            manualRemove();
+                          }}
+                        >
+                          Undo
+                        </Button>
+                      </div>
+                    ),
+                  });
                 }}
               >
                 {isAdded(excelFile) ? "Upload another one" : "Reset"}

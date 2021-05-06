@@ -20,6 +20,11 @@
   svg {
     margin-right: 1.5rem;
   }
+
+  &__container {
+    flex: 1;
+    font-size: 0.875rem;
+  }
 }
 
 @keyframes toast-in-left {

@@ -51,7 +51,6 @@ export type FileUploadState =
   | { state: "uploading"; progress: number }
   | { state: "verifying" }
   | { state: "parsed"; targets: ParsedExcelDto[] }
-  | { state: "failed-to-parse"; reason: string }
   | { state: "added"; targets: ParsedExcelDto[] }
   | { state: "failed-to-add"; reason: string };
 
@@ -112,7 +111,7 @@ export type NewSubExperiment = {
 
 // Notifications
 
-export type NotificationType = "Success" | "Error";
+export type NotificationType = "Success" | "Error" | "Warn";
 
 export interface DeleteNotification {
   type: "Delete";
@@ -122,14 +121,14 @@ export interface DeleteNotification {
 export interface AddNotification {
   type: "Add";
   notificationType: NotificationType;
-  element: ReactElement;
+  element: (manualRemove: () => void) => ReactElement;
 }
 
 export type NotificationUpdateAction = DeleteNotification | AddNotification;
 
 export interface NotificationData {
   id: number;
-  element: ReactElement;
+  element: (manualRemove: () => void) => ReactElement;
   type: NotificationType;
 }
 

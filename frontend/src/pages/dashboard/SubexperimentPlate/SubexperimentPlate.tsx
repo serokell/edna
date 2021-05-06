@@ -16,6 +16,7 @@ import {
 import {
   useAddSubExperiment,
   useFilteredExperimentsRefresher,
+  useNotificationListUpdater,
   useRemoveSubExperiments,
 } from "../../../store/updaters";
 import { SatisfactoryStatus } from "../../../components/SatisfactoryStatus/SatisfactoryStatus";
@@ -45,6 +46,7 @@ export function SubexperimentPlate({
   const ref = useRef(null);
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const refreshFiltered = useFilteredExperimentsRefresher();
+  const notificationsUpdater = useNotificationListUpdater();
 
   useClickOutsideCallback(ref, () => setContextMenuVisible(false));
 
@@ -98,10 +100,18 @@ export function SubexperimentPlate({
             type="delete"
             key="delete"
             onClick={() => {
-              setModalDialog({
-                kind: "delete-subexperiment",
-                subexperiment,
-              });
+              if (isPrimary) {
+                notificationsUpdater({
+                  type: "Add",
+                  notificationType: "Warn",
+                  element: () => <span>You are not alowed to delete primary sub-experiment</span>,
+                });
+              } else {
+                setModalDialog({
+                  kind: "delete-subexperiment",
+                  subexperiment,
+                });
+              }
             }}
           />,
         ]}

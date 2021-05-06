@@ -8,10 +8,12 @@ import "./Notification.scss";
 import cn from "../../../utils/bemUtils";
 import ErrorIcon from "../../../assets/svg/error-notify.svg";
 import SuccessIcon from "../../../assets/svg/success-notify.svg";
+import WarnIcon from "../../../assets/svg/warn-notify.svg";
+import { NotificationType } from "../../../store/types";
 
 export interface NotificationProps {
   id: number;
-  type: "Success" | "Error";
+  type: NotificationType;
 }
 
 export const Notification: FunctionComponent<NotificationProps> = ({
@@ -35,8 +37,8 @@ export const Notification: FunctionComponent<NotificationProps> = ({
 
   return (
     <div className={notification()}>
-      {type === "Error" ? <ErrorIcon /> : <SuccessIcon />}
-      <div>{children}</div>
+      {type === "Error" ? <ErrorIcon /> : type === "Warn" ? <WarnIcon /> : <SuccessIcon />}
+      <div className={notification("container")}>{children}</div>
     </div>
   );
 };

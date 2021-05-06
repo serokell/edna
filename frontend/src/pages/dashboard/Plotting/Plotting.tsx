@@ -14,6 +14,7 @@ import { EmptyPlaceholder } from "../../../components/EmptyPlaceholder/EmptyPlac
 import { SuccessSubExperimentWithMeasurements } from "../../../store/types";
 import { newSubexperimentAtom } from "../../../store/atoms";
 import { isDefined, logspace } from "../../../utils/utils";
+import { useNotificationListUpdater } from "../../../store/updaters";
 
 const plotConfig: Partial<PlotlyBasic.Config> = {
   displaylogo: false,
@@ -80,6 +81,7 @@ export default function PlotlyChart({
     },
   });
   const [newSubexperiment, setNewSubexperiment] = useRecoilState(newSubexperimentAtom);
+  const notificationsUpdater = useNotificationListUpdater();
 
   if (subExperiments.length === 0) {
     return (
@@ -251,6 +253,14 @@ export default function PlotlyChart({
             subExperimentId: subExpOfClickedTrace.meta.id,
             changedPoints: old.changedPoints.concat(measPoint),
           }));
+        } else {
+          notificationsUpdater({
+            type: "Add",
+            notificationType: "Warn",
+            element: () => (
+              <span>You are only allowed to enable/disable points on one sub-experiment</span>
+            ),
+          });
         }
       }}
       onRelayout={newLayout => {
