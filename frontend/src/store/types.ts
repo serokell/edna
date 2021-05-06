@@ -4,6 +4,7 @@
 
 // Types used for global storage is here
 
+import { ReactElement } from "react";
 import {
   CompoundDto,
   SubExperimentDto,
@@ -108,3 +109,31 @@ export type NewSubExperiment = {
   // Result of 4PL
   analysed?: number[];
 };
+
+// Notifications
+
+export type NotificationType = "Success" | "Error";
+
+export interface DeleteNotification {
+  type: "Delete";
+  id: number;
+}
+
+export interface AddNotification {
+  type: "Add";
+  notificationType: NotificationType;
+  element: ReactElement;
+}
+
+export type NotificationUpdateAction = DeleteNotification | AddNotification;
+
+export interface NotificationData {
+  id: number;
+  element: ReactElement;
+  type: NotificationType;
+}
+
+export interface Notifications {
+  lastId: number;
+  notifications: NotificationData[];
+}
