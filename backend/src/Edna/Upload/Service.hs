@@ -10,6 +10,7 @@ module Edna.Upload.Service
   , UploadError (..)
 
   -- * Exported for tests
+  , insertCompound
   , parseFile'
   , uploadFile'
   ) where
@@ -18,7 +19,9 @@ import Universum
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
+import qualified Data.Text as T
 
+import Data.Char (isNumber)
 import Fmt ((+|), (|+))
 import Lens.Micro.Platform (at, (?~))
 
@@ -26,6 +29,7 @@ import qualified Edna.Library.DB.Query as LQ
 import qualified Edna.Upload.DB.Query as UQ
 
 import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
+import Edna.Config.Definition (MdeHost, ecMdeHost)
 import Edna.DB.Integration (transact)
 import Edna.Dashboard.DB.Schema
   (MeasurementRec, MeasurementT(..), SubExperimentRec, SubExperimentT(..))
@@ -130,11 +134,22 @@ uploadFile' projSqlId@(SqlId proj) methodSqlId@(SqlId method)
       measurementsToSummary fileMeasurements
 
 insertTarget :: Text -> Edna (Text, TargetId)
-insertTarget targetName = (targetName,) . fromSqlSerial . tTargetId <$> LQ.insertTarget targetName
+insertTarget targetName = do
+  (targetName,) . fromSqlSerial . tTargetId <$> LQ.insertTarget targetName
+
+buildMdeLink :: Maybe MdeHost -> Text -> Maybe Text
+buildMdeLink mHost compoundName = do
+  host <- mHost
+  let (_, ns) = T.break isNumber compoundName
+  guard $ not (T.null ns) && T.all isNumber ns
+  Just $ host <> "/" <> ns
 
 insertCompound :: Text -> Edna (Text, CompoundId)
-insertCompound compoundName =
-  (compoundName,) . fromSqlSerial . cCompoundId <$> LQ.insertCompound compoundName
+insertCompound compoundName = do
+  host <- fromConfig ecMdeHost
+  let mde = buildMdeLink host compoundName
+  (compoundName,) . fromSqlSerial . cCompoundId <$>
+    LQ.insertCompound compoundName mde
 
 -- Expects tuples sorted by @(CompoundId, TargetId)@ pairs.
 insertExperiments ::

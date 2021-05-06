@@ -11,28 +11,33 @@ module Edna.Config.Environment
   , dbInitialisationModeEnv
   , dbMaxConnectionsEnv
   , loggingEnv
+  , mdeHostEnv
   ) where
 
 import Universum
 
-import Control.Exception (throwIO)
 import qualified Data.Char as C
-import System.Environment (lookupEnv)
+import qualified Data.Text as T
 import qualified Text.Show
 
-import Edna.Config.Definition (LoggingConfig(..), parseLoggingConfig)
+import Control.Exception (throwIO)
+import System.Environment (lookupEnv)
+
+import Edna.Config.Definition (LoggingConfig(..), MdeHost, parseLoggingConfig)
 import Edna.Util (ConnString(..), DatabaseInitOption, NetworkAddress, parseDatabaseInitOption)
 
 data EnvParseError = WrongApiListenAddr
                    | WrongDbMaxConnections
                    | WrongDbInitialisationMode
                    | WrongLogging
+                   | WrongMdeHost
 
 instance Show EnvParseError where
   show WrongApiListenAddr = "Can't parse EDNA_API_LISTEN_ADDR"
   show WrongDbMaxConnections = "Can't parse EDNA_DB_MAX_CONNECTIONS"
   show WrongDbInitialisationMode = "Can't parse EDNA_DB_INITIALISATION_MODE"
-  show WrongLogging   = "Can't parse EDNA_LOGGING"
+  show WrongLogging = "Can't parse EDNA_LOGGING"
+  show WrongMdeHost = "Can't parse EDNA_MDE_HOST"
 
 instance Exception EnvParseError
 
@@ -54,8 +59,8 @@ readEnv = parseEnv read
       Left _ -> Left err
       Right x -> Right x
 
-getBoolEnv :: String -> IO (Maybe Bool)
-getBoolEnv name = lookupEnv name <&> \case
+readBoolEnv :: String -> IO (Maybe Bool)
+readBoolEnv name = lookupEnv name <&> \case
   Nothing                        -> Nothing
   Just "1"                       -> Just True
   Just (map C.toLower -> "true") -> Just True
@@ -67,7 +72,7 @@ getBoolEnv name = lookupEnv name <&> \case
 {-# ANN askDebugDB ("HLint: ignore Use Just" :: Text) #-}
 askDebugDB :: IO Bool
 askDebugDB = do
-  env <- getBoolEnv "EDNA_DB_DEBUG"
+  env <- readBoolEnv "EDNA_DB_DEBUG"
   return $ fromMaybe False env
 
 
@@ -75,7 +80,7 @@ apiListenAddrEnv :: IO (Maybe NetworkAddress)
 apiListenAddrEnv = readEnv "EDNA_API_LISTEN_ADDR" WrongApiListenAddr
 
 apiServeDocsEnv :: IO (Maybe Bool)
-apiServeDocsEnv = getBoolEnv "EDNA_API_SERVE_DOCS"
+apiServeDocsEnv = readBoolEnv "EDNA_API_SERVE_DOCS"
 
 dbConnStringEnv :: IO (Maybe ConnString)
 dbConnStringEnv = do
@@ -110,3 +115,6 @@ dbInitialisationInitScriptEnv = lookupEnv "EDNA_DB_INITIALISATION_INIT_SCRIPT"
 
 loggingEnv :: IO (Maybe LoggingConfig)
 loggingEnv = parseEnv parseLoggingConfig "EDNA_LOGGING" WrongLogging
+
+mdeHostEnv :: IO (Maybe MdeHost)
+mdeHostEnv = T.pack <<$>> lookupEnv "EDNA_MDE_HOST"

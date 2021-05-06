@@ -14,6 +14,7 @@ module Edna.Config.Definition
   , ecApi
   , ecDb
   , ecLogging
+  , ecMdeHost
 
   , ApiConfig (..)
   , acListenAddr
@@ -30,6 +31,8 @@ module Edna.Config.Definition
 
   , LoggingConfig (..)
   , parseLoggingConfig
+
+  , MdeHost
   ) where
 
 import Universum
@@ -69,6 +72,8 @@ data LoggingConfig =
   -- ^ No logging.
   deriving stock (Generic, Show, Eq)
 
+type MdeHost = Text
+
 -- | Parse LoggingConfig
 parseLoggingConfig :: e -> String -> Either e LoggingConfig
 parseLoggingConfig err p =
@@ -101,6 +106,7 @@ data EdnaConfig = EdnaConfig
   { _ecApi :: ApiConfig
   , _ecDb :: DbConfig
   , _ecLogging :: LoggingConfig
+  , _ecMdeHost :: Maybe MdeHost
   } deriving stock (Generic, Show)
 
 defaultEdnaConfig :: EdnaConfig
@@ -115,6 +121,7 @@ defaultEdnaConfig = EdnaConfig
     , _dbInitialisation = Nothing
     }
   , _ecLogging = LogProd
+  , _ecMdeHost = Nothing
   }
 
 ---------------------------------------------------------------------------
