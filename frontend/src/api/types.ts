@@ -104,9 +104,9 @@ export type CompoundDto = {
 
 export type ExperimentDto = Dto<{
   project: number;
-  compound: number;
-  target: number;
-  methodology?: number;
+  compound: [number, string];
+  target: [number, string];
+  methodology?: [number, string];
   uploadDate: DateTimeDto;
   subExperiments: number[];
   primarySubExperiment: number;

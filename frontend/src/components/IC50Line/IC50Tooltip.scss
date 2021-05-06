@@ -7,6 +7,10 @@
 @import "src/styles/variables";
 
 .ic50value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
   &__none {
     width: 10 * $px;
     height: 1 * $px;

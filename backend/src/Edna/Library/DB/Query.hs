@@ -49,7 +49,7 @@ import Edna.DB.Integration
   (runDeleteReturningList', runInsert', runInsertReturningOne', runSelectReturningList',
   runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
-import Edna.DB.Util (groupAndPaginate)
+import Edna.DB.Util (groupAndPaginate, sortingSpecWithId)
 import Edna.Dashboard.DB.Schema (ExperimentT(..))
 import Edna.Library.DB.Schema as LDB
   (CompoundRec, CompoundT(..), PrimaryKey(..), ProjectRec, ProjectT(..), TargetRec, TargetT(..),
@@ -98,7 +98,7 @@ targetsWithProjects targetIdEither =
       filter_ (specificTarget targetSqlId) baseQuery
     Right (sorting, _) ->
       runSelectReturningList' $ select $
-      sortBy_ sorting sortingApp baseQuery
+      sortBy_ (sortingSpecWithId sorting) sortingApp baseQuery
   where
     baseQuery :: Q Postgres EdnaSchema s _
     baseQuery = do
@@ -116,6 +116,7 @@ targetsWithProjects targetIdEither =
       tTargetId t ==. val_ (SqlSerial targetId)
 
     sortingApp (TargetRec {..}, _) =
+      fieldSort @"id" tTargetId .*.
       fieldSort @"name" tName .*.
       fieldSort @"additionDate" tAdditionDate .*.
       HNil
@@ -151,9 +152,11 @@ getCompoundById (SqlId compoundId) = runSelectReturningOne' $ select $ do
 -- | Get compounds sorted and paginated according to provided specifications.
 getCompounds :: CompoundSortingSpec -> PaginationSpec -> Edna [CompoundRec]
 getCompounds sorting pagination = runSelectReturningList' $ select $
-  paginate_ pagination $ sortBy_ sorting sortingApp $ all_ $ esCompound ednaSchema
+  paginate_ pagination $ sortBy_ (sortingSpecWithId sorting) sortingApp $
+  all_ $ esCompound ednaSchema
   where
     sortingApp CompoundRec {..} =
+      fieldSort @"id" cCompoundId .*.
       fieldSort @"name" cName .*.
       fieldSort @"additionDate" cAdditionDate .*.
       HNil
@@ -217,7 +220,7 @@ getMethodology' eMethodologyId =
     Left _ -> runSelectReturningList' $ select baseQuery
     Right (sorting, _) ->
       runSelectReturningList' $ select $
-      sortBy_ sorting sortingApp baseQuery
+      sortBy_ (sortingSpecWithId sorting) sortingApp baseQuery
   where
     baseQuery :: Q Postgres EdnaSchema s _
     baseQuery = do
@@ -231,6 +234,7 @@ getMethodology' eMethodologyId =
       return (tm, pName project)
 
     sortingApp (TestMethodologyRec {..}, _) =
+      fieldSort @"id" tmTestMethodologyId .*.
       fieldSort @"name" tmName .*.
       HNil
 
@@ -306,7 +310,8 @@ projectsWithCompounds projectIdEither =
       runSelectReturningList' $ select $
       filter_ (specificProject projectSqlId) baseQuery
     Right (sorting, _) ->
-      runSelectReturningList' $ select $ sortBy_ sorting sortingApp baseQuery
+      runSelectReturningList' $ select $
+      sortBy_ (sortingSpecWithId sorting) sortingApp baseQuery
   where
     baseQuery :: Q Postgres EdnaSchema s _
     baseQuery = do
@@ -324,6 +329,7 @@ projectsWithCompounds projectIdEither =
       pProjectId p ==. val_ (SqlSerial projectId)
 
     sortingApp (ProjectRec {..}, _) =
+      fieldSort @"id" pProjectId .*.
       fieldSort @"name" pName .*.
       fieldSort @"creationDate" pCreationDate .*.
       fieldSort @"lastUpdate" pLastUpdate .*.

@@ -49,8 +49,46 @@ export function zip<A, B>(a: A[], b: B[]): [A, B][] {
   return a.map((e, i) => [e, b[i]]);
 }
 
+// We show at most 5 characters. We empirically determined that 5 characters
+// can be fit into the IC50 column.
+// If we return a string that doesn't fit into the column for some reason,
+// we have fallback logic in CSS that limits the width and adds ellipsis.
 export function formatIC50(x: number): string {
-  return x.toFixed(3);
+  // We are carefully listing all cases here to think about each of them.
+  // Perhaps it can be optimized, e. g. using 'toPrecision', but I (@gromak)
+  // decided to follow the KISS principle.
+  switch (true) {
+    // More than 5 digits in total.
+    // We show it in exponential notation with just one significant digit.
+    // Usually such large values mean that the model is bad and the exact value
+    // doesn't matter.
+    case x >= 1e5:
+      return x.toExponential(0);
+
+    // 5 or 4 digits in total, no digits after decimal point.
+    case x >= 1e3:
+      return x.toFixed(0);
+
+    // 3 digits before the decimal point, 1 after.
+    case x >= 1e2:
+      return x.toFixed(1);
+
+    // 2 digits before the decimal point, 2 after.
+    case x >= 10:
+      return x.toFixed(2);
+
+    // 1 digit before the decimal point, 3 after.
+    case x >= 1:
+      return x.toFixed(3);
+
+    // '0' before the decimal point, 3 digits after.
+    case x >= 1e-4:
+      return x.toFixed(3);
+
+    // Very small value, just show exponential format with one significat digit.
+    default:
+      return x.toExponential(0);
+  }
 }
 
 export function useClickOutsideCallback(ref: RefObject<HTMLElement>, onOutside: () => void): void {

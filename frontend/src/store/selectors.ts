@@ -154,18 +154,13 @@ export const filteredExperimentsQuery = selectorFamily<ExperimentsWithMean, Sort
     }
 
     const projects = get(projectsQuery({}));
-    const compounds = get(compoundsQuery({}));
-    const targets = get(targetsQuery({}));
-    const methodologies = get(methodologiesQuery({}));
 
     const exps: Experiment[] = experiments
       .map(e => {
         const projectName = findName(projects, e.item.project);
-        const compoundName = findName(compounds, e.item.compound);
-        const targetName = findName(targets, e.item.target);
-        const methodologyName = e.item.methodology
-          ? findName(methodologies, e.item.methodology)
-          : undefined;
+        const compoundName = e.item.compound[1];
+        const targetName = e.item.target[1];
+        const methodologyName = e.item.methodology ? e.item.methodology[1] : undefined;
         return {
           id: e.id,
           projectName,

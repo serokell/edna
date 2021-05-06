@@ -15,10 +15,13 @@ import Universum
 import qualified Data.Map.Strict as Map
 
 import RIO (runRIO)
-import Servant.Util (desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
+import Servant.Util (asc, desc, fullContent, itemsOnPage, mkSortingSpec, noSorting, skipping)
+import Servant.Util.Dummy.Pagination (paginate)
 import Servant.Util.Internal.Util (Positive(..))
 import Test.Hspec
   (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldSatisfy, shouldThrow)
+
+import qualified Edna.Library.Service as Library
 
 import Edna.Analysis.FourPL (Params4PL(..), analyse4PLOne)
 import Edna.Dashboard.Error (DashboardError(..))
@@ -31,6 +34,7 @@ import Edna.Dashboard.Web.Types
   MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types
   (FileMetadata(unFileMetadata), Measurement(..), measurementToPairMaybe)
+import Edna.Library.Web.Types (MethodologyReq(..))
 import Edna.Setup (EdnaContext)
 import Edna.Util (ExperimentId, IdType(..), SqlId(..), SubExperimentId)
 import Edna.Web.Types (WithId(..))
@@ -38,6 +42,7 @@ import Edna.Web.Types (WithId(..))
 import Test.Orphans ()
 import Test.SampleData
 import Test.Setup (runTestEdna, runWithInit, withContext)
+import Test.Util (DefaultPgNullsOrder(..))
 
 spec :: Spec
 spec = withContext $ do
@@ -119,8 +124,11 @@ spec = withContext $ do
     addSampleData = do
       addSampleProjects
       addSampleMethodologies
+      toDeleteId <- wiId <$> Library.addMethodology (MethodologyReq "toDelete" Nothing Nothing)
       uploadFileTest (SqlId 1) (SqlId 1) sampleFile
-      uploadFileTest (SqlId 2) (SqlId 1) sampleFile
+      uploadFileTest (SqlId 2) (SqlId 2) sampleFile
+      uploadFileTest (SqlId 2) toDeleteId sampleFile
+      void $ Library.deleteMethodology toDeleteId
       newSubExperiment (SqlId 1) NewSubExperimentReq
         { nserName = "qwe"
         , nserChanges = mempty
@@ -131,7 +139,7 @@ spec = withContext $ do
 
     -- non-primary
     secondarySubExpId :: SubExperimentId
-    secondarySubExpId = SqlId 13
+    secondarySubExpId = SqlId (3 * sampleFileExpNum + 1)
 
 gettersSpec :: SpecWith EdnaContext
 gettersSpec = do
@@ -141,12 +149,12 @@ gettersSpec = do
         ExperimentsResp {..} <- getExperiments Nothing Nothing Nothing
           noSorting fullContent
         liftIO $ do
-          length erExperiments `shouldBe` 12
+          length erExperiments `shouldBe` 3 * sampleFileExpNum
       it "filters by project correctly" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
           noSorting fullContent
         liftIO $ do
-          length erExperiments `shouldBe` 6
+          length erExperiments `shouldBe` sampleFileExpNum
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erProject `shouldBe` SqlId 1
       it "filters by project and compound correctly" $ runTestEdna $ do
@@ -157,7 +165,7 @@ gettersSpec = do
         liftIO $ do
           length erExperiments `shouldBe` 2
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
-            erCompound `shouldBe` compoundId
+            fst erCompound `shouldBe` compoundId
       it "filters by 3 filters correctly and returns mean IC50" $ runTestEdna $ do
         let compoundId = SqlId 2
         let targetId = SqlId 2
@@ -172,17 +180,50 @@ gettersSpec = do
           let [WithId _ expResp] = erExperiments
           erPrimaryIC50 expResp `shouldBe` Right p4plC
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) -> do
-            erTarget `shouldBe` targetId
-            erCompound `shouldBe` compoundId
+            erTarget `shouldBe` (targetId, targetName2)
+            erCompound `shouldBe` (compoundId, compoundName2)
       it "filters by project and properly applies sorting and pagination" $ runTestEdna $ do
-        ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
-          (mkSortingSpec [desc #uploadDate]) (skipping 2 $ itemsOnPage (PositiveUnsafe 3))
+        let
+          size :: Num n => n
+          size = sampleFileExpNum + 1
+          projectId = SqlId 2
+        ExperimentsResp {..} <- getExperiments (Just projectId) Nothing Nothing
+          (mkSortingSpec [desc #uploadDate]) (skipping 2 $ itemsOnPage (PositiveUnsafe size))
         liftIO $ do
-          length erExperiments `shouldBe` 3
+          length erExperiments `shouldBe` size
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
-            erProject `shouldBe` SqlId 1
+            erProject `shouldBe` projectId
           let dates = map (erUploadDate . wItem) erExperiments
           sortWith Down dates `shouldBe` dates
+      it "properly sorts all experiments by various fields" $ runTestEdna $ do
+        let
+          size :: Num n => n
+          size = sampleFileExpNum + 1
+        let paginationSpec = skipping 3 $ itemsOnPage (PositiveUnsafe size)
+        let getExperiments' sorting pagination = erExperiments <$>
+              getExperiments Nothing Nothing Nothing sorting pagination
+        allExperiments <- getExperiments' noSorting fullContent
+        let getSortedIds sorting = map wiId <$> getExperiments' sorting paginationSpec
+        let
+          paginateAndGetIds :: [WithId a b] -> [SqlId a]
+          paginateAndGetIds = map wiId . paginate paginationSpec
+
+        descByMethodology <- getSortedIds (mkSortingSpec [desc #methodology])
+        ascByCompound <- getSortedIds (mkSortingSpec [asc #compound])
+        descByTarget <- getSortedIds (mkSortingSpec [desc #target])
+        liftIO $ do
+          let alsoSortById f (WithId sqlId er) = (f er, Down sqlId)
+          let getMethodologyName = alsoSortById $
+                Down . DefaultPgNullsOrder . fmap snd . erMethodology
+          let getCompoundName = alsoSortById $ snd . erCompound
+          let getTargetName = alsoSortById $ Down . snd . erTarget
+          descByMethodology `shouldBe`
+            paginateAndGetIds (sortWith getMethodologyName allExperiments)
+          ascByCompound `shouldBe`
+            paginateAndGetIds (sortWith getCompoundName allExperiments)
+          descByTarget `shouldBe`
+            paginateAndGetIds (sortWith getTargetName allExperiments)
+
     describe "getExperimentMetadata" $ do
       it "returns correct metadata for all known experiments" $ runTestEdna $ do
         forM_ validExperimentIds $ \expId -> do
@@ -216,7 +257,7 @@ gettersSpec = do
         runRIO ctx (getSubExperiment unknownSqlId) `shouldThrow`
           (== DESubExperimentNotFound unknownSqlId)
     describe "getMeasurements" $ do
-      it "returns correct measurements for sub-experiments 7-13" $ runTestEdna $ do
+      it "returns correct measurements for sub-experiments 13-19" $ runTestEdna $ do
         [ measurements1
           , measurements2
           , measurements3
@@ -224,7 +265,8 @@ gettersSpec = do
           , measurements5
           , measurements6
           , measurements7
-          ] <- mapM ((wItem <<$>>) . getMeasurements) (drop 6 validSubExperimentIds)
+          ] <- mapM ((wItem <<$>>) . getMeasurements) $
+            drop (2 * sampleFileExpNum) validSubExperimentIds
         let
           toMeasurementResp :: Measurement -> MeasurementResp
           toMeasurementResp Measurement {..} = MeasurementResp
@@ -246,7 +288,7 @@ gettersSpec = do
           (== DESubExperimentNotFound unknownSqlId)
 
 validSubExperimentIds :: [SubExperimentId]
-validSubExperimentIds = map SqlId [1 .. 13]
+validSubExperimentIds = map SqlId [1 .. 19]
 
 validExperimentIds :: [ExperimentId]
-validExperimentIds = map SqlId [1 .. 12]
+validExperimentIds = map SqlId [1 .. 18]

@@ -65,12 +65,12 @@ instance Buildable (ForResponseLog ExperimentsResp) where
 data ExperimentResp = ExperimentResp
   { erProject :: ProjectId
   -- ^ Project this experiment belongs to.
-  , erCompound :: CompoundId
+  , erCompound :: (CompoundId, Text)
   -- ^ Compound involved in this experiment.
-  , erTarget :: TargetId
-  -- ^ Compound involved in this experiment.
-  , erMethodology :: Maybe MethodologyId
-  -- ^ Test methodology used in this experiment.
+  , erTarget :: (TargetId, Text)
+  -- ^ Target involved in this experiment.
+  , erMethodology :: Maybe (MethodologyId, Text)
+  -- ^ Test methodology used in this experiment (its name is attached).
   , erUploadDate :: UTCTime
   -- ^ Date when the experiment was uploaded.
   , erSubExperiments :: [SubExperimentId]
@@ -87,20 +87,30 @@ data ExperimentResp = ExperimentResp
 
 instance Buildable ExperimentResp where
   build ExperimentResp {..} =
-    "Project " +| erProject |+ ", compound " +| erCompound |+ ", target " +| erTarget |+
-    ", methodology " +| erMethodology |+ ", upload date: " +| iso8601Show erUploadDate |+
+    "Project " +| erProject |+ ", compound " +| buildIdName erCompound |+
+    ", target " +| buildIdName erTarget |+
+    ", methodology " +| buildMethodology |+
+    ", upload date: " +| iso8601Show erUploadDate |+
     ", sub-experiments: " +| map unSqlId erSubExperiments |+
     ", primary: " +| erPrimarySubExperiment |+
     ", IC50: " +| either build build erPrimaryIC50 |+ ""
+    where
+      buildIdName (sqlId, name) = build name <> " (" <> build sqlId <> ")"
+      buildMethodology = case erMethodology of
+        Nothing -> "unset"
+        Just (methodId, methodName) ->
+          build methodName <> " (" <> build methodId <> ")"
 
 instance Buildable (ForResponseLog ExperimentResp) where
   build = buildForResponse
 
--- TODO [EDNA-89] Add more fields
 type instance SortingParamTypesOf ExperimentResp =
   '["uploadDate" ?: LocalTime
   -- ↑ LocalTime is stored in DB, the difference between LocalTime and UTCTime
   -- does not matter for sorting.
+  , "compound" ?: Text
+  , "target" ?: Text
+  , "methodology" ?: Maybe Text
   ]
 
 type ExperimentSortingSpec = SortingSpec (SortingParamTypesOf ExperimentResp)

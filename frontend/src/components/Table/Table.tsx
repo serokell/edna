@@ -20,6 +20,7 @@ interface ColumnExtra {
 interface TableProps<T extends object> {
   columns: Column<T>[];
   columnExtras?: { [id: string]: ColumnExtra };
+  headerExtraStyles?: { [id: string]: string };
   className?: string;
   small?: boolean;
   collapsible?: (x: T) => React.ReactNode;
@@ -33,6 +34,7 @@ interface TableProps<T extends object> {
 export function Table<T extends object>({
   columns,
   columnExtras,
+  headerExtraStyles,
   className,
   small,
   collapsible,
@@ -169,7 +171,9 @@ export function Table<T extends object>({
               return (
                 <th
                   {...column.getHeaderProps(column.getSortByToggleProps())}
-                  className="ednaTable__columnHead"
+                  className={`ednaTable__columnHead ${
+                    headerExtraStyles ? headerExtraStyles[column.id] : ""
+                  }`}
                   title={column.canSort ? `Sort by ${column.Header}` : ""}
                 >
                   {column.render("Header")}

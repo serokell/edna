@@ -6,18 +6,22 @@
 
 @import "src/styles/variables";
 
-$cell-indent: 22 * $px;
+$cell-indent: 21 * $px;
 
 .ednaTable {
   $border-color: #dfe3e3;
-  $head-vertical-padding: 20 * $px;
+  $head-vertical-padding: 21 * $px;
   $head-line-height: 18 * $px;
 
   width: 100%;
   border-spacing: 0;
 
+  &_fixed {
+    table-layout: fixed;
+  }
+
   &__sortSign {
-    margin-left: 22 * $px;
+    margin-left: 10 * $px;
     visibility: hidden;
 
     &_desc {
@@ -36,11 +40,9 @@ $cell-indent: 22 * $px;
     top: 0;
     z-index: 1;
     padding: $head-vertical-padding 0 $head-vertical-padding $cell-indent;
-
     font-size: 14 * $px;
     font-weight: 500;
     line-height: $head-line-height;
-
     color: $color-black;
     text-align: left;
     background-color: white;
@@ -53,10 +55,31 @@ $cell-indent: 22 * $px;
     &:hover .ednaTable__sortSign {
       visibility: visible;
     }
+
+    &_light {
+      color: gray;
+    }
+
+    &_compound {
+      width: 33.3%;
+    }
+
+    &_target {
+      width: 33.3%;
+    }
+
+    &_IC50 {
+      width: 17.5%;
+    }
+
+    &_checkmark {
+      width: 15.8%;
+    }
   }
 
   &__headRightBorder {
     $height: 20 * $px;
+
     position: absolute;
     top: (2 * $head-vertical-padding + $head-line-height - $height) / 2;
     right: 0;

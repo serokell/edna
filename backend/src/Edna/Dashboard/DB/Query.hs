@@ -25,8 +25,8 @@ import Database.Beam.Backend (SqlSerial(..))
 import Database.Beam.Postgres (PgJSON(..), Postgres)
 import Database.Beam.Postgres.Full (deleteReturning)
 import Database.Beam.Query
-  (Q, QExpr, aggregate_, all_, as_, cast_, countAll_, guard_, int, leftJoin_, lookup_, select,
-  subquery_, update, val_, (&&.), (<-.), (==.))
+  (Q, QExpr, aggregate_, all_, as_, cast_, countAll_, guard_, int, join_, just_, leftJoin_, lookup_,
+  select, subquery_, update, val_, (&&.), (<-.), (==.))
 import Fmt (pretty)
 import Servant.Util (HList(..), PaginationSpec, (.*.))
 import Servant.Util.Beam.Postgres (sortBy_)
@@ -36,10 +36,13 @@ import Edna.Analysis.FourPL (AnalysisResult, Params4PL(..))
 import Edna.DB.Integration
   (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
-import Edna.DB.Util (groupAndPaginate)
+import Edna.DB.Util (groupAndPaginate, sortingSpecWithId)
 import Edna.Dashboard.DB.Schema
 import Edna.Dashboard.Web.Types (ExperimentResp(..), ExperimentSortingSpec)
 import Edna.ExperimentReader.Types (FileMetadata)
+import Edna.Library.DB.Schema
+  (CompoundRec, CompoundT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
+import Edna.Orphans ()
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
 import Edna.Util as U
@@ -90,7 +93,22 @@ deleteSubExperiment (SqlId subExpId) =
      )
   ) seSubExperimentId
 
-type ExperimentTupleHelper = (ExperimentRec, Word32, Maybe Word32, LocalTime, Word32)
+-- There can't be more than one test methodology for experiment, so we put it here,
+-- even though we are using LEFT JOIN for it.
+type ExperimentTupleHelper =
+  ( ExperimentRec
+  , Word32
+  -- Note: instead of having full records here, we probably can have only names,
+  -- however, then we will have @Text@ values and it will be harder to figure
+  -- out what each @Text@ means.
+  -- In EDNA-125 we may add @Name@ newtype and use it here.
+  , CompoundRec
+  , TargetRec
+  , Maybe TestMethodologyRec
+  , LocalTime
+  , Word32
+  )
+
 type SubExperimentTupleHelper = (SqlSerial Word32, PgJSON AnalysisResult)
 
 -- | Get data about all experiments using 3 optional filters: by project ID,
@@ -104,11 +122,20 @@ getExperiments mProj mComp mTarget sorting pagination =
     map (\(expTuple, (mId, mResult)) -> (expTuple, (,) <$> mId <*> mResult))
     ) $
   runSelectReturningList' $ select $
-  sortBy_ sorting sortingApp do
+  sortBy_ (sortingSpecWithId sorting) sortingApp do
     experiment <- all_ $ esExperiment ednaSchema
 
     experimentFile <- all_ $ esExperimentFile ednaSchema
     guard_ (eExperimentFileId experiment ==. cast_ (efExperimentFileId experimentFile) int)
+
+    compound <- join_ (esCompound ednaSchema) $ \comp ->
+      cast_ (cCompoundId comp) int ==. eCompoundId experiment
+
+    target <- join_ (esTarget ednaSchema) $ \tar ->
+      cast_ (tTargetId tar) int ==. eTargetId experiment
+
+    methodology <- leftJoin_ (all_ $ esTestMethodology ednaSchema) $ \testMethod ->
+      just_ (cast_ (tmTestMethodologyId testMethod) int) ==. efMethodologyId experimentFile
 
     primarySubExp <- all_ $ esPrimarySubExperiment ednaSchema
     guard_ (pseExperimentId primarySubExp ==. cast_ (eExperimentId experiment) int)
@@ -126,7 +153,9 @@ getExperiments mProj mComp mTarget sorting pagination =
     return
       ( ( experiment
         , efProjectId experimentFile
-        , efMethodologyId experimentFile
+        , compound
+        , target
+        , methodology
         , efUploadDate experimentFile
         , pseSubExperimentId primarySubExp
         )
@@ -135,19 +164,26 @@ getExperiments mProj mComp mTarget sorting pagination =
         )
       )
   where
-    sortingApp ((_experimentRec, _projectId, _methodologyId, uploadDate, _subExpId), _) =
+    sortingApp ((experimentRec, _projectId, compound, target, methodology,
+        uploadDate, _subExpId), _) =
+      fieldSort @"id" (eExperimentId experimentRec) .*.
       fieldSort @"uploadDate" uploadDate .*.
+      fieldSort @"compound" (cName compound) .*.
+      fieldSort @"target" (tName target) .*.
+      fieldSort @"methodology" (tmName methodology) .*.
       HNil
 
     convert :: HasCallStack =>
       (ExperimentTupleHelper, [SubExperimentTupleHelper]) ->
       (ExperimentId, ExperimentResp)
-    convert ((ExperimentRec {..}, projId, methodId, uploadDate, primary), subExps) =
+    convert ((ExperimentRec {..}, projId, compound, target, mMethodology, uploadDate, primary),
+        subExps) =
       ( fromSqlSerial eExperimentId, ExperimentResp
         { erProject = SqlId projId
-        , erCompound = SqlId eCompoundId
-        , erTarget = SqlId eTargetId
-        , erMethodology = SqlId <$> methodId
+        , erCompound = (SqlId eCompoundId, cName compound)
+        , erTarget = (SqlId eTargetId, tName target)
+        , erMethodology =
+            (fromSqlSerial . tmTestMethodologyId &&& tmName) <$> mMethodology
         , erUploadDate = localToUTC uploadDate
         , erSubExperiments = map (fromSqlSerial . fst) subExps
         , erPrimarySubExperiment = SqlId primary
