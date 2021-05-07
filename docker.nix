@@ -6,7 +6,6 @@
 , backend
 , frontend
 , locale
-, glibcLocales
 , linkFarm
 , runCommand
 , writeTextDir }:
@@ -33,14 +32,13 @@ in
 
       # Unicode support
       locale
-      glibcLocales
     ];
 
     config = {
       Entrypoint = "/bin/edna-server";
       Env = [
-        "LANG=en_US.UTF-8"
-        "LC_ALL=en_US.UTF-8"
+        "LANG=C.UTF-8"
+        "LC_ALL=C.UTF-8"
         "LOCALE_ARCHIVE=/lib/locale/locale-archive"
       ];
     };
