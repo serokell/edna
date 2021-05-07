@@ -14,7 +14,7 @@ import Options.Applicative
   (Parser, ParserInfo, auto, eitherReader, flag', fullDesc, help, helper, info, long, metavar,
   option, progDesc, short, str, strOption, switch)
 
-import Edna.Config.Definition (LoggingConfig(..), parseLoggingConfig)
+import Edna.Config.Definition (LoggingConfig(..), MdeHost, parseLoggingConfig)
 import Edna.Util (ConnString(..), DatabaseInitOption, NetworkAddress, parseDatabaseInitOption)
 
 ednaOpts :: ParserInfo EdnaOptions
@@ -31,6 +31,7 @@ data EdnaOptions = EdnaOptions
   , eoDbInitialisationInitScript :: Maybe FilePath
   , eoLogging :: Maybe LoggingConfig
   , eoDumpConfig :: Bool
+  , eoMdeHost :: Maybe MdeHost
   } deriving stock (Generic, Show)
 
 
@@ -45,6 +46,7 @@ ednaOptsParser = EdnaOptions
   <*> dbInitialisationInitScriptParser
   <*> loggingParser
   <*> dumpConfigParser
+  <*> mdeHostParser
 
 
 configParser :: Parser (Maybe FilePath)
@@ -106,3 +108,9 @@ dumpConfigParser :: Parser Bool
 dumpConfigParser = switch $
   long "dump-config" <>
   help "Dump config and exit."
+
+mdeHostParser :: Parser (Maybe MdeHost)
+mdeHostParser = optional $ strOption $
+  long "mde-host" <>
+  metavar "EDNA_MDE_HOST" <>
+  help "Compound storage host to generate MDe links."

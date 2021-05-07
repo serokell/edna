@@ -25,3 +25,6 @@ db:
 
 # Other possible values: "prod" and "nothing".
 logging: "dev"
+
+# Note that this is stub and you should set here your compound storage host
+mde-host: "https://mde.edna/list"

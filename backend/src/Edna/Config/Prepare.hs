@@ -12,10 +12,11 @@ import qualified Data.Yaml as Y
 
 import Edna.Config.CLA (EdnaOptions(..))
 import Edna.Config.Definition
-  (ApiConfig(..), DbConfig(..), DbInit(..), EdnaConfig(..), LoggingConfig, defaultEdnaConfig)
+  (ApiConfig(..), DbConfig(..), DbInit(..), EdnaConfig(..), LoggingConfig, MdeHost,
+  defaultEdnaConfig)
 import Edna.Config.Environment
   (apiListenAddrEnv, apiServeDocsEnv, dbConnStringEnv, dbInitialisationInitScriptEnv,
-  dbInitialisationModeEnv, dbMaxConnectionsEnv, loggingEnv)
+  dbInitialisationModeEnv, dbMaxConnectionsEnv, loggingEnv, mdeHostEnv)
 
 choose :: a -> Maybe a -> IO (Maybe a) -> IO a
 choose _ (Just claOption) _ = return claOption
@@ -47,8 +48,9 @@ prepareConfig options = do
   api <- prepareApiConfig (_ecApi config) options
   db <- prepareDbConfig (_ecDb config) options
   logging <- prepareLoggingConfig (_ecLogging config) options
+  mdeHost <- prepareMdeHostConfig (_ecMdeHost config) options
 
-  return $ EdnaConfig api db logging
+  return $ EdnaConfig api db logging mdeHost
 
 
 prepareApiConfig :: ApiConfig -> EdnaOptions -> IO ApiConfig
@@ -101,3 +103,10 @@ prepareDbInitConfig Nothing options = do
 prepareLoggingConfig :: LoggingConfig -> EdnaOptions -> IO LoggingConfig
 prepareLoggingConfig config options = do
   choose config (eoLogging options) loggingEnv
+
+
+prepareMdeHostConfig :: Maybe MdeHost -> EdnaOptions -> IO (Maybe MdeHost)
+prepareMdeHostConfig (Just config) options =
+  Just <$> choose config (eoMdeHost options) mdeHostEnv
+prepareMdeHostConfig Nothing options =
+  chooseMaybe (eoMdeHost options) mdeHostEnv

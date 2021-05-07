@@ -163,13 +163,15 @@ getCompounds sorting pagination = runSelectReturningList' $ select $
 
 -- | Edit ChemSoft link of a given compound
 editCompoundChemSoft :: CompoundId -> Text -> Edna ()
-editCompoundChemSoft (SqlId compoundId) link = runUpdate' $ update (esCompound ednaSchema)
+editCompoundChemSoft (SqlId compoundId) link = runUpdate' $ update
+  (esCompound ednaSchema)
   (\c -> cChemsoftLink c <-. val_ (Just link))
   (\c -> cCompoundId c ==. val_ (SqlSerial compoundId))
 
 -- | Edit Mde link of a given compound
 editCompoundMde :: CompoundId -> Text -> Edna ()
-editCompoundMde (SqlId compoundId) link = runUpdate' $ update (esCompound ednaSchema)
+editCompoundMde (SqlId compoundId) link = runUpdate' $ update
+  (esCompound ednaSchema)
   (\c -> cMdeLink c <-. val_ (Just link))
   (\c -> cCompoundId c ==. val_ (SqlSerial compoundId))
 
@@ -180,15 +182,17 @@ getCompoundByName name = runSelectReturningOne' $ select $ do
   guard_ (LDB.cName compounds ==. val_ name)
   pure compounds
 
--- | Insert compound with given name and return its DB value. If compound with this name
--- already exists do nothing and simply return it.
-insertCompound :: Text -> Edna CompoundRec
-insertCompound compoundName = do
-  runInsert' $ Pg.insert
-    (esCompound ednaSchema)
-    (insertExpressions [CompoundRec default_ (val_ compoundName) default_ default_ default_])
-    (Pg.onConflict (Pg.conflictingFields cName) Pg.onConflictDoNothing)
-  getCompoundByName compoundName >>= justOrError ("added compound not found: " <> compoundName)
+-- | Insert compound with given name and return its DB value. If compound with
+-- this name already exists do nothing and simply return it.
+insertCompound :: Text -> Maybe Text -> Edna CompoundRec
+insertCompound name mde = do
+  runInsert' $ Pg.insert table values conflict
+  getCompoundByName name >>= justOrError ("added compound not found: " <> name)
+  where
+    table = esCompound ednaSchema
+    values = insertExpressions
+      [CompoundRec default_ (val_ name) default_ default_ (val_ mde)]
+    conflict = Pg.onConflict (Pg.conflictingFields cName) Pg.onConflictDoNothing
 
 --------------------------
 -- Test methodology

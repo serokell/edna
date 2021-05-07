@@ -14,22 +14,27 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
 import Data.List ((!!))
+import Lens.Micro ((?~))
 import RIO (runRIO)
 import Servant.Util (fullContent, noSorting)
 import Test.Hspec (Spec, anyErrorCall, beforeAllWith, describe, it, shouldBe, shouldThrow)
 
 import qualified Edna.Dashboard.Service as Dashboard
 import qualified Edna.Library.Service as Library
+import qualified Edna.Upload.Service as Upload
 
 import Edna.Analysis.FourPL (Params4PLReq(..), Params4PLResp(..), analyse4PL)
+import Edna.Config.Definition (MdeHost, ecMdeHost)
 import Edna.Dashboard.Web.Types
   (ExperimentResp(..), ExperimentsResp(..), MeasurementResp(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileContents(..), Measurement(..), measurementToPair)
-import Edna.Library.Web.Types (CompoundResp(crName), ProjectReq(..), TargetResp(..))
+import Edna.Library.Web.Types (CompoundResp(crMde, crName), ProjectReq(..), TargetResp(..))
+import Edna.Setup (edConfig)
 import Edna.Upload.Service (UploadError(..), parseFile', uploadFile')
 import Edna.Upload.Web.Types (FileSummary(..), FileSummaryItem(..), NameAndId(..), sortFileSummary)
 import Edna.Util (IdType(..), SqlId(..))
-import Edna.Web.Types (WithId(..))
+import Edna.Util.URI (parseURI)
+import Edna.Web.Types (URI, WithId(..))
 
 import Test.Orphans ()
 import Test.SampleData
@@ -121,6 +126,24 @@ spec = withContext $ startWithInitial $ do
         Library.getCompounds noSorting fullContent >>= shouldBeZeroLength
         Dashboard.getExperiments Nothing Nothing Nothing noSorting fullContent
           >>= shouldBeZeroLength . erExperiments
+
+    describe "mde link construction" $ do
+      it "sets Nothing if mdeHost is not set" $ runTestEdna $ do
+        (_, cId) <- Upload.insertCompound compoundName1
+        compound <- Library.getCompound cId
+        liftIO $ checkMdeLink Nothing compound
+
+      it "sets Nothing if compoundName ending IS NOT number" $ \ctx -> do
+        let ctx' = ctx & edConfig . ecMdeHost ?~ mdeHost
+        (_, cId) <- runRIO ctx' $ Upload.insertCompound "cmp9a"
+        compound <- runRIO ctx' $ Library.getCompound cId
+        checkMdeLink Nothing compound
+
+      it "sets link if compoundName ending IS number" $ \ctx -> do
+        let ctx' = ctx & edConfig . ecMdeHost ?~ mdeHost
+        (_, cId) <- runRIO ctx' $ Upload.insertCompound "cmp9"
+        compound <- runRIO ctx' $ Library.getCompound cId
+        checkMdeLink (parseURI $ mdeHost <> "/9") compound
   where
     addInitialData = addSampleProjects >> addSampleMethodologies
     startWithInitial =
@@ -154,6 +177,12 @@ spec = withContext $ startWithInitial $ do
 
     shouldBeZeroLength :: (MonadIO m, Container t) => t -> m ()
     shouldBeZeroLength l = liftIO $ length l `shouldBe` 0
+
+    mdeHost :: MdeHost
+    mdeHost = "https://mde.edna/list"
+
+    checkMdeLink :: Maybe URI -> WithId 'CompoundId CompoundResp -> IO ()
+    checkMdeLink link WithId {..} = crMde wItem `shouldBe` link
 
 newNAI :: Text -> NameAndId anything
 newNAI name = NameAndId name Nothing

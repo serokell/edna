@@ -37,6 +37,7 @@ services:
       - EDNA_DB_INITIALISATION_INIT_SCRIPT=${EDNA_DB_INITIALISATION_INIT_SCRIPT}
       - EDNA_DB_DEBUG=${EDNA_DB_DEBUG}
       - EDNA_LOGGING=${EDNA_LOGGING}
+      - EDNA_MDE_HOST=${EDNA_MDE_HOST}
 
   frontend:
     image: "ghcr.io/serokell/edna-frontend:latest"

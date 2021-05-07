@@ -19,6 +19,7 @@ function teardown() {
   unset POSTGRES_USER
   unset POSTGRES_PASSWORD
   unset POSTGRES_DB
+  unset EDNA_MDE_HOST
 }
 
 @test "Passing wrong EDNA_API_LISTEN CLA causes error" {
@@ -165,6 +166,7 @@ function teardown() {
                   --init-mode "enable" \
                   --init-script "/init.sql" \
                   --logging dev \
+                  --mde-host "https://mde.edna/list" \
                   --dump-config
 
   assert_success
@@ -178,6 +180,7 @@ function teardown() {
   assert_line --index 8 "    mode: enable"
   assert_line --index 9 "  conn-string: host=/run/postgresql dbname=edna host=localhost dbname=edna"
   assert_line --index 10 "  max-connections: 1"
+  assert_line --index 11 "mde-host: https://mde.edna/list"
 }
 
 @test "Passing envs modifes config" {
@@ -192,6 +195,7 @@ function teardown() {
   export POSTGRES_PASSWORD="pswd"
   export POSTGRES_DB="db"
   export EDNA_LOGGING="nothing"
+  export EDNA_MDE_HOST="https://mde.edna"
 
   run edna-server --dump-config
 
@@ -207,6 +211,7 @@ function teardown() {
   assert_line --index 9 "  conn-string: host=/run/postgresql dbname=edna host=127.0.0.13 port=1234 dbname=db"
   assert_line --index 10 "    user=test password=pswd"
   assert_line --index 11 "  max-connections: 3"
+  assert_line --index 12 "mde-host: https://mde.edna"
 }
 
 @test "CLAs has higher priority then envs" {
@@ -221,6 +226,7 @@ function teardown() {
   export POSTGRES_PASSWORD="pswd"
   export POSTGRES_DB="db"
   export EDNA_LOGGING="nothing"
+  export EDNA_MDE_HOST="https://mde.edna"
 
   run edna-server --listen-addr "127.0.0.1:80" \
                   --serve-docs \
@@ -229,6 +235,7 @@ function teardown() {
                   --init-mode "enable" \
                   --init-script "/init.sql" \
                   --logging dev \
+                  --mde-host "https://mde.edna/list" \
                   --dump-config
 
   assert_success
@@ -243,4 +250,5 @@ function teardown() {
   assert_line --index 9 "  conn-string: host=/run/postgresql dbname=edna host=127.0.0.13 port=1234 dbname=db"
   assert_line --index 10 "    user=test password=pswd host=localhost dbname=edna"
   assert_line --index 11 "  max-connections: 1"
+  assert_line --index 12 "mde-host: https://mde.edna/list"
 }
