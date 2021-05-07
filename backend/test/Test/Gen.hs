@@ -85,6 +85,10 @@ genWithId genT = WithId <$> genSqlId <*> genT
 genName :: MonadGen m => m Text
 genName = Gen.text (Range.linear 1 30) Gen.unicode
 
+genNamesSet :: MonadGen m => m NamesSet
+genNamesSet = NamesSet . Set.fromList <$>
+  Gen.list (Range.linear 0 5) (Gen.text (Range.linear 1 30) Gen.unicode)
+
 genDescription :: MonadGen m => m Text
 genDescription = Gen.text (Range.linear 5 200) Gen.unicode
 
@@ -285,6 +289,9 @@ deriving newtype instance Arbitrary (SqlId t)
 
 instance Arbitrary t => Arbitrary (WithId k t) where
   arbitrary = hedgehog $ genWithId HQC.arbitrary
+
+instance Arbitrary NamesSet where
+  arbitrary = hedgehog genNamesSet
 
 instance Arbitrary URI where
   arbitrary = hedgehog genURI

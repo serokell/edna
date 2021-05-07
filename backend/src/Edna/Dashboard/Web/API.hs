@@ -22,13 +22,13 @@ import Servant.Util (PaginationParams, SortingParamsOf)
 
 import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Dashboard.Service
-  (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
-  getExperiments, getExperimentsSummary, getMeasurements, getSubExperiment,
+  (analyseNewSubExperiment, deleteSubExperiment, getActiveProjectNames, getExperimentFile,
+  getExperimentMetadata, getExperiments, getExperimentsSummary, getMeasurements, getSubExperiment,
   makePrimarySubExperiment, newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
-import Edna.Web.Types (WithId)
+import Edna.Web.Types (NamesSet(..), WithId)
 
 -- | Endpoints related to projects.
 data DashboardEndpoints route = DashboardEndpoints
@@ -137,6 +137,14 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Capture "subExperimentId" SubExperimentId
       :> "measurements"
       :> Get '[JSON] [WithId 'MeasurementId MeasurementResp]
+
+  , -- | Get names of all projects with experiments.
+    deGetActiveProjectNames :: route
+      :- "projects"
+      :> "names"
+      :> "active"
+      :> Summary "Get names of all projects with experiments"
+      :> Get '[JSON] NamesSet
   } deriving stock (Generic)
 
 type DashboardAPI = ToServant DashboardEndpoints AsApi
@@ -156,4 +164,5 @@ dashboardEndpoints = genericServerT DashboardEndpoints
       \(name, blob) -> addHeader ("attachment;filename=" <> name) blob
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements
+  , deGetActiveProjectNames = NamesSet <$> getActiveProjectNames
   }

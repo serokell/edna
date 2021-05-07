@@ -30,8 +30,8 @@ import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, b
 
 import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Util
-  (CompoundId, IdType(..), MeasurementId, MethodologyId, ProjectId, SubExperimentId, TargetId,
-  ednaAesonWebOptions, gDeclareNamedSchema, unSqlId)
+  (BuildableResponseLog(..), CompoundId, IdType(..), MeasurementId, MethodologyId, ProjectId,
+  SubExperimentId, TargetId, ednaAesonWebOptions, gDeclareNamedSchema, unSqlId)
 import Edna.Web.Types (WithId)
 
 -- | Data submitted in body to create a new sub-experiment.
@@ -134,13 +134,6 @@ data ExperimentsSummaryResp = ExperimentsSummaryResp
 
 instance Buildable ExperimentsSummaryResp where
   build = genericF
-
--- | Temporary newtype we use to provide @instance Buildable (ForResponseLog Text)@.
--- Probably will disappear when we introduce @Name@ type.
-newtype BuildableResponseLog a = BuildableResponseLog a
-
-instance Buildable a => Buildable (ForResponseLog (BuildableResponseLog a)) where
-  build (ForResponseLog (BuildableResponseLog a)) = build a
 
 instance Buildable (ForResponseLog ExperimentsSummaryResp) where
   build (ForResponseLog (ExperimentsSummaryResp projects compounds targets)) =

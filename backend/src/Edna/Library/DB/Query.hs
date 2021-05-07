@@ -18,6 +18,7 @@ module Edna.Library.DB.Query
   , getMethodologyById
   , getMethodologyByName
   , getMethodologies
+  , getMethodologyNames
   , deleteMethodology
   , insertMethodology
   , updateMethodology
@@ -25,6 +26,7 @@ module Edna.Library.DB.Query
   , getProjectByName
   , getProjectWithCompoundsById
   , getProjectsWithCompounds
+  , getProjectNames
   , insertProject
   , updateProject
   , touchProject
@@ -254,6 +256,11 @@ getMethodology' eMethodologyId =
       fieldSort @"name" tmName .*.
       HNil
 
+-- | Get names of all methodologies in the system.
+getMethodologyNames :: Edna (Set Text)
+getMethodologyNames = runSelectReturningSet $ select $
+  tmName <$> all_ (esTestMethodology ednaSchema)
+
 -- | Insert methodology and return its DB value.
 -- Fails if methodology with this name already exists
 insertMethodology :: MethodologyReq -> Edna TestMethodologyRec
@@ -350,6 +357,11 @@ projectsWithCompounds projectIdEither =
       fieldSort @"creationDate" pCreationDate .*.
       fieldSort @"lastUpdate" pLastUpdate .*.
       HNil
+
+-- | Get names of all projects in the system.
+getProjectNames :: Edna (Set Text)
+getProjectNames = runSelectReturningSet $ select $
+  pName <$> all_ (esProject ednaSchema)
 
 -- | Insert project and return its DB value.
 -- Fails if project with this name already exists
