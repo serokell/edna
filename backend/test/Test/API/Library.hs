@@ -4,18 +4,20 @@
 
 -- | API testing for Library.
 
-module Test.API.LibrarySpec
+module Test.API.Library
   ( spec
   ) where
 
 import Universum
 
 import Network.HTTP.Types (badRequest400, notFound404)
+import Network.Wai.Handler.Warp (testWithApplication)
 import Servant.Client (ClientEnv)
 import Servant.Client.Core (RunClient)
 import Servant.Client.Generic (AsClientT, genericClient)
 import Servant.Util (fullContent, noSorting)
-import Test.Hspec (Spec, SpecWith, beforeAllWith, describe, it, shouldBe, shouldThrow)
+import Test.Hspec (Spec, describe, it, shouldBe, shouldThrow)
+import Test.Hspec.Core.Runner (Summary, Config, runSpec)
 
 import Edna.Library.Web.API
   (CompoundEndpoints(..), MethodologyEndpoints(..), ProjectEndpoints(..), TargetEndpoints(..))
@@ -25,18 +27,22 @@ import Edna.Library.Web.Types
 import Edna.Util (CompoundId, IdType(..), MethodologyId, ProjectId, SqlId(..), TargetId)
 import Edna.Web.Types (URI, WithId(..))
 
-import Test.API.Util (apiTry, errorWithStatus)
+import Test.API.Util (apiTry, app, clientEnv, errorWithStatus)
 import Test.Orphans ()
 import Test.SampleData
-import Test.Setup (runWithInit, specWithContextAndEnv)
+import Test.Setup (runWithInit, withContext)
 
-spec :: Spec
-spec = specWithContextAndEnv $ do
-  beforeAllWith (\(ctx, env) -> runWithInit ctx addSampleData >> pure env) $ do
-    describe "target API" targetSpec
-    describe "compound API" compoundSpec
-    describe "methodology API" methodologySpec
-    describe "project API" projectSpec
+spec :: Config -> IO Summary
+spec config = withContext $ \ctx ->  do
+  _ <- ctx <$ runWithInit ctx addSampleData
+  testWithApplication (app ctx) $ \port -> do
+    env <- clientEnv port
+    let runner = flip runSpec $ config
+    liftIO $ runner $ do
+      describe "target API" $ targetSpec env
+      describe "compound API" $ compoundSpec env
+      describe "methodology API" $ methodologySpec env
+      describe "project API" $ projectSpec env
   where
     addSampleData = do
       addSampleProjects
@@ -47,21 +53,21 @@ spec = specWithContextAndEnv $ do
 
 type Target = WithId 'TargetId TargetResp
 
-targetSpec :: SpecWith ClientEnv
-targetSpec = do
+targetSpec :: ClientEnv -> Spec
+targetSpec env = do
   describe "GET /targets" $ do
-    it "allows to list all targets" $ \env -> do
+    it "allows to list all targets" $ do
       targets@(target:_) <- apiTry env $
         teGetTargets tClient noSorting fullContent
       length targets `shouldBe` 4
       tCheckLast target
 
   describe "GET /target/{targetId}" $ do
-    it "allows to get target" $ \env -> do
+    it "allows to get target" $ do
       target <- apiTry env $ teGetTarget tClient tId
       tCheckLast target
 
-    it "throws a 404 for unknown target" $ \env -> do
+    it "throws a 404 for unknown target" $ do
       apiTry env (teGetTarget tClient unknownSqlId) `shouldThrow`
         errorWithStatus notFound404
   where
@@ -83,39 +89,39 @@ targetSpec = do
 
 type Compound = WithId 'CompoundId CompoundResp
 
-compoundSpec :: SpecWith ClientEnv
-compoundSpec = do
+compoundSpec :: ClientEnv -> Spec
+compoundSpec env = do
   describe "GET /compounds" $ do
-    it "allows to list all compounds" $ \env -> do
+    it "allows to list all compounds" $ do
       compounds@(compound:_) <- apiTry env $
         ceGetCompounds cClient noSorting fullContent
       length compounds `shouldBe` 5
       cCheckLast compound
 
   describe "GET /compound/{compoundId}" $ do
-    it "allows to get compound" $ \env -> do
+    it "allows to get compound" $ do
       compound <- apiTry env $ ceGetCompound cClient cId
       cCheckLast compound
 
-    it "throws a 404 for unknown compound" $ \env -> do
+    it "throws a 404 for unknown compound" $ do
       apiTry env (ceGetCompound cClient unknownSqlId) `shouldThrow`
         errorWithStatus notFound404
 
   describe "PUT /compound/chemsoft{compoundId}" $ do
-    it "allows to update chemsoft link of a compound" $ \env -> do
+    it "allows to update chemsoft link of a compound" $ do
       compound <- apiTry env $ ceEditChemSoft cClient cId sampleURI
       cCheckChemSoft compound
 
-    it "throws a 404 for unknown compound" $ \env -> do
+    it "throws a 404 for unknown compound" $ do
       apiTry env (ceEditChemSoft cClient unknownSqlId sampleURI) `shouldThrow`
         errorWithStatus notFound404
 
   describe "/compound/mde/{compoundId}" $ do
-    it "allows to update chemsoft link of a compound" $ \env -> do
+    it "allows to update mde link of a compound" $ do
       compound <- apiTry env $ ceEditMde cClient cId sampleURI
       cCheckMde compound
 
-    it "throws a 404 for unknown compound" $ \env -> do
+    it "throws a 404 for unknown compound" $ do
       apiTry env (ceEditMde cClient unknownSqlId sampleURI) `shouldThrow`
         errorWithStatus notFound404
   where
@@ -140,56 +146,56 @@ compoundSpec = do
 
 type Methodology = WithId 'MethodologyId MethodologyResp
 
-methodologySpec :: SpecWith ClientEnv
-methodologySpec = do
+methodologySpec :: ClientEnv -> Spec
+methodologySpec env = do
   describe "GET /methodologies" $ do
-    it "allows to list all methodologies" $ \env -> do
+    it "allows to list all methodologies" $ do
       methodologies@(methodology:_) <- apiTry env $
         meGetMethodologies mClient noSorting fullContent
       length methodologies `shouldBe` 2
       mCheckLast methodology
 
   describe "GET /methodology/{methodologyId}" $ do
-    it "allows to get methodology" $ \env -> do
+    it "allows to get methodology" $ do
       methodology <- apiTry env $ meGetMethodology mClient mId
       mCheckLast methodology
 
-    it "throws a 404 for unknown methodology" $ \env -> do
+    it "throws a 404 for unknown methodology" $ do
       apiTry env (meGetMethodology mClient unknownSqlId) `shouldThrow`
         errorWithStatus notFound404
 
   describe "POST /methodology" $ do
-    it "allows to create methodology" $ \env -> do
+    it "allows to create methodology" $ do
       methodology <- apiTry env $ meAddMethodology mClient mRq
       mCheckCreated methodology
 
-    it "throws a 400 for try to set not unique name" $ \env -> do
+    it "throws a 400 for try to set not unique name" $ do
       let mRq' = mRq { mrqName = methodologyName1 }
       apiTry env (meAddMethodology mClient mRq') `shouldThrow`
         errorWithStatus badRequest400
 
   describe "PUT /methodology/{methodologyId}" $ do
-    it "allows to update methodology" $ \env -> do
+    it "allows to update methodology" $ do
       let mRq' = mRq { mrqName = "rename" }
       methodology <- apiTry env $ meEditMethodology mClient mId mRq'
       mCheckUpdated methodology
 
-    it "throws a 400 for try to set not unique name" $ \env -> do
+    it "throws a 400 for try to set not unique name" $ do
       let mRq' = mRq { mrqName = methodologyName1 }
       apiTry env (meEditMethodology mClient mId mRq') `shouldThrow`
         errorWithStatus badRequest400
 
-    it "throws a 404 for unknown methodology" $ \env -> do
+    it "throws a 404 for unknown methodology" $ do
       apiTry env (meEditMethodology mClient unknownSqlId mRq) `shouldThrow`
         errorWithStatus notFound404
 
   describe "DELETE /methodology/{methodologyId}" $ do
-    it "allows to delete methodology" $ \env -> do
+    it "allows to delete methodology" $ do
       _ <- apiTry env $ meDeleteMethodology mClient mId
       apiTry env (meGetMethodology mClient mId) `shouldThrow`
         errorWithStatus notFound404
 
-    it "throws a 404 for unknown methodology" $ \env -> do
+    it "throws a 404 for unknown methodology" $ do
       apiTry env (meDeleteMethodology mClient unknownSqlId) `shouldThrow`
         errorWithStatus notFound404
   where
@@ -224,46 +230,46 @@ methodologySpec = do
 
 type Project = WithId 'ProjectId ProjectResp
 
-projectSpec :: SpecWith ClientEnv
-projectSpec = do
+projectSpec :: ClientEnv -> Spec
+projectSpec env = do
   describe "GET /projects" $ do
-    it "allows to list all projects" $ \env -> do
+    it "allows to list all projects" $ do
       projects@(project:_) <- apiTry env $
         peGetProjects pClient noSorting fullContent
       length projects `shouldBe` 2
       pCheckLast project
 
   describe "GET /project/{projectId}" $ do
-    it "allows to get project" $ \env -> do
+    it "allows to get project" $ do
       project <- apiTry env $ peGetProject pClient pId
       pCheckLast project
 
-    it "throws a 404 for unknown project" $ \env -> do
+    it "throws a 404 for unknown project" $ do
       apiTry env (peGetProject pClient unknownSqlId) `shouldThrow`
         errorWithStatus notFound404
 
   describe "POST /project" $ do
-    it "allows to create project" $ \env -> do
+    it "allows to create project" $ do
       project <- apiTry env $ peAddProject pClient pRq
       pCheckCreated project
 
-    it "throws a 400 for try to set not unique name" $ \env -> do
+    it "throws a 400 for try to set not unique name" $ do
       let pRq' = pRq { prqName = projectName1 }
       apiTry env (peAddProject pClient pRq') `shouldThrow`
         errorWithStatus badRequest400
 
   describe "PUT /project/{projectId}" $ do
-    it "allows to update project" $ \env -> do
+    it "allows to update project" $ do
       let pRq' = pRq { prqName = "rename" }
       project <- apiTry env $ peEditProject pClient pId pRq'
       pCheckUpdated project
 
-    it "throws a 400 for try to set not unique name" $ \env -> do
+    it "throws a 400 for try to set not unique name" $ do
       let pRq' = pRq { prqName = projectName1 }
       apiTry env (peEditProject pClient pId pRq') `shouldThrow`
         errorWithStatus badRequest400
 
-    it "throws a 404 for unknown project" $ \env -> do
+    it "throws a 404 for unknown project" $ do
       apiTry env (peEditProject pClient unknownSqlId pRq) `shouldThrow`
         errorWithStatus notFound404
   where

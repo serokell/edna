@@ -155,9 +155,10 @@ executable edna-generator
 test-suite edna-test
   import: common-options
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: Main.hs
   other-modules:
-    Test.API.LibrarySpec
+    Spec
+    Test.API.Library
     Test.API.Util
     Test.AnalysisSpec
     Test.DB.DBSpec

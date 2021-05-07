@@ -3,11 +3,12 @@
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
 module Test.Setup
-  ( ednaTestMode
+  ( hspecConfig
+  , ednaTestMode
   , runTestEdna
   , runWithInit
-  , specWithContextAndEnv
   , specWithContext
+  , withContext
   ) where
 
 import Universum
@@ -16,10 +17,11 @@ import Control.Monad.Morph (hoist)
 import Hedgehog.Internal.Property (PropertyT(..))
 import Lens.Micro ((?~))
 import RIO (runRIO)
-import Servant.Client (ClientEnv)
 import System.Environment (lookupEnv)
 import Test.Hspec (Spec, SpecWith)
+import Test.Hspec.Core.Formatters (specdoc)
 import Test.Hspec.Core.Hooks (aroundAll)
+import Test.Hspec.Core.Runner (Config, configFormatter, defaultConfig)
 
 import Edna.Config.Definition
   (DbInit(..), EdnaConfig, LoggingConfig(LogNothing), dbConnString, dbInitialisation,
@@ -27,8 +29,9 @@ import Edna.Config.Definition
 import Edna.DB.Initialisation (schemaInit)
 import Edna.Setup (Edna, EdnaContext(..), runEdna)
 import Edna.Util (ConnString(..), DatabaseInitOption(..))
-import Network.Wai.Handler.Warp (testWithApplication)
-import Test.API.Util (app, clientEnv)
+
+hspecConfig :: Config
+hspecConfig = defaultConfig { configFormatter = Just specdoc }
 
 -- | Env variable from which @pg_tmp@ temp server connection string
 -- is read.
@@ -60,27 +63,13 @@ testConfig = do
 -- It initializes DB and resets it in the end.
 specWithContext :: SpecWith EdnaContext -> Spec
 specWithContext = aroundAll withContext
-  where
-    withContext :: (EdnaContext -> IO a) -> IO a
-    withContext callback = do
-      config <- testConfig
-      runEdna config $ do
-        ctx <- ask
-        liftIO $ callback ctx
 
--- | Provide 'EdnaContext' and 'ClientEnv' to a spec.
--- It initializes DB and resets it in the end.
-specWithContextAndEnv :: SpecWith (EdnaContext, ClientEnv) -> Spec
-specWithContextAndEnv = aroundAll withContext
-  where
-    withContext :: ((EdnaContext, ClientEnv) -> IO a) -> IO a
-    withContext callback = do
-      config <- testConfig
-      runEdna config $ do
-        ctx <- ask
-        liftIO $ testWithApplication (app ctx) $ \port -> do
-          env <- clientEnv port
-          callback (ctx, env)
+withContext :: (EdnaContext -> IO a) -> IO a
+withContext callback = do
+  config <- testConfig
+  runEdna config $ do
+    ctx <- ask
+    liftIO $ callback ctx
 
 -- | Drop existing DB, initialize it and then run given 'Edna' action.
 runWithInit :: EdnaContext -> Edna a -> IO a
