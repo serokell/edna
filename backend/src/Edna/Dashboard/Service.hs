@@ -12,6 +12,7 @@ module Edna.Dashboard.Service
   , deleteSubExperiment
   , newSubExperiment
   , analyseNewSubExperiment
+  , Q.getExperimentsNumber
   , getExperiments
   , getExperimentsSummary
   , getActiveProjectNames

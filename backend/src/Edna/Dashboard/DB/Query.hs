@@ -9,6 +9,7 @@ module Edna.Dashboard.DB.Query
   , setNameSubExperiment
   , setIsSuspiciousSubExperiment
   , deleteSubExperiment
+  , getExperimentsNumber
   , getExperiments
   , getMatchedProjects
   , getMatchedCompounds
@@ -97,6 +98,19 @@ deleteSubExperiment (SqlId subExpId) =
        pure primarySubExp)
      )
   ) seSubExperimentId
+
+-- | Get total number of experiments using 3 optional filters: by project ID,
+-- compound ID and target ID.
+getExperimentsNumber ::
+  Maybe ProjectId -> Maybe CompoundId -> Maybe TargetId -> Edna Word32
+getExperimentsNumber mProj mComp mTarget =
+  fmap (fromMaybe 0) $ runSelectReturningOne' $ select $
+  aggregate_ (const countAll_) $ do
+    experiment <- all_ $ esExperiment ednaSchema
+    filterByProject mProj experiment
+    filterByTarget mTarget experiment
+    filterByCompound mComp experiment
+    return (eExperimentId experiment)
 
 -- There can't be more than one test methodology for experiment, so we put it here,
 -- even though we are using LEFT JOIN for it.

@@ -23,8 +23,9 @@ import Servant.Util (PaginationParams, SortingParamsOf)
 import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getActiveProjectNames, getExperimentFile,
-  getExperimentMetadata, getExperiments, getExperimentsSummary, getMeasurements, getSubExperiment,
-  makePrimarySubExperiment, newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
+  getExperimentMetadata, getExperiments, getExperimentsNumber, getExperimentsSummary,
+  getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
+  setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
@@ -83,6 +84,16 @@ data DashboardEndpoints route = DashboardEndpoints
       :> "analyse"
       :> ReqBody '[JSON] NewSubExperimentReq
       :> Post '[JSON] AnalysisResult
+
+  , -- | Get total number of experiments matching optional filters
+    deGetExperimentsNumber :: route
+      :- "experiments"
+      :> "number"
+      :> Summary "Get total number of experiments matching optional filters"
+      :> QueryParam "projectId" ProjectId
+      :> QueryParam "compoundId" CompoundId
+      :> QueryParam "targetId" TargetId
+      :> Get '[JSON] Word32
 
   , -- | Get known experiments with optional pagination and sorting
     deGetExperiments :: route
@@ -157,6 +168,7 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deDeleteSubExp = deleteSubExperiment
   , deNewSubExp = newSubExperiment
   , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
+  , deGetExperimentsNumber = getExperimentsNumber
   , deGetExperiments = getExperiments
   , deGetExperimentsSummary = getExperimentsSummary
   , deGetExperimentMetadata = getExperimentMetadata
