@@ -27,8 +27,9 @@ import Edna.Analysis.FourPL (Params4PL(..), analyse4PLOne)
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Service
   (analyseNewSubExperiment, deleteSubExperiment, getActiveProjectNames, getExperimentFile,
-  getExperimentMetadata, getExperiments, getExperimentsSummary, getMeasurements, getSubExperiment,
-  makePrimarySubExperiment, newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
+  getExperimentMetadata, getExperiments, getExperimentsNumber, getExperimentsSummary,
+  getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
+  setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
   (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentResp(..), ExperimentsResp(..),
   ExperimentsSummaryResp(..), MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
@@ -145,17 +146,23 @@ spec = withContext $ do
 gettersSpec :: SpecWith EdnaContext
 gettersSpec = do
   describe "getters" $ do
-    describe "getExperiments" $ do
+    describe "getExperiments (and getExperimentsNumber)" $ do
       it "returns all experiments with no filters" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments Nothing Nothing Nothing
           noSorting fullContent
+        n <- getExperimentsNumber Nothing Nothing Nothing
         liftIO $ do
-          length erExperiments `shouldBe` 3 * sampleFileExpNum
+          let expectedLength = 3 * sampleFileExpNum
+          length erExperiments `shouldBe` expectedLength
+          n `shouldBe` fromIntegral expectedLength
       it "filters by project correctly" $ runTestEdna $ do
         ExperimentsResp {..} <- getExperiments (Just $ SqlId 1) Nothing Nothing
           noSorting fullContent
+        n <- getExperimentsNumber (Just $ SqlId 1) Nothing Nothing
         liftIO $ do
-          length erExperiments `shouldBe` sampleFileExpNum
+          let expectedLength = sampleFileExpNum
+          length erExperiments `shouldBe` expectedLength
+          n `shouldBe` fromIntegral expectedLength
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             erProject `shouldBe` SqlId 1
       it "filters by project and compound correctly" $ runTestEdna $ do
@@ -163,8 +170,11 @@ gettersSpec = do
         ExperimentsResp {..} <-
           getExperiments (Just $ SqlId 1) (Just compoundId) Nothing
             noSorting fullContent
+        n <- getExperimentsNumber (Just $ SqlId 1) (Just compoundId) Nothing
         liftIO $ do
-          length erExperiments `shouldBe` 2
+          let expectedLength = 2
+          length erExperiments `shouldBe` expectedLength
+          n `shouldBe` fromIntegral expectedLength
           forM_ erExperiments $ \(WithId _ ExperimentResp {..}) ->
             fst erCompound `shouldBe` compoundId
       it "filters by 3 filters correctly and returns mean IC50" $ runTestEdna $ do
@@ -175,8 +185,11 @@ gettersSpec = do
           getExperiments (Just $ SqlId 1) (Just compoundId) (Just targetId)
             noSorting fullContent
         Right Params4PL {..} <- analyse4PLOne (mapMaybe measurementToPairMaybe measurements)
+        n <- getExperimentsNumber (Just $ SqlId 1) (Just compoundId) (Just targetId)
         liftIO $ do
-          length erExperiments `shouldBe` 1
+          let expectedLength = 1
+          length erExperiments `shouldBe` expectedLength
+          n `shouldBe` fromIntegral expectedLength
           -- It's checked above for better error message
           let [WithId _ expResp] = erExperiments
           erPrimaryIC50 expResp `shouldBe` Right p4plC
