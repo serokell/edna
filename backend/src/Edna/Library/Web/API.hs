@@ -31,14 +31,15 @@ import Servant.Server.Generic (AsServerT, genericServerT)
 import Servant.Util (PaginationParams, SortingParamsOf)
 
 import Edna.Library.Service
-  (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound, getCompounds,
-  getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
-  updateMethodology, updateProject)
+  (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound,
+  getCompoundNames, getCompounds, getMethodologies, getMethodology, getMethodologyNames, getProject,
+  getProjectNames, getProjects, getTarget, getTargetNames, getTargets, updateMethodology,
+  updateProject)
 import Edna.Library.Web.Types
   (CompoundResp, MethodologyReq, MethodologyResp, ProjectReq, ProjectResp, TargetResp)
 import Edna.Setup (Edna)
 import Edna.Util (IdType(..), MethodologyId, SqlId(..))
-import Edna.Web.Types (URI, WithId)
+import Edna.Web.Types (NamesSet(..), URI, WithId)
 
 -- | Endpoints related to projects.
 data ProjectEndpoints route = ProjectEndpoints
@@ -65,6 +66,13 @@ data ProjectEndpoints route = ProjectEndpoints
       :> PaginationParams
       :> Get '[JSON] [WithId 'ProjectId ProjectResp]
 
+  , -- | Get names of all known projects
+    peGetProjectNames :: route
+      :- "projects"
+      :> "names"
+      :> Summary "Get names of all known projects"
+      :> Get '[JSON] NamesSet
+
   , -- | Get project data by ID
     peGetProject :: route
       :- "project"
@@ -80,6 +88,7 @@ projectEndpoints = genericServerT ProjectEndpoints
   { peAddProject = addProject
   , peEditProject = updateProject
   , peGetProjects = getProjects
+  , peGetProjectNames = NamesSet <$> getProjectNames
   , peGetProject = getProject
   }
 
@@ -115,6 +124,13 @@ data MethodologyEndpoints route = MethodologyEndpoints
       :> PaginationParams
       :> Get '[JSON] [WithId 'MethodologyId MethodologyResp]
 
+  , -- | Get names of all known methodologies
+    meGetMethodologyNames :: route
+      :- "methodologies"
+      :> "names"
+      :> Summary "Get names of all known methodologies"
+      :> Get '[JSON] NamesSet
+
   , -- | Get methodology data by ID
     meGetMethodology :: route
       :- "methodology"
@@ -131,6 +147,7 @@ methodologyEndpoints = genericServerT MethodologyEndpoints
   , meEditMethodology = updateMethodology
   , meDeleteMethodology = deleteMethodology
   , meGetMethodologies = getMethodologies
+  , meGetMethodologyNames = NamesSet <$> getMethodologyNames
   , meGetMethodology = getMethodology
   }
 
@@ -143,6 +160,13 @@ data TargetEndpoints route = TargetEndpoints
       :> SortingParamsOf TargetResp
       :> PaginationParams
       :> Get '[JSON] [WithId 'TargetId TargetResp]
+
+  , -- | Get names of all known targets
+    teGetTargetNames :: route
+      :- "targets"
+      :> "names"
+      :> Summary "Get names of all known targets"
+      :> Get '[JSON] NamesSet
 
   , -- | Get target data by ID
     teGetTarget :: route
@@ -158,6 +182,7 @@ targetEndpoints :: ToServant TargetEndpoints (AsServerT Edna)
 targetEndpoints = genericServerT TargetEndpoints
   { teGetTargets = getTargets
   , teGetTarget = getTarget
+  , teGetTargetNames = NamesSet <$> getTargetNames
   }
 
 -- | Endpoints related to compounds.
@@ -188,6 +213,13 @@ data CompoundEndpoints route = CompoundEndpoints
       :> PaginationParams
       :> Get '[JSON] [WithId 'CompoundId CompoundResp]
 
+  , -- | Get names of all known compounds
+    ceGetCompoundNames :: route
+      :- "compounds"
+      :> "names"
+      :> Summary "Get names of all known compounds"
+      :> Get '[JSON] NamesSet
+
   , -- | Get compound data by ID
     ceGetCompound :: route
       :- "compound"
@@ -203,5 +235,6 @@ compoundEndpoints = genericServerT CompoundEndpoints
   { ceEditChemSoft = editChemSoft
   , ceEditMde = editMde
   , ceGetCompounds = getCompounds
+  , ceGetCompoundNames = NamesSet <$> getCompoundNames
   , ceGetCompound = getCompound
   }

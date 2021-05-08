@@ -22,13 +22,13 @@ import Servant.Util (PaginationParams, SortingParamsOf)
 
 import Edna.Analysis.FourPL (AnalysisResult)
 import Edna.Dashboard.Service
-  (analyseNewSubExperiment, deleteSubExperiment, getExperimentFile, getExperimentMetadata,
-  getExperiments, getMeasurements, getSubExperiment, makePrimarySubExperiment, newSubExperiment,
-  setIsSuspiciousSubExperiment, setNameSubExperiment)
+  (analyseNewSubExperiment, deleteSubExperiment, getActiveProjectNames, getExperimentFile,
+  getExperimentMetadata, getExperiments, getExperimentsSummary, getMeasurements, getSubExperiment,
+  makePrimarySubExperiment, newSubExperiment, setIsSuspiciousSubExperiment, setNameSubExperiment)
 import Edna.Dashboard.Web.Types
 import Edna.Setup (Edna)
 import Edna.Util (CompoundId, ExperimentId, IdType(..), ProjectId, SubExperimentId, TargetId)
-import Edna.Web.Types (WithId)
+import Edna.Web.Types (NamesSet(..), WithId)
 
 -- | Endpoints related to projects.
 data DashboardEndpoints route = DashboardEndpoints
@@ -96,6 +96,16 @@ data DashboardEndpoints route = DashboardEndpoints
       :> PaginationParams
       :> Get '[JSON] ExperimentsResp
 
+  , -- | Get summary of all experiments
+    deGetExperimentsSummary :: route
+      :- "experiments"
+      :> "summary"
+      :> Summary "Get summary of all experiments"
+      :> QueryParam "projectId" ProjectId
+      :> QueryParam "compoundId" CompoundId
+      :> QueryParam "targetId" TargetId
+      :> Get '[JSON] ExperimentsSummaryResp
+
   , -- | Get experiment's metadata by ID
     deGetExperimentMetadata :: route
       :- "experiment"
@@ -127,6 +137,14 @@ data DashboardEndpoints route = DashboardEndpoints
       :> Capture "subExperimentId" SubExperimentId
       :> "measurements"
       :> Get '[JSON] [WithId 'MeasurementId MeasurementResp]
+
+  , -- | Get names of all projects with experiments.
+    deGetActiveProjectNames :: route
+      :- "projects"
+      :> "names"
+      :> "active"
+      :> Summary "Get names of all projects with experiments"
+      :> Get '[JSON] NamesSet
   } deriving stock (Generic)
 
 type DashboardAPI = ToServant DashboardEndpoints AsApi
@@ -140,9 +158,11 @@ dashboardEndpoints = genericServerT DashboardEndpoints
   , deNewSubExp = newSubExperiment
   , deAnalyseNewSubExp = fmap snd ... analyseNewSubExperiment
   , deGetExperiments = getExperiments
+  , deGetExperimentsSummary = getExperimentsSummary
   , deGetExperimentMetadata = getExperimentMetadata
   , deGetExperimentFile = \i -> getExperimentFile i <&>
       \(name, blob) -> addHeader ("attachment;filename=" <> name) blob
   , deGetSubExperiment = getSubExperiment
   , deGetMeasurements = getMeasurements
+  , deGetActiveProjectNames = NamesSet <$> getActiveProjectNames
   }

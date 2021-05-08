@@ -25,6 +25,7 @@ module Test.Gen
   , genCompoundResp
   , genTargetResp
   , genExperimentsResp
+  , genExperimentsSummaryResp
   , genExperimentResp
   , genSubExperimentResp
   , genMeasurementResp
@@ -46,6 +47,7 @@ import Universum
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashSet as HS
+import qualified Data.Set as Set
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Gen.QuickCheck as HQC
 import qualified Hedgehog.Range as Range
@@ -82,6 +84,10 @@ genWithId genT = WithId <$> genSqlId <*> genT
 
 genName :: MonadGen m => m Text
 genName = Gen.text (Range.linear 1 30) Gen.unicode
+
+genNamesSet :: MonadGen m => m NamesSet
+genNamesSet = NamesSet . Set.fromList <$>
+  Gen.list (Range.linear 0 5) (Gen.text (Range.linear 1 30) Gen.unicode)
 
 genDescription :: MonadGen m => m Text
 genDescription = Gen.text (Range.linear 5 200) Gen.unicode
@@ -166,6 +172,14 @@ genNewSubExperimentReq =
 genExperimentsResp :: MonadGen m => m ExperimentsResp
 genExperimentsResp =
   ExperimentsResp <$> Gen.list (Range.linear 0 5) (genWithId genExperimentResp)
+
+genExperimentsSummaryResp :: MonadGen m => m ExperimentsSummaryResp
+genExperimentsSummaryResp = do
+  let genNames = Set.fromList <$> Gen.list (Range.linear 0 10) genName
+  esrMatchedProjects <- genNames
+  esrMatchedCompounds <- genNames
+  esrMatchedTargets <- genNames
+  return ExperimentsSummaryResp {..}
 
 genExperimentResp :: MonadGen m => m ExperimentResp
 genExperimentResp = do
@@ -276,6 +290,9 @@ deriving newtype instance Arbitrary (SqlId t)
 instance Arbitrary t => Arbitrary (WithId k t) where
   arbitrary = hedgehog $ genWithId HQC.arbitrary
 
+instance Arbitrary NamesSet where
+  arbitrary = hedgehog genNamesSet
+
 instance Arbitrary URI where
   arbitrary = hedgehog genURI
 
@@ -313,6 +330,9 @@ instance Arbitrary NewSubExperimentReq where
 
 instance Arbitrary ExperimentsResp where
   arbitrary = hedgehog genExperimentsResp
+
+instance Arbitrary ExperimentsSummaryResp where
+  arbitrary = hedgehog genExperimentsSummaryResp
 
 instance Arbitrary ExperimentResp where
   arbitrary = hedgehog genExperimentResp

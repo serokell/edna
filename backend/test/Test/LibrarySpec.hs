@@ -22,9 +22,9 @@ import Test.Hspec
 
 import Edna.Library.Error (LibraryError(..))
 import Edna.Library.Service
-  (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound, getCompounds,
-  getMethodologies, getMethodology, getProject, getProjects, getTarget, getTargets,
-  updateMethodology, updateProject)
+  (addMethodology, addProject, deleteMethodology, editChemSoft, editMde, getCompound,
+  getCompoundNames, getCompounds, getMethodologies, getMethodology, getProject, getProjects,
+  getTarget, getTargetNames, getTargets, updateMethodology, updateProject)
 import Edna.Library.Web.Types
   (CompoundResp(..), MethodologyReq(..), MethodologyResp(..), ProjectReq(..), ProjectResp(..),
   TargetResp(..))
@@ -82,6 +82,11 @@ gettersSpec = do
       -- have equal addition date, but different IDs
       checkTargets (Just (compare `on` (Down . view _1))) (Just paginationDesc) targetsDescDate
 
+  describe "getTargetNames" $ do
+    it "successfully gets names of all targets" $ runTestEdna $ do
+      names <- getTargetNames
+      liftIO $ toList names `shouldBe` map (view $ _2 . _1) allExpectedTargets
+
   describe "getCompound" $ do
     it "successfully gets known compounds one by one" $ runTestEdna $ do
       compounds <- mapM getCompound compoundIds
@@ -103,6 +108,11 @@ gettersSpec = do
       compoundsDesc <- getCompounds (mkSortingSpec [desc #name])
         (mkPagination paginationDesc)
       checkCompounds (Just (compare `on` (Down . snd))) (Just paginationDesc) compoundsDesc
+
+  describe "getCompoundNames" $ do
+    it "successfully gets names of all compounds" $ runTestEdna $ do
+      names <- getCompoundNames
+      liftIO $ toList names `shouldBe` map snd allExpectedCompounds
 
   describe "getMethodology" $ do
     it "successfully gets known methodologies one by one" $ runTestEdna $ do

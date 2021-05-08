@@ -10,6 +10,7 @@ module Edna.Util
   , ExperimentFileId
   , ExperimentId
   , Host
+  , BuildableResponseLog (..)
   , IdType (..)
   , MeasurementId
   , MethodologyId
@@ -57,7 +58,7 @@ import Database.Beam.Backend (SqlSerial(..))
 import Fmt (Buildable(..), Builder, pretty, (+|), (|+))
 import qualified GHC.Generics as G
 import Servant (FromHttpApiData(..))
-import Servant.Util.Combinators.Logging (ForResponseLog, buildForResponse)
+import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse)
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Read (Read(..), read)
 import qualified Text.Show
@@ -234,6 +235,13 @@ uncurry3 f (a, b, c) = f a b c
 -- (avoiding cyclic dependencies).
 logUnconditionally :: MonadIO m => Text -> m ()
 logUnconditionally msg = hPutStr stderr (msg <> "\n")
+
+-- | Temporary newtype we use to provide @instance Buildable (ForResponseLog Text)@.
+-- Probably will disappear when we introduce @Name@ type.
+newtype BuildableResponseLog a = BuildableResponseLog a
+
+instance Buildable a => Buildable (ForResponseLog (BuildableResponseLog a)) where
+  build (ForResponseLog (BuildableResponseLog a)) = build a
 
 ----------------
 -- SqlId

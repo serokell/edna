@@ -13,6 +13,8 @@ module Edna.Dashboard.Service
   , newSubExperiment
   , analyseNewSubExperiment
   , getExperiments
+  , getExperimentsSummary
+  , getActiveProjectNames
   , getExperimentMetadata
   , getExperimentFile
   , getSubExperiment
@@ -30,6 +32,7 @@ import Servant.API (NoContent(..))
 import Servant.Util (PaginationSpec)
 
 import qualified Edna.Dashboard.DB.Query as Q
+import qualified Edna.Library.DB.Query as LQ
 import qualified Edna.Upload.DB.Query as UQ
 
 import Edna.Analysis.FourPL (AnalysisResult, analyse4PLOne)
@@ -38,7 +41,7 @@ import Edna.Dashboard.DB.Schema (MeasurementT(..), SubExperimentRec, SubExperime
 import Edna.Dashboard.Error (DashboardError(..))
 import Edna.Dashboard.Web.Types
   (ExperimentFileBlob(..), ExperimentMetadata(..), ExperimentSortingSpec, ExperimentsResp(..),
-  MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
+  ExperimentsSummaryResp(..), MeasurementResp(..), NewSubExperimentReq(..), SubExperimentResp(..))
 import Edna.ExperimentReader.Types (FileMetadata(..))
 import Edna.Logging (logMessage)
 import Edna.Setup (Edna)
@@ -140,6 +143,35 @@ getExperiments mProj mComp mTarget sorting pagination =
 
 unwrapResult :: PgJSON AnalysisResult -> AnalysisResult
 unwrapResult (PgJSON res) = res
+
+-- | Get short data about all experiments using 3 optional filters: by project ID,
+-- compound ID and target ID. See description of 'ExperimentsSummaryResp' for details.
+getExperimentsSummary :: Maybe ProjectId -> Maybe CompoundId -> Maybe TargetId ->
+  Edna ExperimentsSummaryResp
+getExperimentsSummary mProj mComp mTarget = do
+  -- Getting all projects in the system would be wrong because there can be
+  -- empty ones.
+  esrMatchedProjects <- Q.getMatchedProjects mComp mTarget
+  esrMatchedCompounds <-
+    getMatchedOrAll mProj mTarget Q.getMatchedCompounds LQ.getCompoundNames
+  esrMatchedTargets <-
+    getMatchedOrAll mProj mComp Q.getMatchedTargets LQ.getTargetNames
+  return ExperimentsSummaryResp {..}
+  where
+    -- If at least one filter is provided, we call @getMatched@.
+    -- Otherwise we call @getAll@ which gets all items in the system.
+    getMatchedOrAll ::
+      Maybe filter1 -> Maybe filter2 ->
+      (Maybe filter1 -> Maybe filter2 -> Edna res) ->
+      Edna res ->
+      Edna res
+    getMatchedOrAll filter1 filter2 getMatched getAll
+      | isNothing filter1 && isNothing filter2 = getAll
+      | otherwise = getMatched filter1 filter2
+
+-- | Get names of all projects with at least one experiment.
+getActiveProjectNames :: Edna (Set Text)
+getActiveProjectNames = Q.getMatchedProjects Nothing Nothing
 
 -- | Get all metadata about experiment data file containing experiment
 -- with this ID. "All" metadata means metadata from the file itself

@@ -10,6 +10,9 @@ module Edna.Dashboard.DB.Query
   , setIsSuspiciousSubExperiment
   , deleteSubExperiment
   , getExperiments
+  , getMatchedProjects
+  , getMatchedCompounds
+  , getMatchedTargets
   , getDescriptionAndMetadata
   , getFileNameAndBlob
   , getSubExperiment
@@ -34,14 +37,16 @@ import Servant.Util.Combinators.Sorting.Backend (fieldSort)
 
 import Edna.Analysis.FourPL (AnalysisResult, Params4PL(..))
 import Edna.DB.Integration
-  (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runUpdate')
+  (runDeleteReturningList', runSelectReturningList', runSelectReturningOne', runSelectReturningSet,
+  runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.DB.Util (groupAndPaginate, sortingSpecWithId)
 import Edna.Dashboard.DB.Schema
 import Edna.Dashboard.Web.Types (ExperimentResp(..), ExperimentSortingSpec)
 import Edna.ExperimentReader.Types (FileMetadata)
 import Edna.Library.DB.Schema
-  (CompoundRec, CompoundT(..), TargetRec, TargetT(..), TestMethodologyRec, TestMethodologyT(..))
+  (CompoundRec, CompoundT(..), ProjectT(..), TargetRec, TargetT(..), TestMethodologyRec,
+  TestMethodologyT(..))
 import Edna.Orphans ()
 import Edna.Setup (Edna)
 import Edna.Upload.DB.Schema (ExperimentFileT(..))
@@ -199,6 +204,68 @@ getExperiments mProj mComp mTarget sorting pagination =
           case find ((SqlSerial primary ==) . fst) subExps of
             Nothing -> error $ "can't find primary sub-experiment: " <> pretty primary
             Just (_, PgJSON analysisResult) -> p4plC <$> analysisResult
+
+-- | Get names of all projects with experiments optionally filtered by
+-- compound and target.
+getMatchedProjects :: Maybe CompoundId -> Maybe TargetId -> Edna (Set Text)
+getMatchedProjects mComp mTarget =
+  runSelectReturningSet $ select $ do
+    experiment <- all_ $ esExperiment ednaSchema
+    filterByTarget mTarget experiment
+    filterByCompound mComp experiment
+
+    experimentFile <- join_ (esExperimentFile ednaSchema) $ \ef ->
+      eExperimentFileId experiment ==. cast_ (efExperimentFileId ef) int
+
+    project <- join_ (esProject ednaSchema) $ \p ->
+      efProjectId experimentFile ==. cast_ (pProjectId p) int
+    return (pName project)
+
+-- | Get names of all compounds from experiments optionally filtered by
+-- project and target.
+getMatchedCompounds :: Maybe ProjectId -> Maybe TargetId -> Edna (Set Text)
+getMatchedCompounds mProj mTarget =
+  runSelectReturningSet $ select $ do
+    experiment <- all_ $ esExperiment ednaSchema
+    filterByProject mProj experiment
+    filterByTarget mTarget experiment
+
+    compound <- join_ (esCompound ednaSchema) $ \comp ->
+      cast_ (cCompoundId comp) int ==. eCompoundId experiment
+    return (cName compound)
+
+-- | Get names of all targets from experiments optionally filtered by
+-- project and compound.
+getMatchedTargets :: Maybe ProjectId -> Maybe CompoundId -> Edna (Set Text)
+getMatchedTargets mProj mComp =
+  runSelectReturningSet $ select $ do
+    experiment <- all_ $ esExperiment ednaSchema
+    filterByProject mProj experiment
+    filterByCompound mComp experiment
+
+    target <- join_ (esTarget ednaSchema) $ \tar ->
+      cast_ (tTargetId tar) int ==. eTargetId experiment
+    return (tName target)
+
+filterByProject ::
+  Maybe ProjectId ->
+  ExperimentT (QExpr Postgres s) -> Q Postgres EdnaSchema s ()
+filterByProject mProj experiment = whenJust mProj $ \(SqlId projId) -> do
+  experimentFile <- join_ (esExperimentFile ednaSchema) $ \ef ->
+    eExperimentFileId experiment ==. cast_ (efExperimentFileId ef) int
+  guard_ (efProjectId experimentFile ==. val_ projId)
+
+filterByCompound ::
+  Maybe CompoundId ->
+  ExperimentT (QExpr Postgres s) -> Q Postgres EdnaSchema s ()
+filterByCompound mComp experiment = whenJust mComp $ \(SqlId compId) ->
+  guard_ (eCompoundId experiment ==. val_ compId)
+
+filterByTarget ::
+  Maybe TargetId ->
+  ExperimentT (QExpr Postgres s) -> Q Postgres EdnaSchema s ()
+filterByTarget mTarget experiment = whenJust mTarget $ \(SqlId targetId) ->
+  guard_ (eTargetId experiment ==. val_ targetId)
 
 -- | Get description and metadata of experiment data file storing experiment
 -- with this ID.

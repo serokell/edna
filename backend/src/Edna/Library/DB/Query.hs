@@ -9,13 +9,16 @@
 module Edna.Library.DB.Query
   ( getTargetById
   , getTargets
+  , getTargetNames
   , getCompoundById
   , getCompounds
+  , getCompoundNames
   , editCompoundChemSoft
   , editCompoundMde
   , getMethodologyById
   , getMethodologyByName
   , getMethodologies
+  , getMethodologyNames
   , deleteMethodology
   , insertMethodology
   , updateMethodology
@@ -23,6 +26,7 @@ module Edna.Library.DB.Query
   , getProjectByName
   , getProjectWithCompoundsById
   , getProjectsWithCompounds
+  , getProjectNames
   , insertProject
   , updateProject
   , touchProject
@@ -47,7 +51,7 @@ import Servant.Util.Combinators.Sorting.Backend (fieldSort)
 
 import Edna.DB.Integration
   (runDeleteReturningList', runInsert', runInsertReturningOne', runSelectReturningList',
-  runSelectReturningOne', runUpdate')
+  runSelectReturningOne', runSelectReturningSet, runUpdate')
 import Edna.DB.Schema (EdnaSchema(..), ednaSchema)
 import Edna.DB.Util (groupAndPaginate, sortingSpecWithId)
 import Edna.Dashboard.DB.Schema (ExperimentT(..))
@@ -128,6 +132,11 @@ getTargetByName name = runSelectReturningOne' $ select $ do
   guard_ (LDB.tName targets ==. val_ name)
   pure targets
 
+-- | Get names of all targets in the system.
+getTargetNames :: Edna (Set Text)
+getTargetNames = runSelectReturningSet $ select $
+  tName <$> all_ (esTarget ednaSchema)
+
 -- | Insert target with given name and return its DB value. If target with this name
 -- already exists do nothing and simply return it.
 insertTarget :: Text -> Edna TargetRec
@@ -160,6 +169,11 @@ getCompounds sorting pagination = runSelectReturningList' $ select $
       fieldSort @"name" cName .*.
       fieldSort @"additionDate" cAdditionDate .*.
       HNil
+
+-- | Get names of all compounds in the system.
+getCompoundNames :: Edna (Set Text)
+getCompoundNames = runSelectReturningSet $ select $
+  cName <$> all_ (esCompound ednaSchema)
 
 -- | Edit ChemSoft link of a given compound
 editCompoundChemSoft :: CompoundId -> Text -> Edna ()
@@ -241,6 +255,11 @@ getMethodology' eMethodologyId =
       fieldSort @"id" tmTestMethodologyId .*.
       fieldSort @"name" tmName .*.
       HNil
+
+-- | Get names of all methodologies in the system.
+getMethodologyNames :: Edna (Set Text)
+getMethodologyNames = runSelectReturningSet $ select $
+  tmName <$> all_ (esTestMethodology ednaSchema)
 
 -- | Insert methodology and return its DB value.
 -- Fails if methodology with this name already exists
@@ -339,7 +358,12 @@ projectsWithCompounds projectIdEither =
       fieldSort @"lastUpdate" pLastUpdate .*.
       HNil
 
--- | Insert project and return its DB value
+-- | Get names of all projects in the system.
+getProjectNames :: Edna (Set Text)
+getProjectNames = runSelectReturningSet $ select $
+  pName <$> all_ (esProject ednaSchema)
+
+-- | Insert project and return its DB value.
 -- Fails if project with this name already exists
 insertProject :: ProjectReq -> Edna ProjectRec
 insertProject ProjectReq{..} = runInsertReturningOne' $
