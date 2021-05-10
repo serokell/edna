@@ -11,10 +11,20 @@ module Test.Orphans () where
 
 import Universum
 
+import Data.Aeson.TH (deriveFromJSON)
 import RIO (RIO(..))
+import Servant (ToHttpApiData(..))
+
+import Edna.Util (IdType, SqlId(..), ednaAesonWebOptions)
+import Edna.Web.Types (WithId)
 
 -- It's better to use @throw@ family of functions instead of @fail@, but
 -- in tests we want to do incomplete pattern-matching sometimes and @MonadFail@
 -- is needed for that.
 instance MonadFail (RIO env) where
   fail = liftIO . fail
+
+
+deriving newtype instance ToHttpApiData (SqlId (t :: IdType))
+
+deriveFromJSON ednaAesonWebOptions ''WithId

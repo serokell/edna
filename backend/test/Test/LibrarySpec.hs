@@ -34,11 +34,11 @@ import Edna.Util.URI (URI)
 import Edna.Web.Types (WithId(..))
 
 import Test.SampleData
-import Test.Setup (runTestEdna, runWithInit, withContext)
+import Test.Setup (runTestEdna, runWithInit, specWithContext)
 import Test.Util (methodologyReqToResp)
 
 spec :: Spec
-spec = withContext $ do
+spec = specWithContext $ do
   beforeAllWith (\ctx -> ctx <$ runWithInit ctx addSampleData) $ do
     describe "getters" gettersSpec
     describe "addition" additionSpec

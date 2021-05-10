@@ -157,24 +157,26 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Test.AnalysisSpec
-      Test.DashboardSpec
-      Test.DB.DBSpec
-      Test.DB.Gen
-      Test.Gen
-      Test.LibrarySpec
-      Test.Orphans
-      Test.ParserSpec
-      Test.SampleData
-      Test.Setup
-      Test.SMT.SMTSpec
-      Test.SMT.State
-      Test.SwaggerSpec
-      Test.UploadSpec
-      Test.Util
-      Test.Util.URISpec
+    Test.API.LibrarySpec
+    Test.API.Util
+    Test.AnalysisSpec
+    Test.DB.DBSpec
+    Test.DB.Gen
+    Test.DashboardSpec
+    Test.Gen
+    Test.LibrarySpec
+    Test.Orphans
+    Test.ParserSpec
+    Test.SMT.SMTSpec
+    Test.SMT.State
+    Test.SampleData
+    Test.Setup
+    Test.SwaggerSpec
+    Test.UploadSpec
+    Test.Util
+    Test.Util.URISpec
   hs-source-dirs:
-      test
+    test
   ghc-options:
     -- Non-exhaustive patterns are ok and useful in tests.
     -Wno-incomplete-patterns
@@ -195,7 +197,7 @@ test-suite edna-test
     -- otherwise it splits by spaces.
     "-with-rtsopts=-N -A64m -AL256m"
   build-tool-depends:
-      hspec-discover:hspec-discover
+    hspec-discover:hspec-discover
   build-depends:
       aeson
     , beam-core
@@ -208,16 +210,22 @@ test-suite edna-test
     , hedgehog
     , hedgehog-quickcheck
     , hspec
+    , hspec-core
     , hspec-hedgehog
+    , http-client
+    , http-types
     , microlens
     , microlens-platform
     , mmorph
     , network-uri
-    , text
-    , time
     , QuickCheck
     , rio
+    , servant-client
+    , servant-client-core
+    , servant-server
     , servant-swagger
     , servant-util
+    , time
     , unordered-containers
+    , warp
     , xlsx

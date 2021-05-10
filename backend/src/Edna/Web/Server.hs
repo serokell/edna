@@ -7,6 +7,7 @@ Utilities for running Edna web server.
 -}
 module Edna.Web.Server
   ( edna
+  , ednaServer
   , serveWeb
   , addrSettings
   ) where

@@ -18,10 +18,10 @@ import Edna.Util (SqlId(..))
 
 import Test.Orphans ()
 import Test.SampleData (autoOutlierMeasurements)
-import Test.Setup (runTestEdna, withContext)
+import Test.Setup (runTestEdna, specWithContext)
 
 spec :: Spec
-spec = withContext do
+spec = specWithContext do
   describe "analyse4PL" $ do
     it "returns empty result for empty request" $ runTestEdna $
       analyse4PL [] >>= liftIO . (`shouldBe` [])

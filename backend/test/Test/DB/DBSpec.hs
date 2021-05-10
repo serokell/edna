@@ -24,10 +24,10 @@ import Test.DB.Gen
   (genAnalysisMethodRec, genCompoundRec, genExperimentFileRec, genExperimentRec, genMeasurementRec,
   genProjectRec, genRemovedMeasurementsRec, genSubExperimentRec, genTargetRec,
   genTestMethodologyRec)
-import Test.Setup (ednaTestMode, withContext)
+import Test.Setup (ednaTestMode, specWithContext)
 
 spec :: Spec
-spec = withContext $
+spec = specWithContext $
   -- We (almost) disable shrinking because when there are many shrinks something
   -- goes wrong and we often get unexpected errors from SQL, like this one:
   -- > insert or update on table "experiment" violates foreign key constraint "has_experiment_file"
