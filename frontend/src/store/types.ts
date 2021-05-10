@@ -90,16 +90,16 @@ export function negateTableSize(size: ExperimentsTableSize): ExperimentsTableSiz
 }
 
 export const chartColors = [
-  "#C6E294",
-  "#8E95D5",
-  "#E6D85D",
-  "#3D9C97",
-  "#C15959",
-  "#53AC62",
-  "#A26BC4",
-  "#6076E0",
-  "#374275",
-  "#BF5688",
+  "#4285F4",
+  "#0B8043",
+  "#D50000",
+  "#F6BF26",
+  "#8E24AA",
+  "#3F51B5",
+  "#F4511E",
+  "#33B679",
+  "#7986CB",
+  "#E67C73",
 ];
 
 export type NewSubExperiment = {

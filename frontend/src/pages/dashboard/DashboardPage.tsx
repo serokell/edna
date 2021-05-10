@@ -69,6 +69,7 @@ export const DashboardPage: FunctionComponent = () => {
           <span className={dashboardPage("title")}>Dashboard</span>
           <Button
             type="rounded"
+            className="dashboardPage__resetBtn"
             onClick={() => {
               setProjectSelectedIdAtom(undefined);
               setCompoundSelectedIdAtom(undefined);

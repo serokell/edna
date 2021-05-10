@@ -9,7 +9,7 @@
 
 .ic50 {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
 
   &__label {
     margin-right: 9 * $px;

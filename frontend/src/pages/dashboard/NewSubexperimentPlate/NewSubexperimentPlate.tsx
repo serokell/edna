@@ -5,13 +5,16 @@
 import React, { useState } from "react";
 import "./NewSubexperimentPlate.scss";
 import cx from "classnames";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { Button } from "../../../components/Button/Button";
-import { modalDialogAtom, newSubexperimentAtom } from "../../../store/atoms";
+import { newSubexperimentAtom } from "../../../store/atoms";
 import { formatIC50, isDefined } from "../../../utils/utils";
 import RecomputeSvg from "../../../assets/svg/recompute.svg";
 import Api from "../../../api/api";
-import { useFilteredExperimentsRefresher } from "../../../store/updaters";
+import {
+  useFilteredExperimentsRefresher,
+  useNotificationListUpdater,
+} from "../../../store/updaters";
 import { Tooltip } from "../../../components/Tooltip/Tooltip";
 
 interface NewSubexperimentPlateProps {
@@ -25,8 +28,8 @@ export function NewSubexperimentPlate({
   const filteredExperimentsRefresher = useFilteredExperimentsRefresher();
   const ic50 = newSubexperiment.analysed ? newSubexperiment.analysed[2] : undefined;
   const [suexperimentName, setSuexperimentName] = useState<string>("New subexperiment");
-  const setModalDialog = useSetRecoilState(modalDialogAtom);
   const [expanded, setExpanded] = useState(true);
+  const notificationsUpdater = useNotificationListUpdater();
 
   return (
     <div
@@ -67,7 +70,13 @@ export function NewSubexperimentPlate({
                         }
                       );
                       if ("Left" in newResult) {
-                        setModalDialog({ kind: "failed-recompute-ic50", reason: newResult.Left });
+                        notificationsUpdater({
+                          type: "Add",
+                          notificationType: "Warn",
+                          element: () => (
+                            <span>{`Recomputed sub-experiment has aproximation error: ${newResult.Left}`}</span>
+                          ),
+                        });
                       } else {
                         setNewSubexperiment(old => ({
                           ...old,
@@ -90,6 +99,18 @@ export function NewSubexperimentPlate({
                 await Api.newSubexperiment(newSubexperiment.subExperimentId, {
                   name: suexperimentName,
                   changes: newSubexperiment.changedPoints.map(x => x.id),
+                }).then(sex => {
+                  if ("Left" in sex.item.result) {
+                    notificationsUpdater({
+                      type: "Add",
+                      notificationType: "Warn",
+                      element: () => (
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        <span>{`New sub-experiment has aproximation error: ${sex.item.result.Left}`}</span>
+                      ),
+                    });
+                  }
                 });
                 filteredExperimentsRefresher();
                 setNewSubexperiment({

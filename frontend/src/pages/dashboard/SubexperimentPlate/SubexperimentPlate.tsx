@@ -68,6 +68,18 @@ export function SubexperimentPlate({
       className={cx("subexperimentPlate", className)}
       style={{ borderColor: activeColor }}
       onClick={() => {
+        if ("Left" in subexperiment.item.result) {
+          notificationsUpdater({
+            type: "Add",
+            notificationType: "Warn",
+            element: () => (
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              <span>{`This sub-experiment is invalid because of aproximation error: ${subexperiment.item.result.Left}`}</span>
+            ),
+          });
+          return;
+        }
         if (selectedSubExperiments.has(subexperiment.id)) {
           removeSubExperiments([subexperiment.id]);
         } else {

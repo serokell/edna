@@ -10,11 +10,4 @@
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  &__none {
-    width: 10 * $px;
-    height: 1 * $px;
-    content: "";
-    background-color: $color-black;
-  }
 }
