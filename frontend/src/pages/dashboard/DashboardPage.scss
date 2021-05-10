@@ -58,7 +58,7 @@
     position: relative;
     grid-row: 3/4;
     grid-column: 1/3;
-    max-height: 566 * $px;
+    height: 566 * $px;
     padding: 1rem;
     background-color: #fbfbfb;
     border: $px solid #9ba5a1;
@@ -67,6 +67,10 @@
     &_size_minimized {
       grid-column: 1/2;
     }
+  }
+
+  &__chart .modebar {
+    left: 0;
   }
 
   &__experiments {
@@ -94,5 +98,9 @@
 
   &__legend {
     margin-left: 0.5rem;
+  }
+
+  &__resetBtn {
+    padding-left: 20 * $px;
   }
 }

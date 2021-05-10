@@ -245,7 +245,11 @@ export const selectedSubExperimentsExtraQuery = selector<SubExperimentWithMeasur
     const experiments = Array.from(get(filteredExperimentsQuery({})).experiments);
     return get(waitForAll(ids.map(subId => subExperimentWithMeasurementsMap(subId)))).map(sex => {
       const experiment = experiments.find(e => e.subExperiments.find(v => v === sex.meta.id));
-      return { compound: experiment!.compoundName, target: experiment!.targetName, ...sex };
+      return {
+        compound: experiment ? experiment.compoundName : "",
+        target: experiment ? experiment.targetName : "",
+        ...sex,
+      };
     });
   },
 });

@@ -36,16 +36,20 @@
     padding: 16 * $px;
   }
 
-  &__subexperiment {
-    margin-bottom: 11 * $px;
-  }
-
   &__subexperiment:nth-child(odd) {
     margin-right: 9 * $px;
   }
 
+  &__subexperiment:nth-child(n + 3):not(.experimentsTable__subexperiment_expanded) {
+    margin-top: 11 * $px;
+  }
+
   &__subexperiment_expanded:nth-child(4n+2) {
     margin-right: 9 * $px;
+  }
+
+  &__subexperiment_expanded:nth-child(n+5) {
+    margin-top: 11 * $px;
   }
 
   &__showCheckbox {

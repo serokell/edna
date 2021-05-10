@@ -21,7 +21,7 @@ export function IC50Tooltip({ ic50, className }: IC50TooltipProps): React.ReactE
   const errTooltip = (msg: string) => {
     return (
       <Tooltip text={msg} type="error">
-        <span className={cx("ic50value__none", className)} />
+        <span className={cx("ic50value__none", className)}>error</span>
       </Tooltip>
     );
   };
