@@ -105,4 +105,19 @@
     color: rgba(#191c1c, 0.7) !important;
     border-left: $px solid #dfe3e3 !important;
   }
+
+  &__submitBtn {
+    &_spinner {
+      padding: (11 * $px) (88 * $px) !important;
+      background-color: #3a8370 !important;
+    }
+  }
+
+  &__spinner {
+    width: 33 * $px;
+    height: 33 * $px;
+    margin: 0;
+    border-color: white;
+    border-left-color: #3a8370;
+  }
 }

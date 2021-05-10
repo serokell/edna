@@ -24,7 +24,7 @@ export function UploadStatus(): React.ReactElement {
         <span className="uploadStatus__label">
           {uploadState.state === "uploading"
             ? "Uploading..."
-            : uploadState.state === "parsed"
+            : uploadState.state === "parsed" || uploadState.state === "adding"
             ? "Parsed"
             : uploadState.state === "failed-to-add"
             ? "Failed to add"
@@ -32,7 +32,9 @@ export function UploadStatus(): React.ReactElement {
             ? "Added"
             : ""}
         </span>
-        {(uploadState.state === "parsed" || uploadState.state === "added") && (
+        {(uploadState.state === "parsed" ||
+          uploadState.state === "added" ||
+          uploadState.state === "adding") && (
           <div className="uploadStatus__statusIcons">
             <div className="uploadStatus__statusIcon">
               <SuccCheckmark />
