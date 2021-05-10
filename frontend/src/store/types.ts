@@ -49,7 +49,6 @@ export type SuccessSubExperimentWithMeasurements = {
 export type FileUploadState =
   | undefined
   | { state: "uploading"; progress: number }
-  | { state: "verifying" }
   | { state: "parsed"; targets: ParsedExcelDto[] }
   | { state: "added"; targets: ParsedExcelDto[] }
   | { state: "failed-to-add"; reason: string };

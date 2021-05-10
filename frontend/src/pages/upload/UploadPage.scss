@@ -22,6 +22,7 @@
     grid-row: 1/2;
     grid-column: 1/2;
     margin-bottom: 32 * $px;
+    color: #3a8370;
   }
 
   &__uploadAddButtons {
@@ -95,6 +96,7 @@
   &__resetNotify {
     display: flex;
     align-items: center;
+    justify-content: space-between;
   }
 
   &__resetNotifyBtn {

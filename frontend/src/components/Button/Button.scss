@@ -39,7 +39,7 @@
 
   position: relative;
   display: flex;
-  padding: (16 * $px) (22 * $px);
+  padding: (16 * $px) (36 * $px);
   color: white;
   background-color: $color-green;
   border: 0;
@@ -115,15 +115,15 @@
 
 .roundedButton {
   @include snd-btn;
-  padding: (10 * $px) (21 * $px);
-  font-size: 14 * $px;
 
+  padding: (10 * $px) (20 * $px) (10 * $px) (25 * $px);
+  font-size: 14 * $px;
   font-weight: 700;
   line-height: 18 * $px;
   color: $color-green;
   background-color: $color-light-green;
   border: 0;
-  border-radius: 50 * $px;
+  border-radius: 6 * $px;
 
   &:hover {
     background-color: #def4e9;
