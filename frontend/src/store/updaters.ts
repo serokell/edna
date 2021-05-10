@@ -21,6 +21,7 @@ import {
   filteredExperimentsReqIdAtom,
   methodologiesRequestIdAtom,
   newSubexperimentAtom,
+  notificationListAtom,
   projectSelectedIdAtom,
   projectsRequestIdAtom,
   selectedSubExperimentsColorAtom,
@@ -30,7 +31,7 @@ import {
 } from "./atoms";
 import { minAmountColorQuery } from "./selectors";
 import { isDefined } from "../utils/utils";
-import { chartColors } from "./types";
+import { chartColors, NotificationUpdateAction } from "./types";
 
 function useQueryRefresher(reqId: RecoilState<number>): () => void {
   const setReqId = useSetRecoilState(reqId);
@@ -142,4 +143,37 @@ export function useDashboardRefresher(): () => void {
     // For some weird reason reset doesn't update selectedExperimentsQuery selector
     setSelectedSubExperimentsIds(new Set<number>());
   };
+}
+
+// Notification
+
+export function useNotificationListUpdater(): (act: NotificationUpdateAction) => void {
+  return useRecoilCallback(
+    ({ set }) => async (action: NotificationUpdateAction) => {
+      switch (action.type) {
+        case "Delete": {
+          set(notificationListAtom, old => {
+            const newNotifications = Array.from(old.notifications);
+            const realIndex = newNotifications.findIndex(n => n.id === action.id);
+            newNotifications.splice(realIndex, 1);
+            return { lastId: old.lastId, notifications: newNotifications };
+          });
+          break;
+        }
+        case "Add": {
+          set(notificationListAtom, old => ({
+            lastId: old.lastId + 1,
+            notifications: [
+              ...old.notifications,
+              { id: old.lastId + 1, element: action.element, type: action.notificationType },
+            ],
+          }));
+          break;
+        }
+        default:
+          break;
+      }
+    },
+    [notificationListAtom]
+  );
 }

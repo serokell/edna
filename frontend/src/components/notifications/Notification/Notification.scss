@@ -1,0 +1,38 @@
+/*
+ * SPDX-FileCopyrightText: 2021 Serokell <https://serokell.io>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+.notification {
+  display: flex;
+  align-items: center;
+  width: 27.125rem;
+  padding: 1.375rem 2.375rem 1.375rem 1.5rem;
+  margin-bottom: 1.5rem;
+  margin-left: 1.5rem;
+  background-color: white;
+  border-radius: 0.375rem;
+  box-shadow: 0 0 0.625rem rgba(#737373, 0.35);
+  transition: transform 0.6s ease-in;
+  animation: toast-in-left 0.7s;
+
+  svg {
+    margin-right: 1.5rem;
+  }
+
+  &__container {
+    flex: 1;
+    font-size: 0.875rem;
+  }
+}
+
+@keyframes toast-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}

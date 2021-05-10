@@ -9,12 +9,14 @@ import UploadSvg from "../../assets/svg/upload-svg.svg";
 import { FormikCompatible } from "../FormField/FormField";
 import Api from "../../api/api";
 import { excelFileAtom } from "../../store/atoms";
+import { useNotificationListUpdater } from "../../store/updaters";
 
 type UploadingAreaProps = FormikCompatible<File>;
 
-const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }): ReactElement => {
+const UploadArea: FunctionComponent<UploadingAreaProps> = ({ onChange }): ReactElement => {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const setParsedFile = useSetRecoilState(excelFileAtom);
+  const notificationsUpdater = useNotificationListUpdater();
 
   const handleFile = async (file: File) => {
     onChange(file);
@@ -28,7 +30,12 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
         targets,
       });
     } catch (er) {
-      setParsedFile({ state: "failed-to-parse", reason: er.message });
+      setParsedFile(undefined);
+      notificationsUpdater({
+        type: "Add",
+        notificationType: "Error",
+        element: () => <span>{`Failed to parse file: ${er.response.data}`}</span>,
+      });
     }
   };
 
@@ -71,11 +78,7 @@ const UploadArea: FunctionComponent<UploadingAreaProps> = ({ value, onChange }):
         }}
       >
         <UploadSvg className="uploadArea__uploadSvg" />
-        {value ? (
-          value.name
-        ) : (
-          <span className="uploadArea__description">Drop your file here, or click to upload</span>
-        )}
+        <span className="uploadArea__description">Drop your file here, or click to upload</span>
       </div>
     </>
   );

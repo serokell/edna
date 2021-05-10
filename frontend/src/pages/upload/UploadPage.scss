@@ -91,4 +91,16 @@
       margin-left: 14 * $px;
     }
   }
+
+  &__resetNotify {
+    display: flex;
+    align-items: center;
+  }
+
+  &__resetNotifyBtn {
+    padding: 0 0 0 1.375rem !important;
+    margin-left: 1.375rem;
+    color: rgba(#191c1c, 0.7) !important;
+    border-left: $px solid #dfe3e3 !important;
+  }
 }

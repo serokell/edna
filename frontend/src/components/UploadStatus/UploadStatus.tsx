@@ -22,8 +22,6 @@ export function UploadStatus(): React.ReactElement {
             ? "Verifying"
             : uploadState.state === "parsed"
             ? "Parsed"
-            : uploadState.state === "failed-to-parse"
-            ? "Failed to parse"
             : uploadState.state === "failed-to-add"
             ? "Failed to add"
             : uploadState.state === "added"
@@ -31,7 +29,6 @@ export function UploadStatus(): React.ReactElement {
             : ""}
         </span>
         {uploadState.state === "parsed" && <SuccCheckmark />}
-        {uploadState.state === "failed-to-parse" && <FailedIcon />}
         {uploadState.state === "failed-to-add" && <FailedIcon />}
       </div>
       {uploadState.state === "uploading" && <ProgressBar percent={uploadState.progress} />}

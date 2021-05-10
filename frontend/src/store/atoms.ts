@@ -4,7 +4,13 @@
 
 // Basic state should be here
 import { atom, atomFamily } from "recoil";
-import { NewSubExperiment, ExperimentsTableSize, FileUploadState, ModalDialogState } from "./types";
+import {
+  NewSubExperiment,
+  ExperimentsTableSize,
+  FileUploadState,
+  ModalDialogState,
+  Notifications,
+} from "./types";
 import { Maybe } from "../utils/utils";
 import Api from "../api/api";
 import { ExperimentMetadataDto, MeasurementDto, SubExperimentDto } from "../api/types";
@@ -110,4 +116,11 @@ export const experimentMetadata = atomFamily<ExperimentMetadataDto, number>({
   default: async experimentId => {
     return Api.fetchExperimentMetadata(experimentId);
   },
+});
+
+// Notifications
+
+export const notificationListAtom = atom<Notifications>({
+  key: "NotificationList",
+  default: { lastId: 0, notifications: [] },
 });

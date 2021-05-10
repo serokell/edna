@@ -7,6 +7,7 @@ import { Route, Switch, useLocation } from "react-router-dom";
 import { Redirect } from "react-router";
 
 import { useRecoilValue, useResetRecoilState } from "recoil";
+import NotificationList from "./components/notifications/NotificationList/NotificationList";
 import { UploadPage } from "./pages/upload/UploadPage";
 import { LibraryPage } from "./pages/library/LibraryPage";
 import { NotFound } from "./components/NotFound/NotFound";
@@ -75,6 +76,7 @@ export const App: FunctionComponent = (): ReactElement => {
       {modalDialog?.kind === "delete-subexperiment" && (
         <DeleteSubexperimentDialog subexperiment={modalDialog.subexperiment} />
       )}
+      <NotificationList />
       <Switch>
         <Route path="/upload">
           <UploadPage />
