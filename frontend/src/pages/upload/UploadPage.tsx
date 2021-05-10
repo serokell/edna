@@ -6,6 +6,7 @@ import React, { FunctionComponent, ReactElement, useState } from "react";
 import { useRecoilState, useRecoilValueLoadable } from "recoil";
 import { Form, Formik } from "formik";
 import { Prompt } from "react-router-dom";
+import { Spinner } from "../../components/Spinner/Spinner";
 import Api from "../../api/api";
 import "../../components/Spinner/Spinner.scss";
 import FormField from "../../components/FormField/FormField";
@@ -91,6 +92,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
           try {
             const apiType = uploadFormToApi(form);
             if (apiType && excelFile?.state === "parsed") {
+              setExcelFile({ state: "adding", targets: excelFile.targets });
               const targets = await Api.uploadExperiments(apiType);
               setExcelFile({ state: "added", targets });
               setHasUnsavedFields(false);
@@ -127,7 +129,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
 
             {isDefined(excelFile) && <UploadStatus />}
 
-            {(excelFile?.state === "parsed" || excelFile?.state === "added") && (
+            {(excelFile?.state === "parsed" ||
+              excelFile?.state === "adding" ||
+              excelFile?.state === "added") && (
               <UploadPreviewTable
                 projectId={excelFile.state === "added" ? currentProject?.id : undefined}
                 className="uploadingForm__previewTable"
@@ -148,7 +152,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   placeholderEmpty="No projects"
                   toOption={proj => ({ value: `${proj.id}`, label: proj.item.name })}
                   tabIndex="2"
-                  isDisabled={isAdded(excelFile)}
+                  isDisabled={isAdded(excelFile) || excelFile?.state === "adding"}
                   {...field}
                 />
               )}
@@ -168,7 +172,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   placeholderEmpty="No methodologies"
                   toOption={meth => ({ value: `${meth.id}`, label: meth.item.name })}
                   tabIndex="3"
-                  isDisabled={isAdded(excelFile)}
+                  isDisabled={isAdded(excelFile) || excelFile?.state === "adding"}
                 />
               )}
             </FormField>
@@ -183,12 +187,12 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   className="ednaTextarea uploadingForm__descriptionTextArea"
                   value={field.value}
                   onChange={e => field.onChange(e.target.value)}
-                  disabled={isAdded(excelFile)}
+                  disabled={isAdded(excelFile) || excelFile?.state === "adding"}
                 />
               )}
             </FormField>
 
-            {isParsed(excelFile) && (
+            {(isParsed(excelFile) || excelFile?.state === "adding") && (
               <div className="uploadingForm__label">* marked will be created</div>
             )}
 
@@ -197,10 +201,18 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                 type="primary"
                 disabled={!isParsed(excelFile)}
                 isSubmit
-                className="uploadingForm__submitBtn"
+                className={`uploadingForm__submitBtn ${
+                  excelFile && excelFile.state === "adding"
+                    ? "uploadingForm__submitBtn_spinner"
+                    : ""
+                }`}
                 tabIndex={4}
               >
-                Add experiments
+                {excelFile && excelFile.state === "adding" ? (
+                  <Spinner className="uploadingForm__spinner" />
+                ) : (
+                  "Add experiments"
+                )}
               </Button>
 
               <Button
@@ -211,7 +223,7 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   setHasUnsavedFields(false);
                   setExcelFile(undefined);
                   resetForm();
-                  if (!isAdded(excelFile)) {
+                  if (!isAdded(excelFile) && excelFile?.state !== "adding") {
                     notificationsUpdater({
                       type: "Add",
                       notificationType: "Error",
@@ -237,7 +249,9 @@ export const UploadPage: FunctionComponent = (): ReactElement => {
                   }
                 }}
               >
-                {isAdded(excelFile) ? "Upload another one" : "Reset"}
+                {isAdded(excelFile) || excelFile?.state === "adding"
+                  ? "Upload another one"
+                  : "Reset"}
               </Button>
             </div>
           </Form>

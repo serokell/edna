@@ -50,6 +50,7 @@ export type FileUploadState =
   | undefined
   | { state: "uploading"; progress: number }
   | { state: "parsed"; targets: ParsedExcelDto[] }
+  | { state: "adding"; targets: ParsedExcelDto[] }
   | { state: "added"; targets: ParsedExcelDto[] }
   | { state: "failed-to-add"; reason: string };
 
