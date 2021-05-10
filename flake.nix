@@ -39,9 +39,9 @@
         profile = with self.packages.${system};
           linkFarm "edna-deploy-profile" [
             { name = "backend.tar.gz";
-            path = docker-backend; }
+            path = docker-backend { }; }
             { name = "frontend.tar.gz";
-            path = docker-frontend; }
+            path = docker-frontend { }; }
           ];
       in {
         hostname = "${hostName}.edna.serokell.team";
@@ -80,9 +80,10 @@
         inherit analysis-env;
         EDNA_ANALYSIS_DIR = ./analysis;
       };
-      docker = pkgs.callPackage ./docker.nix {
+      docker = creationDate: pkgs.callPackage ./docker.nix {
         backend = backend.server;
         inherit frontend;
+        creationDate = creationDate;
       };
 
       frontend = pkgs.callPackage ./frontend { };
@@ -99,8 +100,8 @@
         analysis-env = analysis-env;
         backend-lib = backend.library;
         backend-server = backend.server;
-        docker-backend = docker.backend-image;
-        docker-frontend = docker.frontend-image;
+        docker-backend = { creationDate ? "1970-01-01T00:00:01Z" }: (docker creationDate).backend-image;
+        docker-frontend = { creationDate ? "1970-01-01T00:00:01Z" }: (docker creationDate).frontend-image;
         frontend = frontend;
       };
 
