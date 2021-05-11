@@ -16,9 +16,9 @@ import qualified Data.Map as M
 import qualified Data.Map.Strict as Map
 
 import Codec.Xlsx (CellValue(..), Worksheet(..), cellValue, ixCell, toXlsxEither, wsCells, xlSheets)
+import Control.Lens (_Just, ix)
 import Data.List.Split (wordsBy)
 import Data.Text (replace)
-import Lens.Micro (_Just, ix)
 import Text.Read (readParen)
 
 import Edna.ExperimentReader.Error (ExperimentParsingError(..))

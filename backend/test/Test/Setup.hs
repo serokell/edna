@@ -14,7 +14,7 @@ import Universum
 
 import Control.Monad.Morph (hoist)
 import Hedgehog.Internal.Property (PropertyT(..))
-import Lens.Micro ((?~))
+import Control.Lens ((?~))
 import RIO (runRIO)
 import Servant.Client (ClientEnv)
 import System.Environment (lookupEnv)

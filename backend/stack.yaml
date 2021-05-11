@@ -6,19 +6,19 @@
 # They use haskell.nix which depends on hackage.nix and stackage.nix which
 # contain snapshots of Hackage and Stackage respectively.
 # If you update resolver or any dependency to a version not present in any of
-# these snapshots, you need to upadte the revision of the respective snapshot.
+# these snapshots, you need to update the revision of the respective snapshot.
 # Revisions are pinned in the flake.lock file in the root of the repo.
 # In order to update it, you need to have a very recent (unstable) nix with
 # support for flakes.
 # If your nix is not sufficiently recent, you can do
-# > nix-shell -I nixpkgs=channel:nixpkgs-unstable -p nixFlake
+# > nix-shell -I nixpkgs=channel:nixpkgs-unstable -p nixFlakes
 # and then within this shell run
 # > nix --experimental-features 'nix-command flakes' flake update --update-input hackage
 
 # Also if you update something in this file, most likely you should run
 # `scripts/generate-cabal-files.sh`.
 
-resolver: lts-17.2
+resolver: lts-17.10
 
 packages:
 - .
@@ -27,7 +27,7 @@ extra-deps:
 - beam-core-0.9.0.0
 - beam-migrate-0.5.0.0
 - beam-postgres-0.5.0.0
-- constraints-extras-0.3.0.2
+- constraints-extras-0.3.1.0
 - dependent-map-0.4.0.0
 - dependent-sum-0.7.1.0
 - network-uri-json-0.4.0.0

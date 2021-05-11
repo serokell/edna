@@ -79,10 +79,13 @@ library
       Edna.Web.Swagger
       Edna.Web.Types
   other-modules:
-      Edna.Analysis.Infra
-      Edna.Web.Error
+    Paths_edna
+    Edna.Analysis.Infra
+    Edna.Web.Error
+  autogen-modules:
+   Paths_edna
   hs-source-dirs:
-      src
+    src
   build-depends:
     aeson,
     aeson-casing,
@@ -93,10 +96,13 @@ library
     data-default,
     filepath,
     fmt,
+    http-media,
+    insert-ordered-containers,
+    lens,
     microlens,
-    microlens-platform,
     network-uri,
     network-uri-json,
+    openapi3,
     optparse-applicative,
     postgresql-simple,
     prometheus-client,
@@ -105,15 +111,14 @@ library
     rio,
     safe-exceptions,
     servant,
+    servant-openapi3,
     servant-multipart,
     servant-server,
-    servant-swagger,
     servant-swagger-ui,
     servant-swagger-ui-core,
     servant-util,
     servant-util-beam-pg,
     split,
-    swagger2,
     text,
     time,
     typed-process,
@@ -129,12 +134,12 @@ executable edna-server
   import: common-options
   main-is: Main.hs
   hs-source-dirs:
-      app
+    app
   ghc-options: -rtsopts "-with-rtsopts=-T"
   build-depends:
-      edna,
-      optparse-applicative,
-      with-utf8
+    edna,
+    optparse-applicative,
+    with-utf8
 
 executable edna-generator
   import: common-options
@@ -214,8 +219,7 @@ test-suite edna-test
     , hspec-hedgehog
     , http-client
     , http-types
-    , microlens
-    , microlens-platform
+    , lens
     , mmorph
     , network-uri
     , QuickCheck
@@ -223,7 +227,7 @@ test-suite edna-test
     , servant-client
     , servant-client-core
     , servant-server
-    , servant-swagger
+    , servant-openapi3
     , servant-util
     , time
     , unordered-containers

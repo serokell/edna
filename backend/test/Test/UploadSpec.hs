@@ -14,7 +14,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
 import Data.List ((!!))
-import Lens.Micro ((?~))
+import Control.Lens ((?~))
 import RIO (runRIO)
 import Servant.Util (fullContent, noSorting)
 import Test.Hspec (Spec, anyErrorCall, beforeAllWith, describe, it, shouldBe, shouldThrow)

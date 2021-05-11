@@ -16,9 +16,9 @@ module Edna.Setup
 
 import Universum
 
+import Control.Lens (Getting, makeLenses)
 import qualified Data.ByteString as B
 import qualified Data.Yaml as Y
-import Lens.Micro.Platform (Getting, makeLenses)
 import RIO (RIO, runRIO)
 
 import Edna.Config.Definition (EdnaConfig)

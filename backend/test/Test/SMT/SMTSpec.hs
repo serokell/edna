@@ -11,13 +11,13 @@ module Test.SMT.SMTSpec
 import Universum
 
 import qualified Data.ByteString.Lazy as BSL
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 
 import Hedgehog
   (Callback(..), Command(..), HTraversable(..), MonadGen, MonadTest, Var, annotate, assert,
   executeSequential, failure, forAll, (===))
-import qualified Hedgehog.Gen as Gen
-import qualified Hedgehog.Range as Range
-import Lens.Micro.Platform (at, (.=), (?~))
+import Control.Lens (at, (.=), (?~))
 import RIO (runRIO)
 import Test.Hspec (Spec, context, it)
 import Test.Hspec.Hedgehog (modifyMaxSuccess)

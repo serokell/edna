@@ -43,14 +43,12 @@ import Universum
 import Data.Aeson (FromJSON(..), ToJSON(..), Value(..), encode, withText)
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Casing as AC
-import Data.Swagger (ToParamSchema, ToSchema)
-import qualified Data.Swagger as S
-import Data.Swagger.Declare (Declare)
-import Data.Swagger.Internal (ParamSchema)
-import Data.Swagger.Internal.ParamSchema (GToParamSchema, genericToParamSchema)
-import qualified Data.Swagger.Internal.Schema as S
-import Data.Swagger.Internal.TypeShape (GenericHasSimpleShape, GenericShape)
-import Data.Swagger.SchemaOptions (SchemaOptions, fromAesonOptions)
+import Data.OpenApi (ToParamSchema, ToSchema(..))
+import qualified Data.OpenApi as O
+import Data.OpenApi.Declare (Declare)
+import qualified Data.OpenApi.Internal.ParamSchema as O
+import qualified Data.OpenApi.Internal.Schema as O
+import Data.OpenApi.SchemaOptions (SchemaOptions, fromAesonOptions)
 import qualified Data.Text as T
 import Data.Time (LocalTime, UTCTime, localTimeToUTC, utc)
 import Database.Beam.Backend (SqlSerial(..))
@@ -170,21 +168,15 @@ schemaOptions :: SchemaOptions
 schemaOptions = fromAesonOptions ednaAesonWebOptions
 
 -- | Default implementation of 'ToSchema' via Generics.
-gDeclareNamedSchema
-    :: ( Generic a
-       , S.GToSchema (G.Rep a)
-       , GenericHasSimpleShape a "genericDeclareNamedSchemaUnrestricted" (GenericShape (G.Rep a))
-       )
-    => Proxy a -> Declare (S.Definitions S.Schema) S.NamedSchema
-gDeclareNamedSchema = S.genericDeclareNamedSchema schemaOptions
+gDeclareNamedSchema :: (Generic a, O.GToSchema (G.Rep a))
+                    => Proxy a
+                    -> Declare (O.Definitions O.Schema) O.NamedSchema
+gDeclareNamedSchema = O.genericDeclareNamedSchema schemaOptions
 
 -- | Default implementation of 'ToParamSchema' via Generics.
-gToParamSchema
-    :: ( Generic a
-       , GToParamSchema (G.Rep a)
-       )
-    => Proxy a -> ParamSchema t
-gToParamSchema = genericToParamSchema schemaOptions
+gToParamSchema :: (Generic a , O.GToParamSchema (G.Rep a))
+               => Proxy a -> O.Schema
+gToParamSchema = O.genericToParamSchema schemaOptions
 
 ----------------
 -- Util

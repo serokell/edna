@@ -8,7 +8,7 @@ module Test.SwaggerSpec
 
 import Universum
 
-import Servant.Swagger (validateEveryToJSON)
+import Servant.OpenApi (validateEveryToJSON)
 import Test.Hspec (Spec, context)
 
 import Edna.Web.API (ednaAPI)

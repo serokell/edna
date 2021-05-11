@@ -52,7 +52,7 @@ import qualified Hedgehog.Range as Range
 
 import Data.Time (LocalTime(..), UTCTime, fromGregorian, secondsToDiffTime, timeToTimeOfDay)
 import Hedgehog (MonadGen)
-import Lens.Micro (at, (?~))
+import Control.Lens (at, (?~))
 import Network.URI (URIAuth(..), nullURI)
 import Test.QuickCheck (Arbitrary(..))
 import Test.QuickCheck.Hedgehog (hedgehog)

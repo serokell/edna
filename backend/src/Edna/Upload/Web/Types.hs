@@ -14,19 +14,19 @@ module Edna.Upload.Web.Types
 
 import Universum
 
-import qualified Data.Swagger as S
+import qualified Data.HashMap.Strict.InsOrd as InsMap
+import qualified Data.OpenApi as O
 
+import Control.Lens (at, (?~))
 import Data.Aeson (ToJSON)
 import Data.Aeson.TH (deriveToJSON)
-import Data.Swagger
-  (NamedSchema(..), ParamAnySchema(..), ParamLocation(..), ToSchema(..), binarySchema, description,
-  in_, name, paramSchema, required, schema, type_)
+import Data.OpenApi (NamedSchema(..), ToSchema(..), binarySchema)
 import Fmt (Buildable(..), pretty, (+|), (|+))
-import Lens.Micro ((?~))
+import Network.HTTP.Media (MediaType)
 import Servant.API ((:>))
 import Servant.Multipart
   (FromMultipart(..), Mem, MultipartData, MultipartForm, fdFileName, fdPayload, files, lookupInput)
-import Servant.Swagger.Internal (HasSwagger(..), addParam)
+import Servant.OpenApi.Internal (HasOpenApi(..), addRequestBody)
 import Servant.Util.Combinators.Logging (ForResponseLog(..), buildForResponse, buildListForResponse)
 
 import Edna.Upload.Error (UploadApiError(..))
@@ -51,16 +51,28 @@ instance Buildable FileBS where
 instance ToSchema FileBS where
   declareNamedSchema _ = pure $ NamedSchema (Just "ByteString") binarySchema
 
-instance HasSwagger api => HasSwagger (MultipartForm Mem FileBS :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api) & addParam param
+instance HasOpenApi api => HasOpenApi (MultipartForm Mem FileBS :> api) where
+  toOpenApi _ = toOpenApi (Proxy :: Proxy api) & addRequestBody body
     where
-      param = mempty
-        & name .~ "file"
-        & required ?~ True
-        & description ?~ "Experiment to parse"
-        & schema .~ ParamOther (mempty
-            & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ ?~ S.SwaggerFile))
+      body :: O.RequestBody
+      body = mempty
+        & O.content .~ content
+        & O.required ?~ True
+
+      content :: InsMap.InsOrdHashMap MediaType O.MediaTypeObject
+      content = mempty & at "multipart/form-data" ?~ (mempty
+        & O.schema ?~ O.Inline (mempty
+          & O.type_ ?~ O.OpenApiObject
+          & O.required .~ ["file"]
+          & O.properties .~ (mempty
+            & at "file" ?~ O.Inline (mempty
+              & O.description ?~ "Experiment to parse"
+              & O.type_ ?~ O.OpenApiString
+              & O.format ?~ "binary"
+              )
+            )
+          )
+        )
 
 instance FromMultipart Mem FileBS where
   fromMultipart = first pretty . expectOneFile
@@ -87,41 +99,42 @@ instance Buildable FileUploadReq where
 instance ToSchema FileUploadReq where
   declareNamedSchema = gDeclareNamedSchema
 
-instance HasSwagger api => HasSwagger (MultipartForm Mem FileUploadReq :> api) where
-  toSwagger _ = toSwagger (Proxy :: Proxy api)
-    & addParam file
-    & addParam project
-    & addParam methodology
-    & addParam desc
+instance HasOpenApi api => HasOpenApi (MultipartForm Mem FileUploadReq :> api) where
+  toOpenApi _ = toOpenApi (Proxy :: Proxy api) & addRequestBody body
     where
-      file = mempty
-        & name .~ "file"
-        & required ?~ True
-        & description ?~ "Experiment to upload"
-        & schema .~ ParamOther (mempty
-            & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ ?~ S.SwaggerFile))
-      project = mempty
-        & name .~ "projectId"
-        & required ?~ True
-        & description ?~ "Project id"
-        & schema .~ ParamOther (mempty
-            & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ ?~ S.SwaggerString))
-      methodology = mempty
-        & name .~ "methodologyId"
-        & required ?~ True
-        & description ?~ "Methodology id"
-        & schema .~ ParamOther (mempty
-            & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ ?~ S.SwaggerString))
-      desc = mempty
-        & name .~ "description"
-        & required ?~ False
-        & description ?~ "Description"
-        & schema .~ ParamOther (mempty
-            & in_ .~ ParamFormData
-            & paramSchema .~ (mempty & type_ ?~ S.SwaggerString))
+      body :: O.RequestBody
+      body = mempty
+        & O.content .~ content
+        & O.required ?~ True
+
+      content :: InsMap.InsOrdHashMap MediaType O.MediaTypeObject
+      content = mempty & at "multipart/form-data" ?~ (mempty
+        & O.schema ?~ O.Inline (mempty
+          & O.type_ ?~ O.OpenApiObject
+          & O.required .~ ["file", "projectId", "methodologyId"]
+          & O.properties .~ (mempty
+            & at "file" ?~ O.Inline (mempty
+              & O.description ?~ "Experiment to upload"
+              & O.type_ ?~ O.OpenApiString
+              & O.format ?~ "binary"
+              )
+            & at "projectId" ?~ O.Inline (mempty
+              & O.description ?~ "Project id"
+              & O.type_ ?~ O.OpenApiInteger
+              & O.format ?~ "int32"
+              )
+            & at "methodologyId" ?~ O.Inline (mempty
+              & O.description ?~ "Methodology id"
+              & O.type_ ?~ O.OpenApiInteger
+              & O.format ?~ "int32"
+              )
+            & at "description" ?~ O.Inline (mempty
+              & O.description ?~ "Description"
+              & O.type_ ?~ O.OpenApiString
+              )
+            )
+          )
+        )
 
 instance FromMultipart Mem FileUploadReq where
   fromMultipart multipartData = do

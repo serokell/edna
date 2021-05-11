@@ -22,8 +22,8 @@ import qualified Data.HashSet as HS
 import qualified Data.Text as T
 
 import Data.Char (isNumber)
+import Control.Lens (at, (?~))
 import Fmt ((+|), (|+))
-import Lens.Micro.Platform (at, (?~))
 
 import qualified Edna.Library.DB.Query as LQ
 import qualified Edna.Upload.DB.Query as UQ
