@@ -77,9 +77,13 @@ compoundToResp CompoundRec{..} = do
     , ..
     }
 
+-- | This is small helper to avoid code duplication
+getCompound' :: SqlId 'CompoundId -> Edna CompoundRec
+getCompound' compoundSqlId = Q.getCompoundById compoundSqlId >>=
+  justOrThrow (LECompoundNotFound compoundSqlId)
+
 getCompound :: SqlId 'CompoundId -> Edna (WithId 'CompoundId CompoundResp)
-getCompound compoundSqlId = Q.getCompoundById compoundSqlId >>=
-  justOrThrow (LECompoundNotFound compoundSqlId) >>= compoundToResp
+getCompound compoundSqlId = getCompound' compoundSqlId >>= compoundToResp
 
 -- | Get all compounds with optional pagination and sorting.
 getCompounds
@@ -89,14 +93,14 @@ getCompounds sorting pagination =
 
 editChemSoft :: SqlId 'CompoundId -> URI -> Edna (WithId 'CompoundId CompoundResp)
 editChemSoft compoundSqlId uri = do
-  compound <- Q.getCompoundById compoundSqlId >>= justOrThrow (LECompoundNotFound compoundSqlId)
+  compound <- getCompound' compoundSqlId
   let uriText = renderURI uri
   Q.editCompoundChemSoft compoundSqlId uriText
   compoundToResp compound {cChemsoftLink = Just uriText}
 
 editMde :: SqlId 'CompoundId -> URI -> Edna (WithId 'CompoundId CompoundResp)
 editMde compoundSqlId uri = do
-  compound <- Q.getCompoundById compoundSqlId >>= justOrThrow (LECompoundNotFound compoundSqlId)
+  compound <- getCompound' compoundSqlId
   let uriText = renderURI uri
   Q.editCompoundMde compoundSqlId uriText
   compoundToResp compound {cMdeLink = Just uriText}
@@ -113,19 +117,24 @@ methodologyToResp (TestMethodologyRec{..}, projects) = do
     , mrProjects = projects
     }
 
-getMethodology :: SqlId 'MethodologyId -> Edna (WithId 'MethodologyId MethodologyResp)
+getMethodology
+  :: SqlId 'MethodologyId
+  -> Edna (WithId 'MethodologyId MethodologyResp)
 getMethodology methodologySqlId = Q.getMethodologyById methodologySqlId >>=
   justOrThrow (LEMethodologyNotFound methodologySqlId) >>= methodologyToResp
 
 -- | Get all methodologies with optional pagination and sorting.
 getMethodologies
-  :: MethodologySortingSpec -> PaginationSpec -> Edna [WithId 'MethodologyId MethodologyResp]
+  :: MethodologySortingSpec
+  -> PaginationSpec
+  -> Edna [WithId 'MethodologyId MethodologyResp]
 getMethodologies sorting pagination =
   Q.getMethodologies sorting pagination >>= mapM methodologyToResp
 
 addMethodology :: MethodologyReq -> Edna (WithId 'MethodologyId MethodologyResp)
 addMethodology tm@MethodologyReq{..} = transact $ do
-  Q.getMethodologyByName mrqName >>= nothingOrThrow (LEMethodologyNameExists mrqName)
+  Q.getMethodologyByName mrqName >>=
+    nothingOrThrow (LEMethodologyNameExists mrqName)
   res <- Q.insertMethodology tm >>= methodologyToResp . (,[])
   res <$ logMessage ("Added methodology with name " <> mrqName)
 
@@ -136,7 +145,7 @@ updateMethodology
 updateMethodology mId@(SqlId methodologyId) tm@MethodologyReq{..} = transact $ do
   -- we get methodology first here to ensure that it exists, so we can send
   -- proper http code
-  _ <- getMethodology mId
+  void $ getMethodology mId
   existingMethodology <- Q.getMethodologyByName mrqName
   case existingMethodology of
     Just tmRec -> ensureOrThrow (LEMethodologyNameExists mrqName) $
