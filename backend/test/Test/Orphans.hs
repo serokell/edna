@@ -13,7 +13,10 @@ import Universum
 
 import Data.Aeson.TH (deriveFromJSON)
 import RIO (RIO(..))
-import Servant (ToHttpApiData(..))
+import Servant (ToHttpApiData(..), (:>))
+import Servant.Multipart (Mem, MultipartForm)
+import Servant.QuickCheck.Internal (HasGenRequest(..))
+import Servant.Util (PaginationParams, SortingParams)
 
 import Edna.Util (IdType, SqlId(..), ednaAesonWebOptions)
 import Edna.Web.Types (WithId)
@@ -28,3 +31,17 @@ instance MonadFail (RIO env) where
 deriving newtype instance ToHttpApiData (SqlId (t :: IdType))
 
 deriveFromJSON ednaAesonWebOptions ''WithId
+
+
+--
+-- Instances to allow use of `servant-quickcheck`.
+--
+instance HasGenRequest sub
+  => HasGenRequest (MultipartForm Mem arg :> sub)
+  where
+    genRequest _ = genRequest (Proxy :: Proxy sub)
+
+instance HasGenRequest sub
+  => HasGenRequest (SortingParams args :> PaginationParams :> sub)
+  where
+    genRequest _ = genRequest (Proxy :: Proxy sub)

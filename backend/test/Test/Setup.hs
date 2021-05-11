@@ -4,6 +4,7 @@
 
 module Test.Setup
   ( ednaTestMode
+  , runInit
   , runTestEdna
   , runWithInit
   , specWithContextAndEnv
@@ -12,9 +13,9 @@ module Test.Setup
 
 import Universum
 
+import Control.Lens ((?~))
 import Control.Monad.Morph (hoist)
 import Hedgehog.Internal.Property (PropertyT(..))
-import Control.Lens ((?~))
 import RIO (runRIO)
 import Servant.Client (ClientEnv)
 import System.Environment (lookupEnv)
@@ -81,6 +82,10 @@ specWithContextAndEnv = aroundAll withContext
         liftIO $ testWithApplication (app ctx) $ \port -> do
           env <- clientEnv port
           callback (ctx, env)
+
+-- | Drop existing DB and initialize it
+runInit :: EdnaContext -> IO ()
+runInit ctx = runRIO ctx schemaInit
 
 -- | Drop existing DB, initialize it and then run given 'Edna' action.
 runWithInit :: EdnaContext -> Edna a -> IO a
