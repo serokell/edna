@@ -14,7 +14,7 @@ import Universum
 
 import Servant (ReqBody, addHeader)
 import Servant.API
-  (Capture, Delete, Get, Header, Headers, JSON, NoContent, OctetStream, Post, Put, QueryParam,
+  (Capture, DeleteNoContent, Get, Header, Headers, JSON, OctetStream, Post, Put, QueryParam,
   Summary, (:>))
 import Servant.API.Generic (AsApi, ToServant, (:-))
 import Servant.Server.Generic (AsServerT, genericServerT)
@@ -63,7 +63,7 @@ data DashboardEndpoints route = DashboardEndpoints
       :- "subExperiment"
       :> Summary "Delete a sub-experiment."
       :> Capture "subExperimentId" SubExperimentId
-      :> Delete '[JSON] NoContent
+      :> DeleteNoContent
 
   , -- | Create a new sub-experiment from existing one.
     deNewSubExp :: route
