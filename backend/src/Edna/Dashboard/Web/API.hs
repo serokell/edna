@@ -49,11 +49,11 @@ data DashboardEndpoints route = DashboardEndpoints
       :> ReqBody '[JSON] Text
       :> Put '[JSON] (WithId 'SubExperimentId SubExperimentResp)
 
-  , -- | Update @isSupicious@ flag of a sub-experiment.
+  , -- | Update @isSuspicious@ flag of a sub-experiment.
     deSetIsSuspiciousSubExp :: route
       :- "subExperiment"
       :> "suspicious"
-      :> Summary "Update 'isSupicious' flag of a sub-experiment."
+      :> Summary "Update 'isSuspicious' flag of a sub-experiment."
       :> Capture "subExperimentId" SubExperimentId
       :> ReqBody '[JSON] Bool
       :> Put '[JSON] (WithId 'SubExperimentId SubExperimentResp)
