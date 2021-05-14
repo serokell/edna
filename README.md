@@ -31,6 +31,23 @@ If the above way is not suitable for you, you can build Edna from sources and ru
 You need to build and run both [backend](./backend) and [frontend](./frontend).
 Please refer to the respective directories for more details.
 
+### Nix
+
+Nix is a package manager with an accompanying GNU/Linux distribution, NixOS. It makes reproducible packaging and reliable deployments a lot easier.
+
+If you want to build Edna with Nix,
+
+- Install Nix (<https://nixos.org/install-nix.html>) if you haven't already
+- `nix-build -A backend-server` will build the backend
+- `nix-build -A frontend` will build the frontend
+- `nix-build -A docker-backend` will build the docker image for backend
+- `nix-build -A docker-frontend` will build the docker image for frontend
+- `nix-shell` will enter a build environment, which contains the GHC with dependencies needed to build the backend, python with dependencies needed to run the analysis tool, and tools for testing, housekeeping and deployment.
+
+If you're a Serokell employee, you can get access to our binary cache to speed up the build process.
+
+The servers running Edna on Serokell infrastructure are defined in <https://github.com/serokell/gemini-infra>.
+
 ## Issue Tracker
 
 We use our own issue tracker.
