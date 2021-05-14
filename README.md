@@ -12,8 +12,8 @@
 Edna is an open-source web application for data analysis aimed to help researchers with their experiments.
 It consists of 3 parts:
 * [backend](/backend/) is a web server implemented in Haskell.
-* [frontend](/frontend/) is web UI implemented in TypeScript.
-* [analysis](/analysis/) contains Python code to analyse data submitted to Edna.
+* [frontend](/frontend/) is a web client application (UI) implemented in TypeScript.
+* [analysis](/analysis/) is a part of the backend implemented in Python to analyse data submitted to Edna.
 
 ## Usage
 
@@ -21,8 +21,9 @@ The recommended way to deploy Edna is to use Docker images from GitHub Container
 * [backend](https://github.com/orgs/serokell/packages/container/package/edna-backend)
 * [frontend](https://github.com/orgs/serokell/packages/container/package/edna-frontend)
 
-Note that some additional configuration is needed: you need to launch PostgreSQL DB server, forward ports, provide a config file.
+Note that some additional configuration is needed: you need to launch PostgreSQL DB server, forward ports and provide appropriate configuration (via a config file or environment variables or command line arguments).
 The [`deployment`](deployment/) folder contains an example [`docker-compose`](deployment/docker-compose.yml) file that automates the whole deployment.
+Please read its [README](/deployment/README.md) for more details about using the images.
 
 ## Build Instructions
 

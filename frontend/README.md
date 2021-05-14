@@ -10,16 +10,16 @@
 
 ## Build
 
-If you are building project at the first time, you need to run `yarn install`.
-
+If you are building the project for the first time, you need to run `yarn install`.
 Also, you need to run `yarn install` if a new dependency is added to `package.json`.
 
-`yarn build` builds bundles.
+`yarn build` builds bundles in production mode.
 
 ## Run
 
 `yarn serve` runs the dev server.
-To operate correctly, it's needed to have backend launched on `8080` port.
+You need to launch backend on `9000` port for the server to operate correctly as specified in [webpack.dev.js](./webpack.dev.js).
+If you make any changes, `yarn serve` will automatically trigger recompilation.
 
 ## Lint
 
