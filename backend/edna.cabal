@@ -162,6 +162,8 @@ test-suite edna-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+    Test.API.DashboardSpec
+    Test.API.BestPracticesSpec
     Test.API.LibrarySpec
     Test.API.Util
     Test.AnalysisSpec
@@ -224,8 +226,11 @@ test-suite edna-test
     , network-uri
     , QuickCheck
     , rio
+    , servant
     , servant-client
     , servant-client-core
+    , servant-multipart
+    , servant-quickcheck
     , servant-server
     , servant-openapi3
     , servant-util

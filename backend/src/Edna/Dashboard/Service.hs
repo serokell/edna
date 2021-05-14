@@ -53,36 +53,52 @@ import Edna.Web.Types (WithId(..))
 makePrimarySubExperiment :: SubExperimentId ->
   Edna (WithId 'SubExperimentId SubExperimentResp)
 makePrimarySubExperiment subExpId = do
-  logMessage $ fmt $ "Making sub-experiment " +| subExpId |+ " primary"
-  Q.makePrimarySubExperiment subExpId
-  getSubExperiment subExpId
+  -- Using @transact@ to avoid concurrent creation between existence check
+  -- and creation
+  transact $ do
+    -- Check existence
+    void $ getSubExperiment subExpId
+    logMessage $ fmt $ "Making sub-experiment " +| subExpId |+ " primary"
+    Q.makePrimarySubExperiment subExpId
+    getSubExperiment subExpId
 
 -- | Update name of a sub-experiment.
 setNameSubExperiment :: SubExperimentId -> Text ->
   Edna (WithId 'SubExperimentId SubExperimentResp)
 setNameSubExperiment subExpId name = do
-  logMessage $ fmt $ "Setting the name of sub-experiment " +| subExpId |+
-    " to " +| name |+ ""
-  Q.setNameSubExperiment subExpId name
-  getSubExperiment subExpId
+  -- Using @transact@ to avoid concurrent updating between existence check
+  -- and updating
+  transact $ do
+    -- Check existence
+    void $ getSubExperiment subExpId
+    logMessage $ fmt $ "Setting the name of sub-experiment " +| subExpId |+
+      " to " +| name |+ ""
+    Q.setNameSubExperiment subExpId name
+    getSubExperiment subExpId
 
 -- | Update @isSuspicious@ flag for a sub-experiment.
 setIsSuspiciousSubExperiment :: SubExperimentId -> Bool ->
   Edna (WithId 'SubExperimentId SubExperimentResp)
 setIsSuspiciousSubExperiment subExpId isSuspicious = do
-  logMessage $ fmt $ "Marking sub-experiment " +| subExpId |+ mappend " as "
-    if isSuspicious then "suspicious" else "not suspicious"
-  Q.setIsSuspiciousSubExperiment subExpId isSuspicious
-  getSubExperiment subExpId
+  -- Using @transact@ to avoid concurrent updating between existence check
+  -- and updating
+  transact $ do
+    -- Check existence
+    void $ getSubExperiment subExpId
+    logMessage $ fmt $ "Marking sub-experiment " +| subExpId |+ mappend " as "
+      if isSuspicious then "suspicious" else "not suspicious"
+    Q.setIsSuspiciousSubExperiment subExpId isSuspicious
+    getSubExperiment subExpId
 
 -- | Delete a sub-experiment with given ID. Fails if this sub-experiment is
 -- primary.
 deleteSubExperiment :: SubExperimentId -> Edna NoContent
 deleteSubExperiment subExpId = NoContent <$ do
-  -- Using @transact@ to avoid concurrent deletion between existence check and deletion
+  -- Using @transact@ to avoid concurrent deletion between existence check
+  -- and deletion
   transact $ do
-    -- Check existence (not the optimal way, but it likely doesn't matter)
-    void $ getMeasurements subExpId
+    -- Check existence
+    void $ getSubExperiment subExpId
     logMessage $ fmt $ "Deleting sub-experiment " +| subExpId |+ ""
     unlessM (Q.deleteSubExperiment subExpId) $
       throwM $ DECantDeletePrimary subExpId
@@ -93,8 +109,8 @@ newSubExperiment ::
 newSubExperiment subExpId req = do
   (removed, newResult) <- analyseNewSubExperiment subExpId req
   transact $ do
-    expId <-
-      justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
+    expId <- justOrThrow (DESubExperimentNotFound subExpId) =<<
+      Q.getExperimentId subExpId
     result <- subExperimentRecToResp <$>
       UQ.insertSubExperiment expId (nserName req) newResult
     result <$ insertRemovedMeasurements (wiId result) removed
@@ -176,8 +192,8 @@ subExperimentRecToResp SubExperimentRec {..} =
 -- | Get all measurements from sub-experiment with given ID.
 getMeasurements :: SubExperimentId -> Edna [WithId 'MeasurementId MeasurementResp]
 getMeasurements subExpId = do
-  expId <-
-    justOrThrow (DESubExperimentNotFound subExpId) =<< Q.getExperimentId subExpId
+  expId <- justOrThrow (DESubExperimentNotFound subExpId) =<<
+    Q.getExperimentId subExpId
   measurementRecs <- Q.getMeasurements expId
   removedSet <- HS.fromList . map unSqlId <$> Q.getRemovedMeasurements subExpId
   let

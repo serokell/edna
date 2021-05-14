@@ -4,9 +4,10 @@
 
 module Test.API.Util
   ( app
-  , clientEnv
   , apiTry
+  , clientEnv
   , errorWithStatus
+  , propertyTestRunner
   ) where
 
 import Universum
@@ -18,10 +19,23 @@ import Servant (Application, serve)
 import Servant.Client
   (BaseUrl(baseUrlPort), ClientEnv, ClientError(..), ClientM, mkClientEnv, parseBaseUrl,
   responseStatusCode, runClientM)
+import Servant.QuickCheck (Predicates, defaultArgs, serverSatisfies, withServantServer)
+import Servant.QuickCheck.Internal (serverDoesntSatisfy)
+import Test.Hspec (Expectation)
 
 import Edna.Setup (EdnaContext)
 import Edna.Web.API (ednaAPI)
 import Edna.Web.Server (ednaServer)
+
+import Test.Gen ()
+import Test.Orphans ()
+
+propertyTestRunner :: Bool -> Predicates -> EdnaContext -> Expectation
+propertyTestRunner does predicates ctx =
+  withServantServer ednaAPI (pure $ ednaServer ctx) $ \burl ->
+    checker ednaAPI burl defaultArgs predicates
+  where
+    checker = if does then serverSatisfies else serverDoesntSatisfy
 
 app :: EdnaContext -> IO Application
 app ctx = return $ serve ednaAPI $ ednaServer ctx

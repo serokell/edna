@@ -110,7 +110,7 @@ compoundSpec = do
       apiTry env (ceEditChemSoft cClient unknownSqlId sampleURI) `shouldThrow`
         errorWithStatus notFound404
 
-  describe "/compound/mde/{compoundId}" $ do
+  describe "PUT /compound/mde/{compoundId}" $ do
     it "allows to update mde link of a compound" $ \env -> do
       compound <- apiTry env $ ceEditMde cClient cId sampleURI
       cCheckMde compound

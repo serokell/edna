@@ -32,6 +32,7 @@ extra-deps:
 - dependent-sum-0.7.1.0
 - network-uri-json-0.4.0.0
 - prometheus-metrics-ghc-1.0.1.1
+- servant-quickcheck-0.0.10.0
 - wai-middleware-prometheus-1.0.0
 # servant-util is in dirty state and is not on Hackage.
 # Perhaps it should be renamed and maybe even split into multiple packages

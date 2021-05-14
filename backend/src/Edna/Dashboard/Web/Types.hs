@@ -5,14 +5,14 @@
 -- | Types that exist specifically for Dashboard API.
 
 module Edna.Dashboard.Web.Types
-  ( NewSubExperimentReq (..)
-  , ExperimentsResp (..)
+  ( ExperimentFileBlob (..)
+  , ExperimentMetadata (..)
   , ExperimentResp (..)
   , ExperimentSortingSpec
-  , SubExperimentResp (..)
+  , ExperimentsResp (..)
   , MeasurementResp (..)
-  , ExperimentMetadata (..)
-  , ExperimentFileBlob (..)
+  , NewSubExperimentReq (..)
+  , SubExperimentResp (..)
   ) where
 
 import Universum
@@ -77,7 +77,7 @@ data ExperimentResp = ExperimentResp
   -- ^ IDs of all sub-experiments from this experiment.
   -- Usually their number is small (≤2, maybe 3).
   , erPrimarySubExperiment :: SubExperimentId
-  -- ^ Idenfitier of the primary sub-experiment from this experiment.
+  -- ^ Identifier of the primary sub-experiment from this experiment.
   , erPrimaryIC50 :: Either Text Double
   -- ^ IC50 value computed for the primary sub-experiment. It's provided here
   -- as an optimization. It's possible to get this value by querying sub-experiment
