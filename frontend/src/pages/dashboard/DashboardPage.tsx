@@ -57,7 +57,7 @@ export const DashboardPage: FunctionComponent = () => {
   }, [loc.state, setProjectSelectedIdAtom, setCompoundSelectedIdAtom, setTargetSelectedIdAtom]);
 
   useEffect(() => {
-    if (!experiments && experimentsL.state === "hasValue" && experimentsL.contents) {
+    if (experimentsL.state === "hasValue" && experimentsL.contents) {
       setExperiments(experimentsL.contents.experiments);
     }
   }, [experiments, experimentsL]);
