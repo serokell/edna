@@ -184,6 +184,56 @@ export const filteredExperimentsQuery = selectorFamily<ExperimentsWithMean, Sort
   },
 });
 
+// TODO remove duplicate
+export const experimentsDtoQuery = selector<ExperimentsWithMeanDto>({
+  key: "FilteredExperimentsDtoQuery",
+  get: async ({ get }) => {
+    get(filteredExperimentsReqIdAtom);
+    return Api.fetchExperiments();
+  },
+});
+
+export const experimentsQuery = selectorFamily<ExperimentsWithMean, SortParamsApi>({
+  key: "DashboardExperiments",
+  get: () => ({ get }) => {
+    const { experiments, meanIC50 } = get(experimentsDtoQuery);
+
+    // TODO fix this quadratic time
+    function findName(elements: { id: number; item: { name: string } }[], id: number) {
+      return elements.find(x => x.id === id)?.item.name;
+    }
+
+    const projects = get(projectsQuery({}));
+
+    const exps: Experiment[] = experiments
+      .map(e => {
+        const projectName = findName(projects, e.item.project);
+        const compoundName = e.item.compound[1];
+        const targetName = e.item.target[1];
+        const methodologyName = e.item.methodology ? e.item.methodology[1] : undefined;
+        return {
+          id: e.id,
+          projectName,
+          compoundName,
+          targetName,
+          methodologyName,
+          uploadDate: e.item.uploadDate,
+          subExperiments: e.item.subExperiments,
+          primarySubExperimentId: e.item.primarySubExperiment,
+          primaryIC50: e.item.primaryIC50,
+        };
+      })
+      .filter(
+        e => isDefined(e.projectName) && isDefined(e.compoundName) && isDefined(e.targetName)
+      ) as Experiment[];
+
+    return {
+      experiments: exps,
+      meanIC50,
+    };
+  },
+});
+
 export const selectedSubExperimentsQuery = selector<SubExperimentWithMeasurements[]>({
   key: "SelectedSubExperiments",
   get: ({ get }) => {
