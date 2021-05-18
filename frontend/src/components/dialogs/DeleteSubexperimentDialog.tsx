@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import React from "react";
-import { useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { SubExperimentDto } from "../../api/types";
-import { modalDialogAtom } from "../../store/atoms";
+import { modalDialogAtom, selectedSubExperimentsIdsAtom } from "../../store/atoms";
 import { DialogLayout } from "../DialogLayout/DialogLayout";
 import { Button } from "../Button/Button";
 import Api from "../../api/api";
@@ -20,6 +20,9 @@ export function DeleteSubexperimentDialog({
 }: DeleteSubexperimentDialogProps): React.ReactElement {
   const setModalDialog = useSetRecoilState(modalDialogAtom);
   const refreshFiltered = useFilteredExperimentsRefresher();
+  const [selectedSubExperimentsIds, setSelectedSubExperimentsIds] = useRecoilState(
+    selectedSubExperimentsIdsAtom
+  );
 
   return (
     <DialogLayout
@@ -55,7 +58,10 @@ export function DeleteSubexperimentDialog({
         onSubmit: async () => {
           try {
             await Api.deleteSubexperiment(subexperiment.id);
+            const curSelectedSubExperimentIds = selectedSubExperimentsIds;
+            curSelectedSubExperimentIds.delete(subexperiment.id);
             refreshFiltered();
+            setSelectedSubExperimentsIds(curSelectedSubExperimentIds);
             setModalDialog(undefined);
           } catch (ex) {
             console.log("Error on subexperiment delete", ex.message);
