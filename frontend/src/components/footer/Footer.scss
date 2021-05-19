@@ -26,4 +26,13 @@
     font-size: 0.875rem;
     color: #333;
   }
+
+  // Rotate the copyright symbol to produce copyleft.
+  // We don't use U+1F12F because we are not sure it's supported everywhere.
+  &__copyleft {
+    display: inline-block;
+    font-size: 0.875rem;
+    color: #333;
+    transform: rotate(180deg);
+  }
 }
