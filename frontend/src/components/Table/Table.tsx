@@ -24,6 +24,7 @@ interface TableProps<T extends object> {
   className?: string;
   small?: boolean;
   collapsible?: (x: T) => React.ReactNode;
+  collapsibleId?: (x: T) => number;
   defaultSortedColumn: string;
   dataOrQuery:
     | RecoilValueReadOnly<ReadonlyArray<T>>
@@ -38,6 +39,7 @@ export function Table<T extends object>({
   className,
   small,
   collapsible,
+  collapsibleId,
   dataOrQuery,
   defaultSortedColumn,
 }: TableProps<T>): React.ReactElement {
@@ -86,7 +88,7 @@ export function Table<T extends object>({
   const isCollapsible = !!collapsible;
   const lastColumnWithRightBorder = computeLastColumnWithRightBorder(columns);
   const ednaTable = cn("ednaTable");
-  const [shownColl, setShownColl] = useState<boolean[]>(new Array(data.length).fill(false));
+  const [shownColl, setShownColl] = useState<Set<number>>(new Set());
 
   function renderRows(): React.ReactElement {
     if (loadableData.state === "loading") {
@@ -121,12 +123,18 @@ export function Table<T extends object>({
                   const classNm = (e.target as any).className;
                   if (
                     isCollapsible &&
+                    collapsibleId &&
                     typeof classNm === "string" &&
                     classNm.indexOf("ednaTable__cell") !== -1
                   ) {
-                    const newShownColl = shownColl.slice();
-                    newShownColl[i] = !shownColl[i];
-                    setShownColl(newShownColl);
+                    setShownColl(prev => {
+                      const cId = collapsibleId(row.original);
+                      if (prev.has(cId)) {
+                        prev.delete(cId);
+                        return new Set(prev);
+                      }
+                      return new Set(prev.add(cId));
+                    });
                   }
                 }}
               >
@@ -145,11 +153,13 @@ export function Table<T extends object>({
                   );
                 })}
               </tr>
-              {collapsible && shownColl[i] && (
+              {collapsible && collapsibleId && shownColl.has(collapsibleId(row.original)) && (
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className={ednaTable("cellShownCollapse", { shown: shownColl[i] })}
+                    className={ednaTable("cellShownCollapse", {
+                      shown: shownColl.has(collapsibleId(row.original)),
+                    })}
                   >
                     {collapsible(row.original)}
                   </td>
