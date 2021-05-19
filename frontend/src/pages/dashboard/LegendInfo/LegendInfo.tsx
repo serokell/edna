@@ -36,7 +36,7 @@ export const LegendInfo: FunctionComponent<LegendInfoProps> = ({
             <div>
               <LegendSvg fill={sex.color} stroke={sex.color} />
             </div>
-            <span>{`(${sex.subexperiment.target} ⟶ ${sex.subexperiment.compound})`}</span>
+            <span>{`(${sex.subexperiment.compound} ⟶ ${sex.subexperiment.target})`}</span>
             <div>
               <span className={legendInfo("ic50")}>IC50:</span>
               <span>{` ${sex.subexperiment.meta.item.result.Right[2]}`}</span>
