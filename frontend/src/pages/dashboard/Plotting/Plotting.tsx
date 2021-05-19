@@ -135,7 +135,7 @@ export default function PlotlyChart({
       type: "scatter",
       mode: "lines",
       marker: { color },
-      hovertemplate: `(${subexperiment.target} ⟶ ${subexperiment.compound})<br>IC50: ${subexperiment.meta.item.result.Right[2]}<extra></extra>`,
+      hovertemplate: `(${subexperiment.compound} ⟶ ${subexperiment.target})<br>IC50: ${subexperiment.meta.item.result.Right[2]}<extra></extra>`,
     };
   });
 
