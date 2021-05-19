@@ -22,7 +22,7 @@ import {
   targetIdSelectedAtom,
 } from "../../store/atoms";
 import PlotlyChart from "./Plotting/Plotting";
-import { filteredExperimentsQuery, selectedSubExperimentsExtraQuery } from "../../store/selectors";
+import { experimentsQuery, selectedSubExperimentsExtraQuery } from "../../store/selectors";
 import {
   Experiment,
   negateTableSize,
@@ -43,7 +43,7 @@ export const DashboardPage: FunctionComponent = () => {
   const setProjectSelectedIdAtom = useSetRecoilState(projectSelectedIdAtom);
   const setCompoundSelectedIdAtom = useSetRecoilState(compoundIdSelectedAtom);
   const setTargetSelectedIdAtom = useSetRecoilState(targetIdSelectedAtom);
-  const experimentsL = useRecoilValueLoadable(filteredExperimentsQuery({}));
+  const experimentsL = useRecoilValueLoadable(experimentsQuery({}));
   const [experiments, setExperiments] = useState<Experiment[] | undefined>(undefined);
 
   const loc = useLocation();
