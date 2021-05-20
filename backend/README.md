@@ -16,8 +16,9 @@ By default it uses `stack`, but you can set `EDNA_USE_CABAL=1` to use `cabal`.
 So first of all you need to enter [`poetry`](https://python-poetry.org/) shell with all dependencies available.
 `poetry` commands should run from the folder with Python code, so start with [`cd ../analysis`](../analysis).
 There, do `poetry install` to install dependencies and then `poetry shell` to make them available.
+After that go back to this folder (`cd ../backend`).
 
-Depending on the tool you used to build `edna-server` you need to run of these commands:
+Depending on the tool you used to build `edna-server` you need to run one of these commands:
 * `stack exec -- edna-server -c dev-config.yaml`
 * `cabal run -- edna-server -c dev-config.yaml`
 

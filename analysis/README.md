@@ -10,9 +10,9 @@ This folder contains implementation of Edna data analysis in Python.
 
 ## Usage
 
-First, normally you don't want to call this code directly, it is supposed to be called from `edna-server`.
+Normally you don't need to call this code directly, it is supposed to be called from `edna-server`, but sometimes you may want to test specifically analysis part of Edna.
 We use [`poetry`](https://python-poetry.org/) for dependency management, though you can install dependencies using your
-favorite way and not use `poetry`.
+favorite way (e. g. your system package manager) and not use `poetry`.
 To get shell with all dependencies installed run `poetry install` and then `poetry shell` from this directory.
 
 ## Features
