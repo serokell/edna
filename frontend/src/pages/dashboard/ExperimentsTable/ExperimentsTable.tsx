@@ -256,6 +256,7 @@ export function ExperimentsTableSuspendable({
                   <ExperimentsCollapse experiment={e} expanded={expTableSize === "expanded"} />
                 </SuspenseSpinner>
               )}
+              collapsibleId={e => e.id}
             />
           </div>
         </>
