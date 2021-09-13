@@ -3,29 +3,17 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 {
+  nixConfig = {
+    flake-registry = "https://github.com/serokell/flake-registry/raw/master/flake-registry.json";
+  };
+
   inputs = {
-    nixpkgs.url = "github:serokell/nixpkgs";
-    haskell-nix.url = "github:input-output-hk/haskell.nix";
-    flake-utils.url = "github:numtide/flake-utils";
-    serokell-nix.url = "github:serokell/serokell.nix";
-
-    deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
-
-    hackage = {
-      url = "github:input-output-hk/hackage.nix";
-      flake = false;
+    haskell-nix = {
+      inputs.hackage.follows = "hackage";
+      inputs.stackage.follows = "stackage";
     };
-
-    stackage = {
-      url = "github:input-output-hk/stackage.nix";
-      flake = false;
-    };
-
-    nix-npm-buildpackage = {
-      url = "github:serokell/nix-npm-buildpackage";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    hackage.flake = false;
+    stackage.flake = false;
   };
 
   outputs = { self, nixpkgs, haskell-nix, serokell-nix, deploy-rs, hackage, stackage, nix-npm-buildpackage, flake-utils }:
@@ -71,11 +59,7 @@
 
       pkgs = pkgsWith nixpkgs.legacyPackages.${system} [
         nix-npm-buildpackage.overlay
-        (haskell-nix.internal.overlaysOverrideable {
-          sourcesOverride = haskell-nix.internal.sources // {
-            inherit hackage stackage;
-          };
-        }).combined-eval-on-build
+        haskell-nix.overlay
         serokell-nix.overlay
       ];
 
