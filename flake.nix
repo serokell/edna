@@ -3,29 +3,17 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 {
+  nixConfig = {
+    flake-registry = "https://github.com/serokell/flake-registry/raw/master/flake-registry.json";
+  };
+
   inputs = {
-    nixpkgs.url = "github:serokell/nixpkgs";
-    haskell-nix.url = "github:input-output-hk/haskell.nix";
-    flake-utils.url = "github:numtide/flake-utils";
-    serokell-nix.url = "github:serokell/serokell.nix";
-
-    deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
-
-    hackage = {
-      url = "github:input-output-hk/hackage.nix";
-      flake = false;
+    haskell-nix = {
+      inputs.hackage.follows = "hackage";
+      inputs.stackage.follows = "stackage";
     };
-
-    stackage = {
-      url = "github:input-output-hk/stackage.nix";
-      flake = false;
-    };
-
-    nix-npm-buildpackage = {
-      url = "github:serokell/nix-npm-buildpackage";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    hackage.flake = false;
+    stackage.flake = false;
   };
 
   outputs = { self, nixpkgs, haskell-nix, serokell-nix, deploy-rs, hackage, stackage, nix-npm-buildpackage, flake-utils }:
@@ -71,11 +59,7 @@
 
       pkgs = pkgsWith nixpkgs.legacyPackages.${system} [
         nix-npm-buildpackage.overlay
-        (haskell-nix.internal.overlaysOverrideable {
-          sourcesOverride = haskell-nix.internal.sources // {
-            inherit hackage stackage;
-          };
-        }).combined-eval-on-build
+        haskell-nix.overlay
         serokell-nix.overlay
       ];
 
@@ -115,20 +99,10 @@
         frontend-tslint = frontendCheck "yarn run tslint";
       };
 
-      # nixpkgs has an older version of stack2cabal which doesn't build
-      # with new libraries, use a newer version
-      packages.stack2cabal = (pkgs.haskellPackages.callHackageDirect {
-        pkg = "stack2cabal";
-        ver = "1.0.11";
-        sha256 = "00vn1sjrsgagqhdzswh9jg0cgzdgwadnh02i2fcif9kr5h0khfw9";
-      } { }).overrideAttrs (o: {
-        src = pkgs.fetchFromGitHub {
-          owner = "hasufell";
-          repo = "stack2cabal";
-          rev = "afa113beb77569ff21f03fade6ce39edc109598d";
-          sha256 = "1zwg1xkqxn5b9mmqafg87rmgln47zsmpgdkly165xdzg38smhmng";
-        };
-        version = "1.0.12";
+      # stack2cabal is broken because of strict constraints, set 'jailbreak' to ignore them
+      packages.stack2cabal = pkgs.haskell.lib.overrideCabal pkgs.haskellPackages.stack2cabal (drv: {
+        jailbreak = true;
+        broken = false;
       });
 
       devShell = pkgs.mkShell {
