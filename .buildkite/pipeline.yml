@@ -6,4 +6,5 @@ steps:
 # Checks for the whole repo
   - label: check trailing whitespace
     commands:
+      - bash -c whoami
       - docker run hello-world
