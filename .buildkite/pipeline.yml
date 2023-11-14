@@ -6,5 +6,6 @@ steps:
 # Checks for the whole repo
   - label: check trailing whitespace
     commands:
-      - bash -c whoami
+      - bash -c groups
+      - bash -c ls -lah /run/user/1155/docker.sock
       - docker run hello-world
