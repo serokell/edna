@@ -7,5 +7,5 @@ steps:
   - label: check trailing whitespace
     commands:
       - bash -c groups
-      - bash -c ls -lah /run/user/1155/docker.sock
+      - bash -c "ls -lah /run/user/1155/docker.sock"
       - docker run hello-world
