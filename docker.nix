@@ -8,7 +8,8 @@
 , locale
 , linkFarm
 , runCommand
-, writeTextDir }:
+, writeTextDir
+, creationDate }:
 
 let
   inherit (dockerTools) buildLayeredImage buildImage pullImage;
@@ -25,6 +26,7 @@ in
   in buildLayeredImage {
     name = "ghcr.io/serokell/edna-backend";
     tag = "latest";
+    created = creationDate;
 
     contents = [
       backend
@@ -77,6 +79,7 @@ in
   in buildImage {
     name = "ghcr.io/serokell/edna-frontend";
     tag = "latest";
+    created = creationDate;
     fromImage = nginx;
     contents = [
       html

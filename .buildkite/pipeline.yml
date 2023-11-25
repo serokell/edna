@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+# Doesn't need to be precise
+env:
+    CURRENT_DATE: $(date --iso-8601=seconds)
+
 steps:
 # Checks for the whole repo
   - label: check trailing whitespace
@@ -29,7 +33,7 @@ steps:
       - nix-build -A checks.x86_64-linux.backend-test
   - label: backend image
     commands:
-      - nix-build -A packages.x86_64-linux.docker-backend
+      - nix-build -A packages.x86_64-linux.docker-backend --argstr creationDate "$CURRENT_DATE"
       - buildkite-agent artifact upload "$(readlink -f result)"
   - label: backend hlint
     commands:
@@ -41,7 +45,7 @@ steps:
       - nix-build -A packages.x86_64-linux.frontend
   - label: frontend image
     commands:
-      - nix-build -A packages.x86_64-linux.docker-frontend
+      - nix-build -A packages.x86_64-linux.docker-frontend --argstr creationDate "$CURRENT_DATE"
       - buildkite-agent artifact upload "$(readlink -f result)"
   - label: frontend tscompile
     commands:
@@ -66,9 +70,9 @@ steps:
     branches: "demo"
   - label: Push backend image to registry
     commands:
-      - nix-shell --run 'scripts/docker-push.sh docker-archive:$(nix-build -A packages.x86_64-linux.docker-backend) docker://ghcr.io/serokell/edna-backend:latest'
+      - nix-shell --run 'scripts/docker-push.sh docker-archive:$(nix-build -A packages.x86_64-linux.docker-backend --argstr creationDate "$CURRENT_DATE") docker://ghcr.io/serokell/edna-backend:latest'
     branches: "master"
   - label: Push frontend image to registry
     commands:
-      - nix-shell --run 'scripts/docker-push.sh docker-archive:$(nix-build -A packages.x86_64-linux.docker-frontend) docker://ghcr.io/serokell/edna-frontend:latest'
+      - nix-shell --run 'scripts/docker-push.sh docker-archive:$(nix-build -A packages.x86_64-linux.docker-frontend --argstr creationDate "$CURRENT_DATE") docker://ghcr.io/serokell/edna-frontend:latest'
     branches: "master"
